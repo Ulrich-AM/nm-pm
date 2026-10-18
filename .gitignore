@@ -1,0 +1,22 @@
+# Build outputs
+**/build/
+**/dist/
+**/.vs/
+**/CMakeFiles/
+**/CMakeCache.txt
+
+# Generated experiment artifacts
+**/captures/
+**/results/**/*.csv
+**/results/**/*.svg
+**/results/**/*.json
+**/results/**/*.txt
+!**/results/**/README.txt
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+*.user
+*.suo
