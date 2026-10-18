@@ -8,6 +8,16 @@ This study investigates how mathematically three-dimensional orientation can be 
 
 The study is application-independent.
 
+## Website
+
+The clean project entry point is:
+
+```text
+projects/sprite-projection/
+```
+
+On the NM-PM site this redirects to the standalone living notebook at `DOCUMENTATION.html`. The root NM-PM homepage links directly to this project entry point.
+
 ## Current research state
 
 The active prototype has reached the stabilized Phase 4 milestone:
