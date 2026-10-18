@@ -84,6 +84,10 @@ button:hover{background:var(--panel2)}
 .study:first-of-type{border-top:1px solid var(--line)}
 .study-id{font-size:11px;color:var(--dim);padding-top:2px}
 .study h3{font-size:14px!important;margin:0 0 4px!important}
+.study h3 a{color:var(--text);text-decoration:none}
+.study h3 a:hover{color:var(--link);text-decoration:underline}
+.study.open-study{transition:background .08s ease}
+.study.open-study:hover{background:var(--panel)}
 .study p{font-size:12px!important;color:var(--muted)!important;margin:0!important}
 .state{text-align:right;font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--dim);padding-top:3px}
 .note{border-left:2px solid var(--line);padding:8px 12px;margin:18px 0;color:var(--muted);font-size:12px;line-height:1.65}
@@ -155,7 +159,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
         <a class="side-label active" href="#welcome">Welcome</a>
         <a class="side-label" href="#studies">Current Studies</a>
         <div class="side-sub">
-          <a href="#sp">Sprite Projection</a>
+          <a href="projects/sprite-projection/">Sprite Projection ↗</a>
           <a href="#blood">Blood Simulation</a>
           <a href="#locomotion">Procedural Locomotion</a>
           <a href="#reactions">Physical Reactions</a>
@@ -190,10 +194,10 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <h2>Current Studies</h2>
           <p>The first NM-PM set explores rendering, simulation, animation, and persistent state across several independent technical problems.</p>
 
-          <div class="study" id="sp">
+          <div class="study open-study" id="sp">
             <div class="study-id">01</div>
-            <div><h3>View-Dependent 2D Sprite Projection for 3D Articulated Motion</h3><p>Represent mathematically 3D objects using directional 2D sprites, geometric transformation, view selection, mirroring, foreshortening, and depth-aware presentation.</p></div>
-            <div class="state">Starting first</div>
+            <div><h3><a href="projects/sprite-projection/">View-Dependent 2D Sprite Projection for 3D Articulated Motion ↗</a></h3><p>Represent mathematically 3D objects using directional 2D sprites, geometric transformation, view selection, mirroring, foreshortening, and depth-aware presentation.</p></div>
+            <div class="state">Phase 4 active</div>
           </div>
 
           <div class="study" id="blood">
