@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NM-PM / Sprite Projection Documentation</title>
+<style>
+:root{--bg:#101010;--side:#141414;--panel:#191919;--line:#363636;--line2:#555;--text:#e8e8e8;--soft:#c7c7c7;--muted:#929292;--code:#0b0b0b}
+*{box-sizing:border-box;border-radius:0!important}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.58 Arial,Helvetica,sans-serif}a{color:#eee;text-decoration:none}a:hover{text-decoration:underline}code,pre{font-family:Consolas,"Courier New",monospace}.shell{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:18px 14px}.brand{font-size:13px;font-weight:700;letter-spacing:.08em}.subtitle{font-size:11px;color:#858585;margin:4px 0 18px}.search{width:100%;background:#0d0d0d;border:1px solid var(--line2);color:#eee;padding:7px 8px;font:12px Arial;margin-bottom:14px}.group{margin:16px 0 6px;font-size:10px;color:#777;letter-spacing:.12em;text-transform:uppercase}nav a{display:block;padding:5px 8px;border-left:2px solid transparent;color:#aaa;font-size:12px}nav a:hover,nav a.active{background:#232323;color:#fff;text-decoration:none}nav a.active{border-left-color:#ddd}.article{max-width:1050px;margin:0 auto;padding:48px 56px 100px}.crumb{font-size:11px;color:#777;margin-bottom:20px}h1{font-size:34px;line-height:1.15;margin:0 0 12px}.lede{font-size:17px;color:#aaa;max-width:860px}.meta{display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px 0;color:#888;font-size:11px;margin:28px 0 36px}h2{font-size:23px;margin:50px 0 14px;border-bottom:1px solid var(--line);padding-bottom:7px}h3{font-size:17px;margin:28px 0 9px}p,li{color:var(--soft)}ul,ol{padding-left:24px}li{margin:5px 0}.note,.result{border-left:3px solid #777;background:var(--panel);padding:10px 14px;margin:18px 0;color:var(--soft)}.result{border-left-color:#ddd}.label{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:3px}pre{background:var(--code);border:1px solid var(--line);padding:14px;overflow:auto;color:#ddd;font-size:13px}.equation{font-family:Georgia,"Times New Roman",serif;background:#121212;border:1px solid var(--line);padding:17px;text-align:center;font-size:18px;margin:18px 0}table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13px}th,td{border:1px solid var(--line);padding:8px 9px;text-align:left}th{background:#202020}td{color:#bbb}.figure{border:1px solid var(--line);background:#0c0c0c;margin:20px 0;padding:14px}.figure strong{display:block;color:#ddd;margin-bottom:5px}.figure p{font-size:12px;color:#999;margin:0}.log{border:1px solid var(--line);background:#111}.row{display:grid;grid-template-columns:120px 130px 1fr;border-bottom:1px solid #2c2c2c}.row:last-child{border-bottom:0}.row div{padding:7px 9px;font-size:12px;color:#aaa}.row div:first-child,.row div:nth-child(2){border-right:1px solid #2c2c2c;color:#ddd}.footer{margin-top:60px;border-top:1px solid var(--line);padding-top:16px;color:#777;font-size:11px}.top{position:fixed;right:18px;bottom:16px;border:1px solid #555;background:#171717;padding:6px 9px;font-size:11px}html,body,aside,pre{scrollbar-width:thin;scrollbar-color:#555 #161616}@media(max-width:850px){.shell{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}.article{padding:30px 22px 70px}}
+</style>
+</head>
+<body id="top">
+<div class="shell">
+<aside>
+<div class="brand">NM-PM</div>
+<div class="subtitle">New Methodology, Powered by Machines / sprite projection</div>
+<input id="search" class="search" placeholder="Filter sections...">
+<nav id="nav">
+<div class="group">Start</div>
+<a href="#overview">Overview</a>
+<a href="#nm-pm">NM-PM Context</a>
+<a href="#authorship">AI Transparency</a>
+<a href="#repository">Repository Integration</a>
+<a href="#releases">Release Model</a>
+<a href="#status">Current Status</a>
+<div class="group">System</div>
+<a href="#coordinates">Coordinate Model</a>
+<a href="#subjects">Subjects</a>
+<a href="#bank">Orientation Bank</a>
+<a href="#methods">Reconstruction Methods</a>
+<a href="#roll">Roll Policy</a>
+<a href="#metrics">Measurement</a>
+<div class="group">Experiments</div>
+<a href="#registry">Experiment Registry</a>
+<a href="#evidence">Visual Evidence</a>
+<a href="#failures">Failed Approaches</a>
+<a href="#promotion">Promotion Rule</a>
+<div class="group">Reference</div>
+<a href="#algorithm">Current Algorithm</a>
+<a href="#build">Build and Validation</a>
+<a href="#limitations">Limitations</a>
+<a href="#log">Research Log</a>
+<a href="#versions">Version History</a>
+<a href="#references">References</a>
+</nav>
+</aside>
+<main><article class="article">
+<div class="crumb">NM-PM / projects / sprite-projection / DOCUMENTATION.html</div>
+<h1>View-Dependent 2D Sprite Projection for 3D Articulated Motion</h1>
+<p class="lede">Living technical notebook for representing mathematically three-dimensional orientation using stored two-dimensional view captures, geometric correction, interpolation, and depth-aware composition.</p>
+<div class="meta"><span>STATUS: PHASE 4 STABILIZED</span><span>INTERNAL BUILD: 1.6.1</span><span>REPOSITORY-INTEGRATED</span><span>UPDATED: 2026-10-18</span></div>
+
+<section id="overview"><h2>Overview</h2>
+<p>The study asks how accurately, smoothly, and efficiently the projected appearance of a rigid or articulated object can be approximated from a finite set of two-dimensional raster views when the true three-dimensional pose and camera pose are already known.</p>
+<p>This is not a computer-vision problem. The underlying object orientation is known mathematically. The runtime renderer chooses and transforms stored sprite views to approximate the expected projection.</p>
+<div class="note"><span class="label">Documentation rule</span>Measurements are not written as findings until the native experiment has actually been executed. Failed approaches, visual bugs, and superseded hypotheses remain in the record.</div>
+</section>
+
+<section id="nm-pm"><h2>NM-PM Context</h2>
+<p>This study belongs to <strong>NM-PM, New Methodology, Powered by Machines</strong>, a monorepo of independent technical experiments developed through human-directed research with substantial generative-AI assistance.</p>
+<p>Canonical repository: <code>Ulrich-AM/nm-pm</code>. Canonical study path: <code>projects/sprite-projection/</code>.</p>
+<p>The project remains application-independent. Other NM-PM studies may explore blood simulation, procedural locomotion, physical human reactions, persistent surface mapping, and later topics.</p>
+</section>
+
+<section id="authorship"><h2>Authorship and AI Transparency</h2>
+<p>NM-PM does not present the work as if every algorithm, derivation, implementation detail, line of code, or documentation passage were manually produced by the human researcher.</p>
+<table><thead><tr><th>Human-directed responsibilities</th><th>AI-assisted responsibilities</th></tr></thead><tbody><tr><td>Research questions, concepts, evaluation, references, visual evidence, testing, rejection of unsuitable approaches, design decisions, and study direction.</td><td>Implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation assistance, and research organization.</td></tr></tbody></table>
+<p>The repository-level <code>AI_DISCLOSURE.md</code> is the canonical disclosure.</p>
+</section>
+
+<section id="repository"><h2>Repository Integration</h2>
+<p>The study is now maintained directly inside the NM-PM monorepo instead of being developed as detached milestone ZIP files.</p>
+<pre>nm-pm/
+├── README.md
+├── AI_DISCLOSURE.md
+├── .gitignore
+├── .github/workflows/
+│   ├── sprite-projection-ci.yml
+│   └── sprite-projection-release.yml
+└── projects/
+    └── sprite-projection/
+        ├── DOCUMENTATION.html
+        ├── README.md
+        ├── RELEASES.md
+        ├── DEPENDENCIES.md
+        ├── CMakeLists.txt
+        ├── build_windows.bat
+        ├── run_windows.bat
+        ├── src/
+        ├── tests/
+        ├── experiments/
+        ├── figures/
+        └── assets/</pre>
+<p>Generated <code>build/</code>, <code>captures/</code>, and transient experiment result files are ignored by default. Reproducible source, experiment definitions, selected evidence, and documentation remain version-controlled.</p>
+</section>
+
+<section id="releases"><h2>Release Model</h2>
+<p>Internal harness versions and NM-PM milestone releases are separate concepts. The current native harness remains build <code>1.6.1</code>. Future stable project tags use forms such as <code>sprite-projection-v0.1.0</code>.</p>
+<p>Ordinary source changes trigger the project CI workflow. Deliberately pushing a matching release tag triggers a separate Windows workflow that builds Release, runs the test suite, packages the executable with documentation and disclosure, and creates the GitHub Release.</p>
+<div class="note"><span class="label">Release policy</span>GitHub Releases represent useful checkpoints, not every experiment. The repository branch and this notebook remain the canonical research history.</div>
+</section>
+
+<section id="status"><h2>Current Status</h2>
+<table><thead><tr><th>Milestone</th><th>Status</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>Phase 1</td><td>Complete</td><td>Coordinate, projection, and C0 calibration.</td></tr>
+<tr><td>Phase 2</td><td>Complete</td><td>Disk-backed capture banks and initial transformation methods.</td></tr>
+<tr><td>Phase 3</td><td>Implemented</td><td>Quantitative yaw evaluation and DUAL reconstruction.</td></tr>
+<tr><td>Phase 4</td><td>Implemented</td><td>40-sprite yaw x pitch bank, GRID4, screen-space roll, and E4 evaluation.</td></tr>
+<tr><td>Phase 4 maintenance</td><td>Current</td><td>1360 x 820 default window, high-resolution resources, black experiment viewports, NM-PM repository integration.</td></tr>
+</tbody></table>
+</section>
+
+<section id="coordinates"><h2>Coordinate Model</h2>
+<ul><li>+X points right.</li><li>+Y points up.</li><li>+Z points toward the default camera.</li><li>The camera looks along -Z.</li><li>The system is right-handed.</li><li>Rotation order is yaw, then pitch, then roll.</li></ul>
+<div class="equation">v<sub>screen</sub> = P<sub>ortho</sub>(R<sub>roll</sub> R<sub>pitch</sub> R<sub>yaw</sub> v)</div>
+<p>Orthographic projection intentionally ignores camera-space Z for screen X and Y. Z remains available for future depth ordering.</p>
+</section>
+
+<section id="subjects"><h2>Subjects</h2>
+<h3>C0</h3><p>C0 is the permanent unit-cube calibration subject. It verifies coordinate signs, anchor indexing, angle wrapping, and basic projection behavior.</p>
+<h3>A1-r1</h3><p>A1 is deliberately asymmetric so directional errors cannot hide behind cube symmetry. It consists of a core cuboid, raised top cuboid, and offset arm cuboid.</p>
+<pre>CORE center=( 0.00, 0.00, 0.00) half=(0.82,0.54,0.34)
+TOP  center=( 0.36, 0.73, 0.08) half=(0.32,0.24,0.18)
+ARM  center=(-0.93,-0.18,-0.06) half=(0.27,0.21,0.20)</pre>
+</section>
+
+<section id="bank"><h2>Orientation Bank</h2>
+<p>The current capture bank uses eight yaw columns and five pitch rows.</p>
+<pre>Yaw:   0, 45, 90, 135, 180, 225, 270, 315 degrees
+Pitch: -60, -30, 0, +30, +60 degrees
+Roll:  not captured</pre>
+<p>This creates 40 stored 128 x 128 captures per subject. Captures are written to PNG files, then reloaded from disk before the sprite approximation uses them. This deliberately separates the reference renderer from the runtime sprite representation.</p>
+</section>
+
+<section id="methods"><h2>Reconstruction Methods</h2>
+<table><thead><tr><th>Method</th><th>Description</th></tr></thead><tbody>
+<tr><td>NEAR</td><td>Select the nearest stored yaw and pitch view without residual correction.</td></tr>
+<tr><td>STRETCH</td><td>Heuristic scale correction driven by yaw residual.</td></tr>
+<tr><td>SHEAR</td><td>Strip-based horizontal shear driven by yaw residual.</td></tr>
+<tr><td>AFFINE</td><td>Combined scale, shear, and translation.</td></tr>
+<tr><td>DUAL</td><td>Blend neighboring yaw sprites according to angular position.</td></tr>
+<tr><td>GRID4</td><td>Blend four surrounding yaw x pitch samples.</td></tr>
+</tbody></table>
+<p>The Phase 2 NEAR, STRETCH, SHEAR, and AFFINE formulas remain frozen during later comparisons so later methods do not quietly redefine the baseline.</p>
+</section>
+
+<section id="roll"><h2>Roll Policy</h2>
+<p>Roll is reconstructed after yaw and pitch as ordinary two-dimensional screen rotation. It does not receive its own capture dimension. Phase 4 includes a dedicated roll check so this assumption can be rejected if the measured result is inadequate.</p>
+</section>
+
+<section id="metrics"><h2>Measurement</h2>
+<p>Current quantitative evaluation records:</p>
+<ul><li>silhouette intersection-over-union;</li><li>symmetric boundary error in pixels;</li><li>centroid displacement in pixels;</li><li>requested orientation, selected anchors, and residual angles.</li></ul>
+<p>E3 sweeps all yaw angles. E4 samples yaw and pitch and separately checks roll. Numerical conclusions remain pending until native experiment exports are produced and reviewed.</p>
+</section>
+
+<section id="registry"><h2>Experiment Registry</h2>
+<table><thead><tr><th>ID</th><th>Legacy label</th><th>Status</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>SP-001</td><td>Phase 1 / C0</td><td>Completed</td><td>Coordinate conventions and orthographic calibration.</td></tr>
+<tr><td>SP-002</td><td>Phase 2.1</td><td>Completed</td><td>Frozen disk-backed capture and reload pipeline.</td></tr>
+<tr><td>SP-003</td><td>Phase 2.2 / E3.1</td><td>Implemented</td><td>Baseline reconstruction comparison.</td></tr>
+<tr><td>SP-004</td><td>E3.2</td><td>Implemented</td><td>DUAL neighboring-yaw reconstruction.</td></tr>
+<tr><td>SP-005</td><td>Phase 4 / E4</td><td>Implemented, native results pending</td><td>Yaw x pitch bank, GRID4, and screen-space roll.</td></tr>
+</tbody></table>
+<p>Experiment identifiers are durable. A failed experiment remains part of the registry rather than disappearing from the research history.</p>
+</section>
+
+<section id="evidence"><h2>Visual Evidence</h2>
+<div class="figure"><strong>Figure SP-REF-001 - orientation-grid reference</strong><p>User-provided example showing view samples arranged across two orientation axes. It motivated the Phase 4 yaw x pitch contact-sheet structure.</p></div>
+<div class="figure"><strong>Figure SP-FAIL-001 - blank sprite approximation viewport</strong><p>Phase 2.1 screenshot showed populated anchor thumbnails while the main sprite viewport remained blank. This isolated the fault to the custom large-view textured-quad path, which was removed.</p></div>
+<div class="figure"><strong>Figure SP-UI-001 - oversized Phase 4 window</strong><p>Native screenshot showed the 1600 x 980 default exceeding usable desktop height and hiding the title bar. Maintenance build 1.6.1 reduced the default to 1360 x 820 while keeping the high-resolution font atlas and 128 x 128 capture bank.</p></div>
+<p>Original visual evidence is retained with the project work products. Additional screenshots and video frames should be added when behavior cannot be understood confidently from text alone.</p>
+</section>
+
+<section id="failures"><h2>Failed Approaches</h2>
+<p><strong>Custom low-level textured quad.</strong> The large sprite view failed while the same disk PNGs rendered normally in the anchor thumbnails. The custom path was removed in favor of ordinary raylib texture drawing and strip-based deformation.</p>
+<p><strong>Always-visible reference ghost.</strong> A smoothly rotating diagnostic ghost made discrete sprite switching appear smoother than it actually was. The ghost is now optional and disabled by default.</p>
+<p><strong>Mistaken external A1 sprite sheet.</strong> An early supplied sheet was later identified as C0 material and was excluded from the A1 experimental baseline.</p>
+<p><strong>Oversized quality pass.</strong> Increasing the whole application window improved apparent readability but made normal window controls inaccessible. Quality improvements now come from source resolution, high-DPI rendering, and font rasterization instead of larger default dimensions.</p>
+</section>
+
+<section id="promotion"><h2>Promotion Rule</h2>
+<p>A technique cannot enter the eventual reusable reference implementation in the same experiment that invents it. Promotion requires independent confirmation:</p>
+<ol><li>the method is defined procedurally or mathematically;</li><li>it beats or usefully complements a frozen baseline;</li><li>it is tested on a second object not used to design it;</li><li>failure conditions are characterized;</li><li>parameters are reproducible;</li><li>no frame-specific manual tuning is required;</li><li>a fallback is documented.</li></ol>
+</section>
+
+<section id="algorithm"><h2>Current Algorithm</h2>
+<pre>1. Read camera-relative yaw, pitch, and roll.
+2. Locate surrounding yaw columns.
+3. Locate nearest or surrounding pitch rows.
+4. Select a reconstruction method.
+5. Use only frozen disk-backed sprite captures.
+6. Reconstruct yaw/pitch appearance.
+7. Apply roll as 2D screen rotation.
+8. Draw at the projected screen position and depth.
+9. When requested, compare against the reference projection and export metrics.</pre>
+</section>
+
+<section id="build"><h2>Build and Validation</h2>
+<p>The harness targets C++20 and raylib 6.2. On Windows:</p>
+<pre>build_windows.bat
+run_windows.bat</pre>
+<p>The build script configures CMake, compiles the Release target, runs the test suite, and launches the application. The current non-UI suite contains 16 tests covering coordinate conventions, yaw anchors, silhouette metrics, and pitch-grid interpolation.</p>
+<p>The monorepo also includes GitHub Actions CI for ordinary source changes and a separate tag-triggered release workflow.</p>
+</section>
+
+<section id="limitations"><h2>Limitations</h2>
+<ul><li>The pitch bank clamps outside +/-60 degrees.</li><li>GRID4 can ghost when visibility changes strongly between source views.</li><li>Perspective projection is outside the current experiment.</li><li>Only rigid subjects have been evaluated so far.</li><li>Phase 3 and Phase 4 quantitative findings are pending native execution and review.</li><li>The light application chrome remains an interface experiment. The NM-PM documentation house style remains dark grayscale.</li><li>No reconstruction method has yet passed the promotion rule for the final reference implementation.</li></ul>
+</section>
+
+<section id="log"><h2>Research Log</h2>
+<div class="log">
+<div class="row"><div>2026-10-18</div><div>SP-001</div><div>C0 coordinate and projection calibration established.</div></div>
+<div class="row"><div>2026-10-18</div><div>SP-002</div><div>Disk capture, export, and reload pipeline implemented.</div></div>
+<div class="row"><div>2026-10-18</div><div>SP-003 / SP-004</div><div>Quantitative yaw evaluator and DUAL method implemented.</div></div>
+<div class="row"><div>2026-10-18</div><div>SP-005</div><div>40-view yaw x pitch bank, GRID4, and roll policy implemented.</div></div>
+<div class="row"><div>2026-10-18</div><div>MAINT-4A</div><div>Window scale corrected and black experiment viewports restored without reducing capture or font source resolution.</div></div>
+<div class="row"><div>2026-10-18</div><div>REPO-INIT</div><div>Canonical C++ source, documentation, CI, and release automation migrated into the NM-PM monorepo.</div></div>
+</div>
+</section>
+
+<section id="versions"><h2>Version History</h2>
+<table><thead><tr><th>Internal build</th><th>Change</th></tr></thead><tbody>
+<tr><td>1.0.x</td><td>C0 native calibration.</td></tr>
+<tr><td>1.3.x</td><td>Disk-backed capture banks.</td></tr>
+<tr><td>1.4.x</td><td>Runtime method comparison and UI-quality passes.</td></tr>
+<tr><td>1.5.0</td><td>Phase 3 quantitative yaw experiment.</td></tr>
+<tr><td>1.6.0</td><td>Phase 4 yaw x pitch grid, GRID4, screen-space roll, light UI experiment, and E4.</td></tr>
+<tr><td>1.6.1</td><td>Phase 4 stabilization: 1360 x 820 default, black viewports, high-resolution resources retained, NM-PM integration.</td></tr>
+</tbody></table>
+<p>Future GitHub Releases use separate project tags such as <code>sprite-projection-v0.1.0</code>.</p>
+</section>
+
+<section id="references"><h2>References</h2>
+<ul><li><strong>raylib 6.2.</strong> Native windowing, input, font, 2D drawing, render-texture capture, and PNG I/O dependency.</li><li><strong>NM-PM repository conventions.</strong> Living documentation, durable experiment IDs, AI transparency, failed-experiment preservation, and milestone release policy.</li><li><strong>User-provided visual evidence.</strong> Orientation-grid reference and native UI screenshots used to isolate rendering and layout problems.</li></ul>
+</section>
+
+<div class="footer">NM-PM / Sprite Projection / living technical documentation / Phase 4 repository integration checkpoint.</div>
+</article></main></div>
+<a class="top" href="#top">TOP</a>
+<script>
+const search=document.getElementById('search');
+const links=[...document.querySelectorAll('#nav a')];
+search.addEventListener('input',()=>{const q=search.value.trim().toLowerCase();links.forEach(a=>a.style.display=!q||a.textContent.toLowerCase().includes(q)?'block':'none')});
+const targets=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const observer=new IntersectionObserver(entries=>{const v=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!v)return;links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+v.target.id))},{rootMargin:'-15% 0px -70% 0px',threshold:[0,.2,.5,1]});
+targets.forEach(t=>observer.observe(t));
+</script>
+</body></html>
