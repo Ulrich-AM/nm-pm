@@ -1,0 +1,50 @@
+name: Sprite Projection Release
+
+on:
+  push:
+    tags:
+      - "sprite-projection-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projects/sprite-projection
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Run tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Package Windows build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item build/Release/vdspr_phase4.exe dist/SpriteProjection.exe
+          Copy-Item README.md dist/README.md
+          Copy-Item DOCUMENTATION.html dist/DOCUMENTATION.html
+          Copy-Item ../../AI_DISCLOSURE.md dist/AI_DISCLOSURE.md
+          Copy-Item DEPENDENCIES.md dist/DEPENDENCIES.md
+          Compress-Archive -Path dist/* -DestinationPath sprite-projection-windows-x64.zip -Force
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            "sprite-projection-windows-x64.zip" `
+            --title "Sprite Projection ${{ github.ref_name }}" `
+            --generate-notes
