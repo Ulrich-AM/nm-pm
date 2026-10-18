@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NM-PM — New Methodology, Powered by Machines</title>
+<meta name="description" content="NM-PM is a collection of independent experimental systems developed through human-directed research and machine-assisted implementation.">
+<style>
+:root{
+  --bg:#000;
+  --panel:#050505;
+  --panel2:#0a0a0a;
+  --line:#242424;
+  --line2:#3b3b3b;
+  --text:#d8d8d8;
+  --muted:#818181;
+  --bright:#f4f4f4;
+  --soft:#b8b8b8;
+  --code:#0d0d0d;
+}
+html[data-theme="light"]{
+  --bg:#efefef;
+  --panel:#f6f6f6;
+  --panel2:#e5e5e5;
+  --line:#c8c8c8;
+  --line2:#9b9b9b;
+  --text:#151515;
+  --muted:#666;
+  --bright:#000;
+  --soft:#3d3d3d;
+  --code:#e8e8e8;
+}
+*{box-sizing:border-box;border-radius:0!important}
+html{scroll-behavior:smooth}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{overflow:hidden}
+button,a,input{font:inherit}
+button{color:var(--text);background:var(--panel2);border:1px solid var(--line2);padding:4px 8px;cursor:pointer}
+button:hover{background:var(--text);color:var(--bg)}
+a{color:inherit}
+#shell{height:100vh;display:grid;grid-template-columns:202px 1fr;min-width:0}
+#sidebar{
+  background:var(--panel);border-right:1px solid var(--line2);
+  display:flex;flex-direction:column;min-height:0
+}
+#brand{padding:16px 14px 12px;border-bottom:1px solid var(--line)}
+#brand .mark{font-size:23px;font-weight:700;letter-spacing:.08em;color:var(--bright)}
+#brand .name{font-size:10px;line-height:1.45;letter-spacing:.12em;color:var(--muted);margin-top:4px;text-transform:uppercase}
+#themeRow{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:8px;border-bottom:1px solid var(--line)}
+#themeRow button{font-size:10px;height:25px}
+#nav{padding:7px 0;overflow:auto;flex:1}
+.nav-group{margin-bottom:10px}
+.nav-label{padding:4px 12px;font-size:9px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.nav-link{
+  display:block;text-decoration:none;padding:6px 12px;border-left:2px solid transparent;
+  font-size:12px;color:var(--soft)
+}
+.nav-link:hover,.nav-link.active{background:var(--panel2);color:var(--bright);border-left-color:var(--bright)}
+#sideFoot{padding:9px 12px;border-top:1px solid var(--line);font-size:10px;line-height:1.45;color:var(--muted)}
+#main{min-width:0;overflow:auto;background:var(--bg)}
+#content{max-width:1100px;margin:0 auto;padding:34px 38px 70px}
+.hero{border:1px solid var(--line2);background:var(--panel);padding:26px 28px;margin-bottom:24px}
+.eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+h1{font-size:32px;line-height:1.02;margin:0;color:var(--bright);letter-spacing:-.025em}
+.subtitle{margin-top:9px;font-size:15px;line-height:1.55;color:var(--soft);max-width:760px}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:23px}
+.metric{background:var(--panel2);padding:11px 12px}
+.metric b{display:block;color:var(--bright);font-size:13px}
+.metric span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+section{scroll-margin-top:18px;margin-top:34px}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line2);padding-bottom:7px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:17px;color:var(--bright)}
+.section-head span{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+p{font-size:13px;line-height:1.68;color:var(--text);max-width:860px}
+.study-list{border-top:1px solid var(--line2)}
+.study{display:grid;grid-template-columns:46px minmax(0,1fr) 100px;gap:12px;padding:14px 8px;border-bottom:1px solid var(--line);align-items:start}
+.study-id{font-size:11px;color:var(--muted);padding-top:2px}
+.study h3{margin:0 0 4px;font-size:14px;color:var(--bright)}
+.study p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.state{text-align:right;font-size:9px;letter-spacing:.12em;color:var(--soft);text-transform:uppercase;padding-top:3px}
+.note{border-left:2px solid var(--line2);padding:9px 12px;background:var(--panel);font-size:12px;color:var(--soft);line-height:1.6;margin:12px 0}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line2);background:var(--line);gap:1px;margin:14px 0}
+.flow div{background:var(--panel);padding:14px 10px;font-size:11px;text-align:center;color:var(--soft)}
+.flow b{display:block;color:var(--bright);margin-bottom:4px;font-size:12px}
+.filetree,pre{background:var(--code);border:1px solid var(--line);padding:12px 14px;font:11px/1.55 Consolas,"Courier New",monospace;color:var(--soft);overflow:auto}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{border:1px solid var(--line);background:var(--panel);padding:14px}
+.panel h3{font-size:12px;margin:0 0 8px;color:var(--bright);text-transform:uppercase;letter-spacing:.08em}
+.panel p{font-size:12px;color:var(--muted);margin:0}
+.release-row{display:grid;grid-template-columns:130px 1fr 90px;border-bottom:1px solid var(--line);padding:8px 6px;font-size:11px}
+.release-row:first-child{border-top:1px solid var(--line2)}
+.release-row span:nth-child(1){color:var(--bright)}
+.release-row span:nth-child(2){color:var(--muted)}
+.release-row span:nth-child(3){text-align:right;color:var(--soft)}
+code{font-family:Consolas,"Courier New",monospace;background:var(--code);border:1px solid var(--line);padding:1px 4px;color:var(--bright)}
+footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
+*{scrollbar-width:thin;scrollbar-color:var(--line2) var(--panel)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--line2);border:2px solid var(--panel)}
+::-webkit-scrollbar-button{display:none}
+@media(max-width:760px){
+  body{overflow:auto}
+  #shell{height:auto;display:block}
+  #sidebar{position:sticky;top:0;height:auto;z-index:5;border-right:0;border-bottom:1px solid var(--line2)}
+  #brand{padding:10px 12px}
+  #brand .mark{font-size:18px}
+  #brand .name,#sideFoot,.nav-label{display:none}
+  #themeRow{position:absolute;right:8px;top:8px;width:120px;border:0;padding:0}
+  #nav{display:flex;overflow:auto;padding:0;border-top:1px solid var(--line)}
+  .nav-group{display:contents}
+  .nav-link{white-space:nowrap;border-left:0;border-bottom:2px solid transparent;padding:8px 10px;font-size:11px}
+  .nav-link.active{border-bottom-color:var(--bright)}
+  #main{overflow:visible}
+  #content{padding:22px 15px 50px}
+  .hero{padding:20px}
+  .hero-grid,.flow,.two-col{grid-template-columns:1fr}
+  .study{grid-template-columns:38px minmax(0,1fr)}
+  .state{grid-column:2;text-align:left}
+}
+</style>
+</head>
+<body>
+<div id="shell">
+  <aside id="sidebar">
+    <div id="brand">
+      <div class="mark">NM-PM</div>
+      <div class="name">New Methodology,<br>Powered by Machines</div>
+    </div>
+    <div id="themeRow">
+      <button id="darkBtn">DARK</button>
+      <button id="lightBtn">LIGHT</button>
+    </div>
+    <nav id="nav">
+      <div class="nav-group">
+        <div class="nav-label">Index</div>
+        <a class="nav-link active" href="#home">Home</a>
+        <a class="nav-link" href="#studies">Current Studies</a>
+        <a class="nav-link" href="#future">Future Studies</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">System</div>
+        <a class="nav-link" href="#methodology">Methodology</a>
+        <a class="nav-link" href="#documentation">Documentation</a>
+        <a class="nav-link" href="#releases">Releases</a>
+        <a class="nav-link" href="#ai">AI Transparency</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Planning</div>
+        <a class="nav-link" href="#roadmap">Roadmap</a>
+        <a class="nav-link" href="#repository">Repository Layout</a>
+      </div>
+    </nav>
+    <div id="sideFoot">
+      Experimental systems for simulation, animation, rendering and physical behavior.
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="content">
+      <section id="home" class="hero">
+        <div class="eyebrow">Independent experimental systems</div>
+        <h1>New Methodology,<br>Powered by Machines.</h1>
+        <div class="subtitle">
+          NM-PM is a collection of standalone technical studies developed through human-directed research, experimentation, evaluation, and substantial machine-assisted implementation.
+        </div>
+        <div class="hero-grid">
+          <div class="metric"><b>5</b><span>initial studies</span></div>
+          <div class="metric"><b>living</b><span>documentation model</span></div>
+          <div class="metric"><b>milestone</b><span>release strategy</span></div>
+        </div>
+      </section>
+
+      <section id="studies">
+        <div class="section-head"><h2>Current Studies</h2><span>Initial NM-PM set</span></div>
+        <div class="study-list">
+          <article class="study">
+            <div class="study-id">01</div>
+            <div><h3>View-Dependent 2D Sprite Projection for 3D Articulated Motion</h3><p>Represent mathematically 3D objects using directional 2D sprites, geometric transformation, view selection, mirroring, foreshortening and depth-aware presentation.</p></div>
+            <div class="state">Starting first</div>
+          </article>
+          <article class="study">
+            <div class="study-id">02</div>
+            <div><h3>Real-Time Hybrid Blood Simulation for 2.5D Environments</h3><p>Combine ballistic droplets, sprays, splats, drips, puddles, smears and transfer effects using performance-oriented approximations rather than full fluid simulation.</p></div>
+            <div class="state">Planned</div>
+          </article>
+          <article class="study">
+            <div class="study-id">03</div>
+            <div><h3>Anatomically Constrained Procedural Human Locomotion</h3><p>Generate walking, running, support changes and terrain adaptation from anatomy, balance, foothold planning and environmental constraints rather than canned gait cycles.</p></div>
+            <div class="state">Planned</div>
+          </article>
+          <article class="study">
+            <div class="study-id">04</div>
+            <div><h3>Context-Aware Physical Human Reaction Synthesis</h3><p>Study physically simulated reactions to force, injury and environmental stimuli, including impairment, protective behavior, fear, adrenaline and active-ragdoll recovery.</p></div>
+            <div class="state">Planned</div>
+          </article>
+          <article class="study">
+            <div class="study-id">05</div>
+            <div><h3>Persistent Surface Mapping Across View-Dependent 2D Sprites</h3><p>Maintain stable surface correspondence across changing sprite views so wounds, dirt, decals, damage and other persistent markings remain attached to the same implied physical location.</p></div>
+            <div class="state">Planned</div>
+          </article>
+        </div>
+      </section>
+
+      <section id="future">
+        <div class="section-head"><h2>Future Studies</h2><span>Open-ended by design</span></div>
+        <p>NM-PM is not limited to the initial five studies. New projects may be added whenever a technical problem is interesting enough to investigate independently and document as a reusable system.</p>
+        <div class="two-col">
+          <div class="panel"><h3>Possible directions</h3><p>Procedural animation, compact simulation methods, visual correspondence, physically informed rendering, experimental interfaces, reusable test harnesses, or other systems that benefit from isolated experimentation.</p></div>
+          <div class="panel"><h3>Admission rule</h3><p>A study should ask a concrete technical question, support measurable experiments, preserve failed approaches, and produce something understandable outside the project that originally inspired it.</p></div>
+        </div>
+      </section>
+
+      <section id="methodology">
+        <div class="section-head"><h2>Methodology</h2><span>Research loop</span></div>
+        <div class="flow">
+          <div><b>QUESTION</b>Define the technical problem.</div>
+          <div><b>PROTOTYPE</b>Build the smallest useful experiment.</div>
+          <div><b>OBSERVE</b>Record behavior, evidence and failure.</div>
+          <div><b>REFINE</b>Change the model from what was learned.</div>
+          <div><b>PRESERVE</b>Document and release useful milestones.</div>
+        </div>
+        <div class="note">Experiments are not deleted simply because they fail. Failed approaches are part of the research record when they explain a limitation, reveal a hidden assumption, or motivate a better model.</div>
+      </section>
+
+      <section id="documentation">
+        <div class="section-head"><h2>Documentation</h2><span>Living technical notebook</span></div>
+        <p>Each study maintains a standalone <code>DOCUMENTATION.html</code>. It is closer to a browsable technical notebook or small wiki than a formal academic paper.</p>
+        <div class="two-col">
+          <div class="panel"><h3>Expected contents</h3><p>Research questions, terminology, equations, implementation notes, experiment IDs, screenshots, extracted video frames, tables, failed approaches, limitations, references, current algorithms and version history.</p></div>
+          <div class="panel"><h3>Visual evidence</h3><p>When behavior is difficult to explain in prose, screenshots or recordings should be requested and preserved. Useful video frames may be extracted into figures or contact sheets and referenced directly in the documentation.</p></div>
+        </div>
+      </section>
+
+      <section id="releases">
+        <div class="section-head"><h2>Releases</h2><span>Easy-to-run checkpoints</span></div>
+        <p>The repository preserves the journey. Releases preserve useful destinations. Not every experiment becomes a release.</p>
+        <div class="release-row"><span>sprite-projection</span><span>First executable/web milestone</span><span>future</span></div>
+        <div class="release-row"><span>blood-simulation</span><span>Standalone simulation milestone</span><span>future</span></div>
+        <div class="release-row"><span>locomotion</span><span>Stable gait/terrain test milestone</span><span>future</span></div>
+        <p>Project-specific tags may use names such as <code>sprite-projection-v0.1.0</code> or <code>locomotion-v0.2.0</code>. Release assets should be runnable without forcing a tester to rebuild the entire monorepo.</p>
+      </section>
+
+      <section id="ai">
+        <div class="section-head"><h2>AI Transparency</h2><span>Development model</span></div>
+        <p>NM-PM is explicitly machine-assisted. Generative AI may contribute code, mathematical exploration, debugging strategies, prototype implementation, alternative approaches, documentation and organization.</p>
+        <div class="two-col">
+          <div class="panel"><h3>Human-directed</h3><p>Research goals, questions, concepts, evaluation, testing, reference selection, visual evidence, rejection of unsuitable approaches, design decisions and overall direction.</p></div>
+          <div class="panel"><h3>Machine-assisted</h3><p>Implementation, derivation support, prototyping, debugging, alternative formulations, code generation, documentation support and research organization.</p></div>
+        </div>
+        <div class="note">The purpose of disclosure is accuracy, not apology. Individual studies should describe machine assistance factually when it materially shaped the work.</div>
+      </section>
+
+      <section id="roadmap">
+        <div class="section-head"><h2>Roadmap</h2><span>First sequence</span></div>
+        <div class="study-list">
+          <div class="study"><div class="study-id">A</div><div><h3>Establish repository conventions</h3><p>Homepage, documentation format, AI disclosure, project folder conventions and release naming.</p></div><div class="state">Now</div></div>
+          <div class="study"><div class="study-id">B</div><div><h3>Begin Sprite Projection Phase 0</h3><p>Define the research problem, coordinate system, camera assumptions, sprite conventions, hypotheses and Experiment SP-001.</p></div><div class="state">Next</div></div>
+          <div class="study"><div class="study-id">C</div><div><h3>Preserve the first useful milestone</h3><p>Once SP experiments produce a stable demonstrator, package the first project-specific release.</p></div><div class="state">Later</div></div>
+        </div>
+      </section>
+
+      <section id="repository">
+        <div class="section-head"><h2>Repository Layout</h2><span>Monorepo</span></div>
+<pre class="filetree">nm-pm/
+├── index.html
+├── README.md
+├── AI_DISCLOSURE.md
+├── docs/
+│   └── ...
+└── projects/
+    ├── sprite-projection/
+    │   ├── DOCUMENTATION.html
+    │   ├── README.md
+    │   ├── src/
+    │   ├── experiments/
+    │   ├── figures/
+    │   └── assets/
+    ├── blood-simulation/
+    ├── locomotion/
+    ├── physical-reactions/
+    └── surface-mapping/</pre>
+      </section>
+
+      <footer>
+        NM-PM / New Methodology, Powered by Machines · repository home interface
+      </footer>
+    </div>
+  </main>
+</div>
+<script>
+const root=document.documentElement;
+const darkBtn=document.getElementById('darkBtn');
+const lightBtn=document.getElementById('lightBtn');
+function setTheme(theme){
+  root.dataset.theme=theme;
+  localStorage.setItem('nm-pm-theme',theme);
+  darkBtn.classList.toggle('active',theme==='dark');
+  lightBtn.classList.toggle('active',theme==='light');
+}
+setTheme(localStorage.getItem('nm-pm-theme') || (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+darkBtn.onclick=()=>setTheme('dark');
+lightBtn.onclick=()=>setTheme('light');
+
+const links=[...document.querySelectorAll('.nav-link')];
+const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const main=document.getElementById('main');
+function updateActive(){
+  let current=sections[0];
+  const top=main.scrollTop+90;
+  for(const s of sections){
+    if(s.offsetTop<=top) current=s;
+  }
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current.id));
+}
+main.addEventListener('scroll',updateActive,{passive:true});
+links.forEach(a=>a.addEventListener('click',()=>setTimeout(updateActive,0)));
+updateActive();
+</script>
+</body>
+</html>
