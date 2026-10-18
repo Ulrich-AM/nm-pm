@@ -1,0 +1,33 @@
+name: Sprite Projection CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "projects/sprite-projection/**"
+      - ".github/workflows/sprite-projection-ci.yml"
+  pull_request:
+    paths:
+      - "projects/sprite-projection/**"
+      - ".github/workflows/sprite-projection-ci.yml"
+
+jobs:
+  windows-build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projects/sprite-projection
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Run tests
+        run: ctest --test-dir build -C Release --output-on-failure
