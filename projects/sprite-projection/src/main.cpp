@@ -2,6 +2,7 @@
 #include "calibration_math.hpp"
 #include "evaluation_metrics.hpp"
 #include "orientation_grid.hpp"
+#include "subject_catalog.hpp"
 
 #include <algorithm>
 #include <array>
@@ -17,6 +18,12 @@
 
 using vdspr::Vec2;
 using vdspr::Vec3;
+using vdspr::SubjectId;
+using vdspr::Cuboid;
+using vdspr::GetSubjectCuboids;
+using vdspr::SubjectSlug;
+using vdspr::SubjectLabel;
+using vdspr::SubjectCapturePpu;
 
 namespace {
 
@@ -59,7 +66,6 @@ bool gOwnFont = false;
 struct UIState { int activeSlider = -1; };
 struct DragPanel { Rectangle rect{0,0,242,282}; bool dragging = false; Vector2 offset{}; };
 
-enum class SubjectId { C0 = 0, A1 = 1, A2 = 2, A3 = 3, A4 = 4, A5 = 5 };
 enum class MethodId { Nearest = 0, Stretch = 1, Shear = 2, Affine = 3, Dual = 4, Grid4 = 5 };
 
 struct SweepSummary {
@@ -137,76 +143,6 @@ struct AppState {
     Phase5Summary phase5{};
 };
 
-struct Cuboid {
-    Vec3 center;
-    Vec3 half;
-    const char* tag;
-    Color fill;
-};
-
-struct FaceDef {
-    std::array<int,4> idx;
-    Vec3 normal;
-};
-
-const std::array<FaceDef,6> kBoxFaces = {{
-    {{{4,5,6,7}}, { 0, 0, 1}},
-    {{{1,0,3,2}}, { 0, 0,-1}},
-    {{{5,1,2,6}}, { 1, 0, 0}},
-    {{{0,4,7,3}}, {-1, 0, 0}},
-    {{{7,6,2,3}}, { 0, 1, 0}},
-    {{{0,1,5,4}}, { 0,-1, 0}}
-}};
-
-const std::array<std::array<int,2>,12> kEdges = {{
-    {{0,1}},{{1,2}},{{2,3}},{{3,0}},
-    {{4,5}},{{5,6}},{{6,7}},{{7,4}},
-    {{0,4}},{{1,5}},{{2,6}},{{3,7}}
-}};
-
-const std::array<Cuboid,1> kSubjectC0 = {{
-    {{0,0,0}, {1,1,1}, "C0", {190,190,190,255}}
-}};
-
-const std::array<Cuboid,3> kSubjectA1 = {{
-    {{ 0.00, 0.00, 0.00}, {0.82,0.54,0.34}, "CORE", {185,185,185,255}},
-    {{ 0.36, 0.73, 0.08}, {0.32,0.24,0.18}, "TOP",  {215,215,215,255}},
-    {{-0.93,-0.18,-0.06}, {0.27,0.21,0.20}, "ARM",  {155,155,155,255}}
-}};
-
-// Phase 5 stress subjects. Each attacks a different reconstruction weakness.
-const std::array<Cuboid,5> kSubjectA2 = {{
-    {{ 0.00, 0.00, 0.00}, {0.58,0.46,0.34}, "CORE",  {184,184,184,255}},
-    {{ 0.00, 0.82, 0.02}, {0.14,0.48,0.14}, "MAST", {220,220,220,255}},
-    {{ 0.92, 0.12, 0.16}, {0.52,0.13,0.18}, "FIN",  {166,166,166,255}},
-    {{-0.76,-0.26,-0.22}, {0.28,0.23,0.24}, "NUB",  {205,205,205,255}},
-    {{ 0.24,-0.50, 0.70}, {0.17,0.16,0.52}, "SPUR", {150,150,150,255}}
-}};
-
-const std::array<Cuboid,5> kSubjectA3 = {{
-    {{ 0.00, 0.00, 0.00}, {0.40,0.40,0.28}, "HUB",   {194,194,194,255}},
-    {{ 0.92, 0.02, 0.05}, {0.78,0.075,0.075}, "XR", {228,228,228,255}},
-    {{-0.82, 0.08,-0.12}, {0.68,0.065,0.065}, "XL", {164,164,164,255}},
-    {{ 0.08, 0.94, 0.18}, {0.07,0.76,0.07}, "YT",   {210,210,210,255}},
-    {{-0.10,-0.88,-0.22}, {0.06,0.66,0.06}, "YB",   {148,148,148,255}}
-}};
-
-const std::array<Cuboid,4> kSubjectA4 = {{
-    {{-0.72, 0.18, 0.00}, {0.20,0.92,0.24}, "LEFT",   {184,184,184,255}},
-    {{ 0.72, 0.18, 0.00}, {0.20,0.92,0.24}, "RIGHT",  {214,214,214,255}},
-    {{ 0.00,-0.58, 0.00}, {0.72,0.20,0.24}, "BRIDGE", {165,165,165,255}},
-    {{ 0.00,-0.10,-0.58}, {0.28,0.28,0.40}, "BACK",   {198,198,198,255}}
-}};
-
-const std::array<Cuboid,6> kSubjectA5 = {{
-    {{ 0.00, 0.00, 0.00}, {0.62,0.46,0.30}, "CORE",  {190,190,190,255}},
-    {{ 0.38, 0.20, 0.62}, {0.48,0.24,0.24}, "FRONT", {224,224,224,255}},
-    {{-0.44, 0.16,-0.64}, {0.52,0.20,0.22}, "BACK",  {148,148,148,255}},
-    {{ 0.08, 0.78, 0.12}, {0.22,0.45,0.20}, "TOP",   {204,204,204,255}},
-    {{-0.72,-0.46, 0.42}, {0.34,0.17,0.36}, "FWD",   {176,176,176,255}},
-    {{ 0.70,-0.34,-0.38}, {0.30,0.18,0.34}, "REAR",  {158,158,158,255}}
-}};
-
 struct BoxProjection {
     std::array<Vec3,8> rotated{};
     std::array<Vector2,8> screen{};
@@ -225,12 +161,7 @@ struct SpriteBank {
     std::string directory;
 };
 
-SpriteBank gBankC0{};
-SpriteBank gBankA1{};
-SpriteBank gBankA2{};
-SpriteBank gBankA3{};
-SpriteBank gBankA4{};
-SpriteBank gBankA5{};
+std::array<SpriteBank, vdspr::kSubjectCount> gBanks{};
 
 void PushLog(const std::string& s) {
     gLog.push_back(s);
@@ -259,8 +190,8 @@ void Panel(Rectangle r, Color fill = C_PANEL, Color border = C_LINE2) {
 bool Button(Rectangle r, const char* label, bool active = false) {
     const Vector2 m = GetMousePosition();
     const bool hot = CheckCollisionPointRec(m, r);
-    Color fill = active ? Color{46,46,46,255} : (hot ? Color{226,226,226,255} : Color{250,250,250,255});
-    Color fg = active ? WHITE : C_TEXT;
+    Color fill = active ? Color{168,168,168,255} : (hot ? Color{226,226,226,255} : Color{250,250,250,255});
+    Color fg = C_TEXT;
     DrawRectangleRec(r, fill);
     DrawRectangleLinesEx(r, 1.0f, C_LINE2);
     const float fs = 14.0f;
@@ -309,18 +240,6 @@ void GroupHeader(Rectangle r, const char* title) {
     DrawRectangleRec(r,C_PANEL3);
     DrawLine((int)r.x,(int)(r.y+r.height-1),(int)(r.x+r.width),(int)(r.y+r.height-1),C_LINE);
     Text(title,r.x+6,r.y+3,12,C_TEXT);
-}
-
-std::vector<Cuboid> GetSubjectCuboids(SubjectId id) {
-    switch (id) {
-        case SubjectId::C0: return std::vector<Cuboid>(kSubjectC0.begin(), kSubjectC0.end());
-        case SubjectId::A1: return std::vector<Cuboid>(kSubjectA1.begin(), kSubjectA1.end());
-        case SubjectId::A2: return std::vector<Cuboid>(kSubjectA2.begin(), kSubjectA2.end());
-        case SubjectId::A3: return std::vector<Cuboid>(kSubjectA3.begin(), kSubjectA3.end());
-        case SubjectId::A4: return std::vector<Cuboid>(kSubjectA4.begin(), kSubjectA4.end());
-        case SubjectId::A5: return std::vector<Cuboid>(kSubjectA5.begin(), kSubjectA5.end());
-    }
-    return std::vector<Cuboid>(kSubjectA1.begin(), kSubjectA1.end());
 }
 
 BoxProjection ProjectCuboid(const Cuboid& c, double yaw, double pitch, double roll, Rectangle viewport, double ppu) {
@@ -441,42 +360,6 @@ void RunTests(AppState& s) {
     PushLog("[test] " + std::to_string(s.testPassed) + "/" + std::to_string(s.testTotal) + " passed");
 }
 
-const char* SubjectSlug(SubjectId subject) {
-    switch (subject) {
-        case SubjectId::C0: return "c0";
-        case SubjectId::A1: return "a1";
-        case SubjectId::A2: return "a2";
-        case SubjectId::A3: return "a3";
-        case SubjectId::A4: return "a4";
-        case SubjectId::A5: return "a5";
-    }
-    return "a1";
-}
-
-const char* SubjectLabel(SubjectId subject) {
-    switch (subject) {
-        case SubjectId::C0: return "C0";
-        case SubjectId::A1: return "A1-r1";
-        case SubjectId::A2: return "A2-protrusion";
-        case SubjectId::A3: return "A3-thin";
-        case SubjectId::A4: return "A4-concavity";
-        case SubjectId::A5: return "A5-occlusion";
-    }
-    return "A1-r1";
-}
-
-double SubjectCapturePpu(SubjectId subject) {
-    switch (subject) {
-        case SubjectId::C0: return 26.0;
-        case SubjectId::A1: return 22.0;
-        case SubjectId::A2: return 19.0;
-        case SubjectId::A3: return 17.0;
-        case SubjectId::A4: return 19.0;
-        case SubjectId::A5: return 19.0;
-    }
-    return 22.0;
-}
-
 const char* MethodName(MethodId method) {
     switch (method) {
         case MethodId::Nearest: return "nearest";
@@ -547,16 +430,8 @@ void UnloadBank(SpriteBank& bank) {
     bank = {};
 }
 
-SpriteBank& CurrentBank(SubjectId s) {
-    switch (s) {
-        case SubjectId::C0: return gBankC0;
-        case SubjectId::A1: return gBankA1;
-        case SubjectId::A2: return gBankA2;
-        case SubjectId::A3: return gBankA3;
-        case SubjectId::A4: return gBankA4;
-        case SubjectId::A5: return gBankA5;
-    }
-    return gBankA1;
+SpriteBank& CurrentBank(SubjectId subject) {
+    return gBanks[static_cast<std::size_t>(subject)];
 }
 
 bool LoadCapturedBank(SubjectId subject, bool logResult = true) {
@@ -1687,12 +1562,7 @@ int main() {
         EndDrawing();
     }
 
-    UnloadBank(gBankC0);
-    UnloadBank(gBankA1);
-    UnloadBank(gBankA2);
-    UnloadBank(gBankA3);
-    UnloadBank(gBankA4);
-    UnloadBank(gBankA5);
+    for (auto& bank : gBanks) UnloadBank(bank);
     if (gOwnFont) UnloadFont(gFont);
     CloseWindow();
     return 0;
