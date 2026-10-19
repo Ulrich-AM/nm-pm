@@ -1,7 +1,7 @@
 # Sprite Projection Architecture
 
 **NM-PM project:** Sprite Projection  
-**Architecture checkpoint:** pre-articulation / Phase 6  
+**Architecture checkpoint:** Phase 7 / three-link articulation  
 **Date:** 2026-10-19
 
 This file records the architecture review performed after the first public milestone release and before the articulated multi-sprite experiments expanded further.
@@ -34,8 +34,10 @@ src/
 ├── box_geometry.hpp
 ├── sprite_reconstruction.hpp
 ├── articulation_math.hpp
+├── articulated_parts.hpp
 ├── main.cpp
-└── articulation_lab.cpp
+├── articulation_lab.cpp
+└── chain_lab.cpp
 ```
 
 ### calibration_math.hpp
@@ -92,16 +94,30 @@ Both rigid and articulated experiments must use this module rather than reimplem
 
 ### articulation_math.hpp
 
-Owns the first articulated pose model independently of raylib drawing:
+Owns articulated pose math independently of raylib drawing:
 
 - 3 x 3 orientation matrices;
 - matrix composition;
 - arbitrary-axis hinge rotation;
 - YPR matrix construction and extraction;
 - two-link forward kinematics;
+- three-link forward kinematics;
 - articulation self-tests.
 
-The first hinge axis is deliberately diagonal in local XZ so hinge motion changes both visible 2D angle and depth.
+The hinge axes are deliberately diagonal in local XZ so joint motion changes both visible 2D angle and depth.
+
+### articulated_parts.hpp
+
+Owns shared articulated-part rendering/capture helpers introduced for Phase 7:
+
+- pivot-centered cuboid part geometry;
+- visible-face extraction;
+- part bank naming and loading;
+- 40-view articulated part capture;
+- pivot-registered sprite placement;
+- canonical per-part use of NEAR/STRETCH/SHEAR/AFFINE/DUAL/GRID4.
+
+This keeps Phase 7 from copying the same part-bank and placement logic into another experiment harness.
 
 ### main.cpp
 
@@ -113,20 +129,28 @@ After extraction of subjects and shared reconstruction, it is smaller than the P
 
 ### articulation_lab.cpp
 
-Owns the Phase 6 articulated experiment UI and rendering harness.
+Owns the preserved Phase 6 two-link articulated experiment UI and rendering harness.
 
-It is a separate executable rather than a mode inside the rigid harness.
+### chain_lab.cpp
 
-This allows Phase 5 to remain reproducible while Phase 6 evolves independently.
+Owns the Phase 7 three-link, two-hinge articulated experiment.
+
+It uses three independent pivot-registered sprite banks and the shared articulated-part helper layer.
 
 ## Bank ownership
 
 Rigid subjects use an indexed bank registry instead of one global variable per subject.
 
-Articulation uses two independent directional banks in SP-007:
+SP-007 uses two independent directional banks:
 
 - upper link
 - lower link
+
+SP-008 uses three independent directional banks:
+
+- chain-upper
+- chain-middle
+- chain-lower
 
 Each articulated capture is pivot-registered. The link's top pivot is placed at the exact center of every stored 128 x 128 image. Runtime placement therefore aligns the sprite texture center to the mathematically projected joint position.
 
@@ -145,7 +169,8 @@ This is intentionally simple. Later experiments may require finer depth handling
 The project now uses separate executable harnesses for materially different research questions:
 
 - `vdspr_phase5`: rigid reconstruction and generalization
-- `vdspr_phase6`: articulated multi-sprite composition
+- `vdspr_phase6`: two-link articulated multi-sprite composition
+- `vdspr_phase7`: three-link, two-hinge articulated composition
 
 Shared research algorithms belong in headers under `src/`.
 
@@ -165,11 +190,11 @@ Experiment-specific controls and displays may remain local to their harness.
 
 The following duplication is currently accepted:
 
-- rigid and articulated capture-bank file I/O;
 - small UI helper functions;
-- some cuboid projection/render code.
+- some experiment-specific evaluator orchestration;
+- the historical Phase 6 local part helper implementation.
 
-These are not yet extracted because only two harnesses need them and their capture semantics differ. If a third experiment duplicates the same behavior, extraction becomes justified.
+Phase 7 introduced `articulated_parts.hpp` because a second articulated harness would otherwise duplicate bank capture and pivot-placement research logic. The released Phase 6 checkpoint remains reproducible, while new articulation work should use the shared helper layer.
 
 ## CI role
 
@@ -177,10 +202,12 @@ Architecture refactors are gated by the Windows CI build and tests.
 
 This review already caught one concrete regression: moving rigid subject definitions accidentally removed the local cuboid topology tables. The failure was preserved as evidence that the build gate is useful, and the topology was moved into `box_geometry.hpp` instead of being copied back into `main.cpp`.
 
+A later Phase 6 visual review also exposed a coordinate-convention bug: mathematical positive roll and raylib texture positive rotation use opposite visible screen directions. The conversion is now explicit and test-covered rather than hidden inside individual render paths.
+
 ## Release relationship
 
 The first public milestone, `sprite-projection-v0.1.0`, remains the Phase 5 rigid-stress checkpoint.
 
-Phase 6 development occurs after that tag and does not alter the contents of the published release.
+`sprite-projection-v0.2.0` preserves the Phase 6 two-link articulation milestone.
 
-A later milestone release should package the articulated lab only after native behavior and SP-007 results have been reviewed.
+Phase 7 development occurs after that release and should not alter the published v0.2.0 package. A later milestone may package all three harnesses after native Phase 7 behavior is reviewed.
