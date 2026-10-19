@@ -1,10 +1,10 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title NM-PM Sprite Projection - Phase 7 Three-Link Chain
+title NM-PM Sprite Projection - Phase 8 Body Animation
 
 echo ==============================================
-echo  NM-PM Sprite Projection - Phase 7 Three-Link Chain
+echo  NM-PM Sprite Projection - Phase 8 Body Animation
 echo ==============================================
 echo.
 
@@ -36,19 +36,19 @@ echo.
 echo Build and tests completed successfully.
 echo.
 
-if exist "build\Release\vdspr_phase7.exe" (
-  echo Launching build\Release\vdspr_phase7.exe...
-  start "" "build\Release\vdspr_phase7.exe"
+if exist "build\Release\vdspr_phase8.exe" (
+  echo Launching build\Release\vdspr_phase8.exe...
+  start "" "build\Release\vdspr_phase8.exe"
   exit /b 0
 )
 
-if exist "build\vdspr_phase7.exe" (
-  echo Launching build\vdspr_phase7.exe...
-  start "" "build\vdspr_phase7.exe"
+if exist "build\vdspr_phase8.exe" (
+  echo Launching build\vdspr_phase8.exe...
+  start "" "build\vdspr_phase8.exe"
   exit /b 0
 )
 
-echo [ERROR] Build reported success, but vdspr_phase7.exe was not found.
+echo [ERROR] Build reported success, but vdspr_phase8.exe was not found.
 echo Check the build folder for the generated executable.
 echo.
 pause
