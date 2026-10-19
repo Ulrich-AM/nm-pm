@@ -3,6 +3,7 @@
 #include "evaluation_metrics.hpp"
 #include "orientation_grid.hpp"
 #include "subject_catalog.hpp"
+#include "sprite_reconstruction.hpp"
 
 #include <algorithm>
 #include <array>
@@ -24,6 +25,15 @@ using vdspr::GetSubjectCuboids;
 using vdspr::SubjectSlug;
 using vdspr::SubjectLabel;
 using vdspr::SubjectCapturePpu;
+using vdspr::MethodId;
+using vdspr::DirectionalTextureBank;
+using vdspr::BankIndex;
+using vdspr::MethodName;
+using vdspr::MethodShortName;
+using vdspr::SelectDualYaw;
+using vdspr::DrawSpriteTransformed;
+using vdspr::DrawDualBlend;
+using vdspr::DrawGrid4Blend;
 
 namespace {
 
@@ -31,12 +41,11 @@ constexpr int kInitialWidth = 1360;
 constexpr int kInitialHeight = 820;
 constexpr float kSidebarW = 292.0f;
 constexpr float kBottomH = 175.0f;
-constexpr int kYawCount = 8;
-constexpr int kPitchCount = 5;
-constexpr int kBankCount = kYawCount * kPitchCount;
+constexpr int kYawCount = vdspr::kYawCount;
+constexpr int kPitchCount = vdspr::kPitchCount;
+constexpr int kBankCount = vdspr::kBankCount;
 constexpr int kSpriteSize = 128;
 constexpr int kEvalSize = 128;
-constexpr float kSectorHalf = 22.5f;
 constexpr std::array<double,kPitchCount> kPitchSamples = vdspr::kPitchSamplesDeg;
 
 const Color C_BG      {244,244,244,255};
@@ -65,8 +74,6 @@ bool gOwnFont = false;
 
 struct UIState { int activeSlider = -1; };
 struct DragPanel { Rectangle rect{0,0,242,282}; bool dragging = false; Vector2 offset{}; };
-
-enum class MethodId { Nearest = 0, Stretch = 1, Shear = 2, Affine = 3, Dual = 4, Grid4 = 5 };
 
 struct SweepSummary {
     bool valid = false;
@@ -154,12 +161,7 @@ struct DrawFace {
     Color fill{};
 };
 
-struct SpriteBank {
-    std::array<Texture2D, kBankCount> tex{};
-    bool ready = false;
-    bool fromDisk = false;
-    std::string directory;
-};
+using SpriteBank = DirectionalTextureBank;
 
 std::array<SpriteBank, vdspr::kSubjectCount> gBanks{};
 
@@ -360,36 +362,8 @@ void RunTests(AppState& s) {
     PushLog("[test] " + std::to_string(s.testPassed) + "/" + std::to_string(s.testTotal) + " passed");
 }
 
-const char* MethodName(MethodId method) {
-    switch (method) {
-        case MethodId::Nearest: return "nearest";
-        case MethodId::Stretch: return "stretch";
-        case MethodId::Shear: return "shear";
-        case MethodId::Affine: return "affine";
-        case MethodId::Dual: return "dual";
-        case MethodId::Grid4: return "grid4";
-    }
-    return "unknown";
-}
-
-const char* MethodShortName(MethodId method) {
-    switch (method) {
-        case MethodId::Nearest: return "NEAR";
-        case MethodId::Stretch: return "STRETCH";
-        case MethodId::Shear: return "SHEAR";
-        case MethodId::Affine: return "AFFINE";
-        case MethodId::Dual: return "DUAL";
-        case MethodId::Grid4: return "GRID4";
-    }
-    return "?";
-}
-
 std::filesystem::path CaptureDirectory(SubjectId subject) {
     return std::filesystem::current_path() / "captures" / SubjectSlug(subject);
-}
-
-int BankIndex(int pitchIndex, int yawIndex) {
-    return pitchIndex*kYawCount + yawIndex;
 }
 
 std::string PitchToken(double pitchDeg) {
@@ -599,114 +573,8 @@ PitchNearestSelection SelectNearestPitch(double pitchDeg) { return vdspr::Select
 using PitchBlendSelection = vdspr::PitchBlendSelection;
 PitchBlendSelection SelectPitchBlend(double pitchDeg) { return vdspr::SelectPitchGridBlend(pitchDeg); }
 
-struct TransformParams {
-    float sx = 1.0f;
-    float sy = 1.0f;
-    float shx = 0.0f;
-    float rotDeg = 0.0f;
-    float tx = 0.0f;
-    float ty = 0.0f;
-};
-
-struct DualSelection {
-    int a = 0;
-    int b = 1;
-    float t = 0.0f;
-};
-
-DualSelection SelectDualYaw(double yawDeg) {
-    const double yaw = vdspr::wrap360(yawDeg);
-    const double spacing = 360.0 / kYawCount;
-    const int a = static_cast<int>(std::floor(yaw / spacing)) % kYawCount;
-    const int b = (a + 1) % kYawCount;
-    const float t = static_cast<float>((yaw - a*spacing) / spacing);
-    return {a,b,std::clamp(t,0.0f,1.0f)};
-}
-
-TransformParams ParamsForMethod(MethodId m, const AppState& s) {
-    const float delta = static_cast<float>(s.anchor.residualDeg);
-    const float t = std::min(1.0f, std::abs(delta) / kSectorHalf);
-    TransformParams p{};
-    p.rotDeg = (float)s.roll;
-    if (m == MethodId::Nearest) {
-        return p;
-    } else if (m == MethodId::Stretch) {
-        p.sx = 1.0f - 0.28f * t;
-        p.sy = 1.0f + 0.04f * t;
-    } else if (m == MethodId::Shear) {
-        p.shx = std::clamp(-std::tan(delta * 0.60f * (float)vdspr::kDegToRad), -0.42f, 0.42f);
-    } else if (m == MethodId::Affine) {
-        p.sx = 1.0f - 0.18f * t;
-        p.sy = 1.0f + 0.03f * t;
-        p.shx = std::clamp(-std::tan(delta * 0.52f * (float)vdspr::kDegToRad), -0.34f, 0.34f);
-        p.tx = -(delta / kSectorHalf) * 6.0f;
-    }
-    return p;
-}
-
-Vector2 RotateOffset(Vector2 v, float deg) {
-    const float a=deg*(float)vdspr::kDegToRad;
-    const float c=std::cos(a), sn=std::sin(a);
-    return {v.x*c-v.y*sn, v.x*sn+v.y*c};
-}
-
-void DrawTextureCentered(Texture2D tex, Rectangle base, float rotationDeg, Color tint) {
-    const float cx=base.x+base.width*0.5f;
-    const float cy=base.y+base.height*0.5f;
-    Rectangle dst{cx,cy,base.width,base.height};
-    DrawTexturePro(tex,Rectangle{0,0,(float)tex.width,(float)tex.height},dst,{base.width*0.5f,base.height*0.5f},rotationDeg,tint);
-}
-
-void DrawSpriteTransformed(Texture2D tex, Rectangle base, const TransformParams& tp, Color tint = WHITE) {
-    const float destW = std::max(1.0f, base.width * tp.sx);
-    const float destH = std::max(1.0f, base.height * tp.sy);
-    const float centerX = base.x + base.width*0.5f + tp.tx;
-    const float centerY = base.y + base.height*0.5f + tp.ty;
-
-    if (std::abs(tp.shx) < 1e-6f) {
-        Rectangle dst{centerX,centerY,destW,destH};
-        DrawTexturePro(tex,Rectangle{0,0,(float)tex.width,(float)tex.height},dst,{destW*0.5f,destH*0.5f},tp.rotDeg,tint);
-        return;
-    }
-
-    const int strips = std::max(1, std::min(tex.height, 96));
-    const float srcStripH = (float)tex.height / (float)strips;
-    const float dstStripH = destH / (float)strips;
-    for (int i=0;i<strips;++i) {
-        const float v0 = (float)i / (float)strips;
-        const float relY = (v0 + 0.5f/(float)strips) - 0.5f;
-        const float shiftX = tp.shx * relY * destH;
-        const float localY = -destH*0.5f + (i+0.5f)*dstStripH;
-        const Vector2 ro=RotateOffset({shiftX,localY},tp.rotDeg);
-        Rectangle src{0.0f,i*srcStripH,(float)tex.width,srcStripH+0.01f};
-        Rectangle dst{centerX+ro.x,centerY+ro.y,destW,dstStripH+0.8f};
-        DrawTexturePro(tex,src,dst,{destW*0.5f,(dstStripH+0.8f)*0.5f},tp.rotDeg,tint);
-    }
-}
-
-void DrawDualBlend(const SpriteBank& bank, int pitchIndex, double yawDeg, double rollDeg, Rectangle base, Color tint = WHITE) {
-    if (!bank.ready) return;
-    const DualSelection d = SelectDualYaw(yawDeg);
-    const unsigned char aAlpha = static_cast<unsigned char>(std::clamp((1.0f-d.t)*255.0f,0.0f,255.0f));
-    const unsigned char bAlpha = static_cast<unsigned char>(std::clamp(d.t*255.0f,0.0f,255.0f));
-    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.a)],base,(float)rollDeg,{tint.r,tint.g,tint.b,aAlpha});
-    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.b)],base,(float)rollDeg,{tint.r,tint.g,tint.b,bAlpha});
-}
-
-void DrawGrid4Blend(const SpriteBank& bank, double yawDeg, double pitchDeg, double rollDeg, Rectangle base, Color tint = WHITE) {
-    if (!bank.ready) return;
-    const DualSelection y=SelectDualYaw(yawDeg);
-    const PitchBlendSelection p=SelectPitchBlend(pitchDeg);
-    const float w00=(1.0f-y.t)*(1.0f-p.t);
-    const float w10=y.t*(1.0f-p.t);
-    const float w01=(1.0f-y.t)*p.t;
-    const float w11=y.t*p.t;
-    const struct { int p; int y; float w; } items[4]={{p.a,y.a,w00},{p.a,y.b,w10},{p.b,y.a,w01},{p.b,y.b,w11}};
-    for (const auto& it:items) {
-        if (it.w<=0.001f) continue;
-        const unsigned char alpha=(unsigned char)std::clamp(it.w*255.0f,0.0f,255.0f);
-        DrawTextureCentered(bank.tex[BankIndex(it.p,it.y)],base,(float)rollDeg,{tint.r,tint.g,tint.b,alpha});
-    }
+vdspr::TransformParams ParamsForMethod(MethodId method, const AppState& state) {
+    return vdspr::BaselineTransformParams(method, state.anchor.residualDeg, state.roll);
 }
 
 void DrawMethodComparisonStrip(Rectangle r, SpriteBank& bank, const AppState& s) {
