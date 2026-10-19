@@ -83,7 +83,7 @@ inline AnchorSelection selectUniformYawAnchor(double requestedYawDeg, int count 
 
 struct SelfTestResult { const char* name; bool pass; };
 
-inline std::array<SelfTestResult, 8> runSelfTests() {
+inline std::array<SelfTestResult, 9> runSelfTests() {
     constexpr double eps = 1e-9;
     const auto approx = [eps](double a, double b) { return std::abs(a-b) <= eps; };
 
@@ -109,7 +109,8 @@ inline std::array<SelfTestResult, 8> runSelfTests() {
         {"yaw 44 deg selects the 45 deg anchor", a44.index == 1 && approx(a44.angleDeg,45.0) && approx(a44.residualDeg,-1.0)},
         {"yaw 181 deg selects the 180 deg anchor", a181.index == 4 && approx(a181.angleDeg,180.0) && approx(a181.residualDeg,1.0)},
         {"8-view residual stays within +/-22.5 deg", residualBound},
-        {"+90 deg yaw maps +Z toward +X", yaw90.x > 0.999999 && std::abs(yaw90.z) < 1e-8}
+        {"+90 deg yaw maps +Z toward +X", yaw90.x > 0.999999 && std::abs(yaw90.z) < 1e-8},
+        {"math roll converts to opposite-sign screen texture rotation", approx(screenTextureRotationDeg(37.0), -37.0)}
     }};
 }
 
