@@ -4,6 +4,7 @@
 #include "orientation_grid.hpp"
 #include "subject_catalog.hpp"
 #include "sprite_reconstruction.hpp"
+#include "box_geometry.hpp"
 
 #include <algorithm>
 #include <array>
@@ -34,6 +35,8 @@ using vdspr::SelectDualYaw;
 using vdspr::DrawSpriteTransformed;
 using vdspr::DrawDualBlend;
 using vdspr::DrawGrid4Blend;
+using vdspr::kBoxFaces;
+using vdspr::kBoxEdges;
 
 namespace {
 
@@ -302,7 +305,7 @@ void DrawProjectedSubject(SubjectId subject, double yaw, double pitch, double ro
         DrawTriangle(f.p[0], f.p[2], f.p[3], f.fill);
     }
     for (const auto& box : projections) {
-        for (auto e : kEdges) DrawLineEx(box.screen[e[0]], box.screen[e[1]], 1.0f, tint);
+        for (auto e : kBoxEdges) DrawLineEx(box.screen[e[0]], box.screen[e[1]], 1.0f, tint);
         for (auto p : box.screen) DrawRectangle((int)p.x-1, (int)p.y-1, 3, 3, tint);
     }
 
