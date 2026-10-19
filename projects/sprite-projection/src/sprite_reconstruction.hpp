@@ -75,7 +75,7 @@ inline TransformParams BaselineTransformParams(MethodId method, double residualY
     TransformParams p{};
     // Mathematical +roll is counter-clockwise after our Y-up -> screen-Y-down projection.
     // raylib's positive texture rotation is clockwise in screen coordinates, so invert it.
-    p.rotDeg = static_cast<float>(-rollDeg);
+    p.rotDeg = static_cast<float>(screenTextureRotationDeg(rollDeg));
 
     if (method == MethodId::Stretch) {
         p.sx = 1.0f - 0.28f * t;
@@ -175,7 +175,7 @@ inline void DrawDualBlend(
     const unsigned char aAlpha = static_cast<unsigned char>(std::clamp((1.0f-d.t)*255.0f,0.0f,255.0f));
     const unsigned char bAlpha = static_cast<unsigned char>(std::clamp(d.t*255.0f,0.0f,255.0f));
 
-    const float screenRoll = static_cast<float>(-rollDeg);
+    const float screenRoll = static_cast<float>(screenTextureRotationDeg(rollDeg));
     DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.a)],base,screenRoll,{tint.r,tint.g,tint.b,aAlpha});
     DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.b)],base,screenRoll,{tint.r,tint.g,tint.b,bAlpha});
 }
@@ -207,7 +207,7 @@ inline void DrawGrid4Blend(
         DrawTextureCentered(
             bank.tex[BankIndex(item.p,item.y)],
             base,
-            static_cast<float>(-rollDeg),
+            static_cast<float>(screenTextureRotationDeg(rollDeg)),
             {tint.r,tint.g,tint.b,alpha}
         );
     }
