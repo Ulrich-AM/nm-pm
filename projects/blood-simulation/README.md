@@ -3,7 +3,7 @@
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
 **Current phase:** Phase 5 - drip maturation and radial floor pooling  
-**Current milestone:** `blood-simulation-v0.6.0`
+**Current milestone:** `blood-simulation-v0.6.1`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
@@ -30,7 +30,9 @@ The active prototype has reached Phase 5 refinement testing:
 - exact shared-edge continuation plus short support probing;
 - player pickup and directional floor smearing;
 - hanging-tip maturation before unsupported drops enter world space;
-- wider radial floor relaxation for more circular pools;
+- Phase 5-specific lower-threshold drip-source discovery so ordinary wet wall splats actually form descending channels;
+- wider radial floor relaxation for more circular pools, retuned to expand substantially more slowly;
+- drag-to-splash input: drag direction maps into the clicked surface's local U/V direction and drag length controls impact speed;
 - an isometric orthographic default camera for this release;
 - fixed simulation substeps of at most 1/120 s;
 - durable experiments BS-001 through BS-010 and E1 through E5 exports.
@@ -55,11 +57,11 @@ The build also preserves Phase 0 through Phase 4 executables for regression test
 
 ## Phase 5 behavior
 
-Unsupported wall channels no longer read as an instantaneous edge-to-particle conversion. A newly detached packet first becomes a short-lived hanging tip. Its displayed bead grows during a deterministic maturation interval and then releases into the existing world-droplet solver.
+Phase 5.1 lowers the wall-source threshold relative to the frozen Phase 4 behavior, increases channel travel speed, and keeps the source count bounded. Unsupported wall channels no longer read as an instantaneous edge-to-particle conversion. A newly detached packet first becomes a short-lived hanging tip. Its displayed bead grows during a deterministic maturation interval and then releases into the existing world-droplet solver.
 
-Upward-facing fields now use a wider radial pressure stencil instead of only the Phase 4 eight-neighbor puddle pass. Concentrated wet blood spreads toward a rounded footprint, retains a thicker center, merges through the same field, and remains bounded by adhesion and wetness.
+Upward-facing fields use a wider radial pressure stencil instead of only the Phase 4 eight-neighbor puddle pass. The v0.6.1 tuning lowers the default pool rate and per-step outflow cap so the pool grows visibly rather than blooming outward almost immediately. Concentrated wet blood spreads toward a rounded footprint, retains a thicker center, merges through the same field, and remains bounded by adhesion and wetness.
 
-The camera defaults to approximately 45 degrees yaw and 35.264 degrees pitch. Camera state does not enter the blood simulation.
+The camera defaults to approximately 45 degrees yaw and 35.264 degrees pitch. Camera state does not enter the blood simulation. In the viewport, press on a visible surface and drag in the desired splash direction. A longer drag produces greater impact speed; a short click retains the old nominal stamp.
 
 ## Primary documentation
 
@@ -101,7 +103,7 @@ Phase 1 -> blood-simulation-v0.2.0
 Phase 2 -> blood-simulation-v0.3.x
 Phase 3 -> blood-simulation-v0.4.0
 Phase 4 -> blood-simulation-v0.5.0
-Phase 5 -> blood-simulation-v0.6.0
+Phase 5 -> blood-simulation-v0.6.x
 Phase 6 -> blood-simulation-v0.7.0
 Phase 7 -> blood-simulation-v0.8.0
 ```

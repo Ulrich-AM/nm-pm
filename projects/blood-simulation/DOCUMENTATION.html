@@ -136,7 +136,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <aside id="sidebar">
   <div class="side-section"><h3>Blood Simulation</h3><a class="side-label active" href="#overview">Overview</a><a class="side-label" href="#status">Current Status</a><a class="side-label" href="#problem">Research Problem</a></div>
   <div class="side-section"><h3>Foundation</h3><a class="side-label" href="#world">World Model</a><a class="side-label" href="#surface">Surface Contract</a><a class="side-label" href="#representation">Representation</a></div>
-  <div class="side-section"><h3>Dynamics</h3><a class="side-label" href="#phase3">Phase 3</a><a class="side-label" href="#phase4">Phase 4</a><a class="side-label" href="#phase5">Phase 5</a><div class="side-sub"><a href="#tips">Hanging Tips</a><a href="#radial">Radial Pools</a><a href="#isometric">Isometric View</a><a href="#e5">E5 Sweep</a></div></div>
+  <div class="side-section"><h3>Dynamics</h3><a class="side-label" href="#phase3">Phase 3</a><a class="side-label" href="#phase4">Phase 4</a><a class="side-label" href="#phase5">Phase 5</a><div class="side-sub"><a href="#tool">Drag Tool</a><a href="#sources">Drip Sources</a><a href="#tips">Hanging Tips</a><a href="#radial">Radial Pools</a><a href="#isometric">Isometric View</a><a href="#e5">E5 Sweep</a></div></div>
   <div class="side-section"><h3>Research</h3><a class="side-label" href="#experiments">Experiments</a><a class="side-label" href="#measurements">Measurements</a><a class="side-label" href="#failures">Failed Approaches</a><a class="side-label" href="#promotion">Promotion Rule</a><a class="side-label" href="#roadmap">Roadmap</a></div>
   <div class="side-section"><h3>Project</h3><a class="side-label" href="#implementation">Current Implementation</a><a class="side-label" href="#architecture">Architecture</a><a class="side-label" href="#repository">Repository</a><a class="side-label" href="#limitations">Limitations</a><a class="side-label" href="#log">Research Log</a><a class="side-label" href="#versions">Version History</a></div>
 </aside>
@@ -145,8 +145,8 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <section id="overview">
 <h1>Real-Time Hybrid Blood Simulation for 2.5D Environments</h1>
 <p class="lead">A living technical study of how ballistic droplets, persistent surface deposits, accumulation, dripping, puddling, transfer, smearing, and drying can be approximated efficiently in an orthographic 2.5D presentation backed by a mathematically three-dimensional world.</p>
-<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current phase</b><span>Phase 5 - drip maturation and radial pooling</span><b>Current experiments</b><span>BS-009 / BS-010</span><b>Native artifact</b><span><code>phases/phase5/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.6.0</code></span></div>
-<div class="note">Phase 5 is a behavior-refinement checkpoint. It deliberately postpones arbitrary geometry until dripping and floor pooling are visually stronger.</div>
+<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current phase</b><span>Phase 5 - drip maturation and radial pooling</span><b>Current experiments</b><span>BS-009 / BS-010</span><b>Native artifact</b><span><code>phases/phase5/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.6.1</code></span></div>
+<div class="note">Phase 5 is a behavior-refinement checkpoint. Patch v0.6.1 adds drag-directed splashes, fixes overly strict wall-drip source discovery, and slows both radial pooling and drying before arbitrary geometry work begins.</div>
 </section>
 
 <section id="status"><h2>Current Status</h2><div class="flow"><div><b>Impact</b>Procedural persistent stains</div><div><b>Drip</b>Sparse channels + hanging tips</div><div><b>Pool</b>Wider radial field relaxation</div><div><b>Transfer</b>Edges, support, contact</div><div><b>Camera</b>Isometric orthographic test</div></div><p>Most deposited wall blood remains stationary. Selected wet peaks create sparse channels. Unsupported endpoint packets now pause as visible hanging beads before entering the world-droplet solver. Concentrated blood on upward surfaces redistributes through a wider radial neighborhood, producing a more circular footprint than the older four- and eight-neighbor-only passes.</p></section>
@@ -179,11 +179,15 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="phase4"><h2>Phase 4 - Sparse Channels and Transfer</h2><p>Phase 4 corrected broad advection by selecting a small number of wet local peaks as active sources. Channels move limited packets, leave residue, respect regional cooldowns, transfer through exact topology or nearby support, and detach only at unsupported edges. Contact pickup and directional smearing were added without creating a separate footprint system.</p></section>
 
-<section id="phase5"><h2>Phase 5 - Drip Maturation and Radial Pooling</h2><p>Phase 5 keeps the Phase 4 selection and transfer rules but refines the two most visible endpoints: how a channel becomes a falling drop, and how accumulated floor blood spreads.</p></section>
+<section id="phase5"><h2>Phase 5 - Drip Maturation and Radial Pooling</h2><p>Phase 5 keeps the Phase 4 transfer rules but refines the most visible interaction and liquid behaviors. Patch v0.6.1 corrects three visual problems found after the first release: impact direction was awkward to author, ordinary wall splats often failed to seed a channel, and horizontal pools spread and dried too quickly.</p></section>
+
+<section id="tool"><h3>Drag-Directed Splash Tool</h3><p>Press on a visible surface, drag in the desired splash direction, and release. The start point is raycast onto the scene. The drag vector is projected onto that surface's screen-space U/V axes so direction remains surface-local even under the isometric camera. Drag length maps to impact speed, with a low-force floor and the existing speed cap. A short click retains the old nominal stamp.</p></section>
+
+<section id="sources"><h3>Reliable Downward Drip Sources</h3><p>Phase 4 required a source cell amount of at least 0.46 and wetness of at least 0.42. With the high-resolution persistent field, visually substantial splats could fail to create any source. Phase 5 now runs a separate deterministic source scan with default thresholds of 0.18 amount and 0.20 wetness, bounded source spacing, regional cooldowns, and a six-source per-surface cap.</p><p>Once selected, channels still use projected world gravity. On a vertical wall this means movement toward lower world Z, independent of camera angle.</p></section>
 
 <section id="tips"><h3>Hanging Drip Tips</h3><p>A newly detached unsupported packet is intercepted before world-space free flight. It becomes a short-lived hanging bead that retains the eventual droplet's position, volume, radius, seed, and release velocity. The displayed bead grows through a deterministic maturation interval before release.</p><p>This introduces a readable surface-to-air transition without replacing the proven ballistic solver.</p></section>
 
-<section id="radial"><h3>Radial Floor Pools</h3><p>Upward-facing wet cells now inspect a wider circular neighborhood. Lower-pressure cells receive conservatively bounded transfers weighted by Euclidean distance. Small seeded variation perturbs the edge so the target is rounded rather than mathematically perfect.</p><p>Support transfers, landed droplets, direct impacts, and contact smears all continue to feed the same field. Repeated drops therefore enlarge and merge persistent pools.</p></section>
+<section id="radial"><h3>Radial Floor Pools</h3><p>Upward-facing wet cells inspect a wider circular neighborhood. Patch v0.6.1 lowers the default radial rate from 1.35 to 0.22 and reduces the maximum per-step movable fraction from 14% to 8%, so a pool grows visibly instead of blooming outward immediately.  Lower-pressure cells receive conservatively bounded transfers weighted by Euclidean distance. Small seeded variation perturbs the edge so the target is rounded rather than mathematically perfect.</p><p>Support transfers, landed droplets, direct impacts, and contact smears all continue to feed the same field. Repeated drops therefore enlarge and merge persistent pools.</p></section>
 
 <section id="isometric"><h3>Isometric Camera Stress</h3><p>The Phase 5 lab defaults to approximately 45 degrees yaw and 35.264 degrees pitch with orthographic projection. Yaw and pitch remain adjustable in the property panel.</p><p>This is intentionally a presentation experiment rather than a new simulation mode. The field, gravity, topology, and droplet behavior receive no camera input.</p></section>
 
@@ -200,7 +204,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <div class="experiment"><div class="id">BS-010</div><div class="status">Implemented</div><div class="desc">Radial floor pooling and isometric camera stress.</div></div>
 </section>
 
-<section id="measurements"><h2>Measurements</h2><p>The study combines numeric and visual evidence. Current automated checks cover source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial spread symmetry, diagonal occupancy, and material conservation.</p></section>
+<section id="measurements"><h2>Measurements</h2><p>The v0.6.1 regression suite includes a moderate wall deposit below the old Phase 4 amount threshold and verifies that source discovery occurs and material reaches lower wall cells. The study combines numeric and visual evidence. Current automated checks cover source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial spread symmetry, diagonal occupancy, and material conservation.</p></section>
 
 <section id="failures"><h2>Failed Approaches</h2><h3>Field-wide wall advection</h3><p>Phase 3 allowed too many wet cells to move under gravity. Large splats visibly collapsed downward. The approach is preserved as BS-005 and superseded by sparse source selection.</p><h3>Four-neighbor floor spread</h3><p>The earliest pressure pass produced diamond-shaped puddles. Phase 4 expanded to eight neighbors. Phase 5 uses a wider radial neighborhood.</p><h3>Immediate unsupported detachment</h3><p>Phase 4's endpoint-to-particle transition was functional but visually abrupt. Phase 5 adds a short hanging stage while preserving the same world-droplet solver.</p></section>
 
@@ -258,6 +262,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>2026-10-19</td><td>BS-007 / 008</td><td>Broad wall advection replaced by sparse channels; support, connected transfer, and contact smearing added.</td></tr>
 <tr><td>2026-10-20</td><td>BS-009</td><td>Hanging endpoint maturation inserted before unsupported world-droplet release.</td></tr>
 <tr><td>2026-10-20</td><td>BS-010</td><td>Wider radial floor redistribution and isometric orthographic camera stress added.</td></tr>
+<tr><td>2026-10-20</td><td>Phase 5 patch</td><td>Added surface-aware drag input, reduced source thresholds, verified downward wall motion, and slowed pool expansion and drying.</td></tr>
 </tbody></table></section>
 
 <section id="versions"><h2>Version History</h2><table><thead><tr><th>Milestone</th><th>Change</th></tr></thead><tbody>
@@ -267,6 +272,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>v0.4.0</td><td>Gravity flow, puddles, world droplets, and blended field rendering.</td></tr>
 <tr><td>v0.5.0</td><td>Sparse channels, support probing, connected transfer, and contact smearing.</td></tr>
 <tr><td>v0.6.0</td><td>Hanging drip maturation, radial pooling, isometric camera checkpoint, and documentation/UI alignment.</td></tr>
+<tr><td>v0.6.1</td><td>Drag-directed impact tool, lower Phase 5 source thresholds, faster visible channel travel, slower pooling, and slower drying.</td></tr>
 </tbody></table></section>
 
 <footer>NM-PM / Blood Simulation / living technical documentation</footer>

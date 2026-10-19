@@ -1,6 +1,6 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 5  
+**Architecture checkpoint:** Phase 5 patch v0.6.1  
 **Date:** 2026-10-20
 
 ## Coordinate boundary
@@ -40,6 +40,22 @@ XYZ WorldDroplet    <->  surface-local sparse field
 
 Impact morphology is generated procedurally, then merged into the persistent field. Overlapping deposits become one material state rather than a stack of independent decals.
 
+## Drag-directed impact tool
+
+The Phase 5 lab adds a surface-aware authoring tool for controlled impacts. The press point is raycast onto a real scene surface. While the mouse is dragged, the screen-space drag vector is projected against the screen projections of that surface's local U and V axes.
+
+The resulting local vector supplies impact direction. Drag length maps to impact speed from a low-force floor to the existing 30-unit speed cap. A short click bypasses the override and uses the nominal sidebar direction and speed.
+
+This is input tooling only. The deposited pattern still enters the same deterministic impact and persistent-field pipeline.
+
+## Phase 5 source discovery patch
+
+Phase 4 source discovery required a dense cell with amount at least 0.46 and wetness at least 0.42. At 42 cells per world unit, visually substantial splats could distribute their mass across enough cells that no source ever formed.
+
+Phase 5 now performs its own source scan before invoking the preserved Phase 4 channel transport. The new default source thresholds are amount 0.18 and wetness 0.20, with deterministic density selection, four-cell source spacing, per-surface caps, and the existing regional cooldown system.
+
+The transport direction itself remains projected world gravity, so a source on a vertical surface advances toward lower world Z regardless of camera angle.
+
 ## Hanging-tip stage
 
 Phase 4 converted an unsupported channel endpoint directly into a world droplet. Phase 5 inserts a short-lived hanging state.
@@ -75,7 +91,7 @@ For each wet cell on an upward-facing surface:
 5. small deterministic spatial variation prevents a perfectly mathematical edge;
 6. requested outflow is conservatively scaled to available source amount.
 
-The solver remains a surface-field approximation rather than a free-surface fluid solver.
+The solver remains a surface-field approximation rather than a free-surface fluid solver. The v0.6.1 patch reduces the default radial rate and lowers the per-step source outflow cap from 14% to 8% of movable material.
 
 ## Drip and pool interaction
 
@@ -87,7 +103,7 @@ Phase 4 contact pickup and directional smearing remain unchanged. Carried blood 
 
 ## Fixed substep
 
-All active dynamics retain a maximum substep of 1/120 s. Phase 5 does not make flow dependent on visible frame rate or camera.
+All active dynamics retain a maximum substep of 1/120 s. The default drying rate is reduced from 0.038 to 0.008 wetness units per second before thickness scaling, giving wet blood substantially more time to flow and pool. Phase 5 does not make flow dependent on visible frame rate or camera.
 
 ## Evidence
 
@@ -109,4 +125,5 @@ E5 records the controlled Phase 5 lifecycle.
 8. Contact transfer reuses the persistent field.
 9. Rendering and camera orientation do not modify simulation state.
 10. Earlier phase harnesses remain preserved.
-11. A phase commit updates code, tests, experiment records, documentation, and release metadata together.
+11. Drag input changes impact direction and speed but never camera or simulation coordinates.
+12. A phase commit or patch commit updates code, tests, experiment records, documentation, and release metadata together.

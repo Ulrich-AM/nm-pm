@@ -60,6 +60,12 @@ std::deque<std::string> gLog;
 
 struct UIState {
     int activeSlider=-1;
+    bool dragActive=false;
+    Vector2 dragStart{};
+    int dragSurface=-1;
+    SurfaceLocal dragLocal{};
+    double dragSpeed=0.0;
+    double dragDirection=0.0;
 };
 
 struct Box {
@@ -76,12 +82,12 @@ struct State {
     double seed=31.0;
     bool varyImpacts=true;
 
-    double flowRate=1.0;
-    double puddleSpread=1.35;
-    double adhesion=0.18;
-    double sourceDensity=0.11;
+    double flowRate=1.35;
+    double puddleSpread=0.22;
+    double adhesion=0.14;
+    double sourceDensity=0.16;
     double tipHangTime=0.42;
-    double dryRate=0.038;
+    double dryRate=0.008;
     double timeScale=1.0;
     bool contactTransfer=true;
 
@@ -700,6 +706,77 @@ void drawHangingDrops(
     }
 }
 
+bool dragImpact(
+    const PlanarSurface& surface,
+    const SurfaceLocal& local,
+    const Camera3D& camera,
+    int viewW,
+    int viewH,
+    Vector2 dragPixels,
+    double& directionDeg,
+    double& speed
+) {
+    const Vec3 world=surface.localToWorld(
+        local.u,
+        local.v,
+        0.018
+    );
+
+    const Vector2 p0=GetWorldToScreenEx(
+        rv(world),
+        camera,
+        viewW,
+        viewH
+    );
+
+    const Vector2 pu=GetWorldToScreenEx(
+        rv(world+surface.axisU),
+        camera,
+        viewW,
+        viewH
+    );
+
+    const Vector2 pv=GetWorldToScreenEx(
+        rv(world+surface.axisV),
+        camera,
+        viewW,
+        viewH
+    );
+
+    const double ux=pu.x-p0.x;
+    const double uy=pu.y-p0.y;
+    const double vx=pv.x-p0.x;
+    const double vy=pv.y-p0.y;
+    const double det=ux*vy-uy*vx;
+
+    if(std::abs(det)<1e-5)return false;
+
+    const double localU=
+        (dragPixels.x*vy-dragPixels.y*vx)/det;
+    const double localV=
+        (ux*dragPixels.y-uy*dragPixels.x)/det;
+
+    if(std::hypot(localU,localV)<1e-7)return false;
+
+    directionDeg=
+        std::atan2(localV,localU)
+        *180.0/blood2::kPi;
+
+    const double dragLength=
+        std::hypot(
+            double(dragPixels.x),
+            double(dragPixels.y)
+        );
+
+    speed=std::clamp(
+        4.0+dragLength*0.11,
+        4.0,
+        30.0
+    );
+
+    return true;
+}
+
 ImpactParams nominalImpact(const State& state) {
     ImpactParams p;
     p.seed=std::uint32_t(
@@ -714,12 +791,15 @@ ImpactParams nominalImpact(const State& state) {
 
 Settings flowSettings(const State& state) {
     Settings s;
-    s.dripRate=state.flowRate;
+    s.dripRate=state.flowRate*2.0;
     s.puddleRate=state.puddleSpread;
     s.adhesion=state.adhesion;
     s.sourceDensity=state.sourceDensity;
     s.tipHangTime=state.tipHangTime;
     s.radialPoolRate=state.puddleSpread;
+    s.sourceScanInterval=0.18;
+    s.sourceSiteCooldown=1.20;
+    s.maxSourcesPerSurface=6;
     s.dryRate=state.dryRate;
     s.contactTransfer=state.contactTransfer;
     return s;
@@ -730,13 +810,23 @@ void depositAt(
     const std::vector<PlanarSurface>& surfaces,
     const SurfaceTopology& topology,
     int surfaceIndex,
-    const SurfaceLocal& local
+    const SurfaceLocal& local,
+    std::optional<double> directionOverride=std::nullopt,
+    std::optional<double> speedOverride=std::nullopt
 ) {
-    const ImpactParams impact=blood3::variedImpact(
+    ImpactParams impact=blood3::variedImpact(
         nominalImpact(state),
         ++state.impactSerial,
         state.varyImpacts
     );
+
+    if(directionOverride) {
+        impact.directionDeg=*directionOverride;
+    }
+
+    if(speedOverride) {
+        impact.speed=*speedOverride;
+    }
 
     const Pattern pattern=blood2::makePattern(impact);
 
@@ -762,6 +852,14 @@ void depositAt(
             stats.wrappedSurfaces
         )
     );
+
+    if(speedOverride) {
+        PushLog(
+            "[tool] drag splash / dir "
+            +Fmt(impact.directionDeg,1)
+            +" deg / force "+Fmt(impact.speed,1)
+        );
+    }
 }
 
 int findSurface(
@@ -879,11 +977,15 @@ bool runE5(
         <<"support_transfers,detached,landed\n";
 
     Settings settings;
-    settings.dripRate=1.0;
-    settings.puddleRate=1.35;
-    settings.adhesion=0.18;
-    settings.sourceDensity=0.11;
-    settings.dryRate=0.035;
+    settings.dripRate=2.70;
+    settings.puddleRate=0.22;
+    settings.adhesion=0.14;
+    settings.sourceDensity=0.16;
+    settings.dryRate=0.008;
+    settings.radialPoolRate=0.22;
+    settings.sourceScanInterval=0.18;
+    settings.sourceSiteCooldown=1.20;
+    settings.maxSourcesPerSurface=6;
     settings.contactTransfer=false;
 
     constexpr double step=1.0/120.0;
@@ -1077,7 +1179,7 @@ void DrawSidebar(
         "radial pool",
         state.puddleSpread,
         0.0,
-        2.5,
+        1.25,
         7,
         ui
     );
@@ -1099,7 +1201,7 @@ void DrawSidebar(
         "drip density",
         state.sourceDensity,
         0.03,
-        0.25,
+        0.40,
         9,
         ui
     );
@@ -1399,7 +1501,8 @@ void DrawDebug(
 
 void DrawMainView(
     Rectangle r,
-    RenderTexture2D target
+    RenderTexture2D target,
+    const UIState& ui
 ) {
     Panel(
         r,
@@ -1426,7 +1529,7 @@ void DrawMainView(
     );
 
     Text(
-        "ISOMETRIC VIEW / CAMERA-INDEPENDENT FIELD",
+        "DRAG AIM / LENGTH = FORCE",
         header.x+header.width-194,
         header.y+5,
         10,
@@ -1476,6 +1579,41 @@ void DrawMainView(
             int(m.x),
             int(m.y)+7,
             Color{30,30,30,220}
+        );
+    }
+
+    if(ui.dragActive) {
+        DrawLineEx(
+            ui.dragStart,
+            m,
+            2.0f,
+            Color{38,38,38,225}
+        );
+
+        DrawCircleV(
+            ui.dragStart,
+            4.0f,
+            Color{245,245,245,245}
+        );
+
+        DrawCircleLines(
+            int(ui.dragStart.x),
+            int(ui.dragStart.y),
+            4.0f,
+            Color{38,38,38,235}
+        );
+
+        const std::string label=
+            "force "+Fmt(ui.dragSpeed,1)
+            +" / dir "+Fmt(ui.dragDirection,0)
+            +" deg";
+
+        Text(
+            label,
+            std::min(m.x+9.0f,body.x+body.width-150.0f),
+            std::max(body.y+7.0f,m.y-18.0f),
+            10,
+            C_TEXT
         );
     }
 }
@@ -1567,6 +1705,8 @@ int main() {
     PushLog("[boot] Phase 5 drip + radial pooling");
     PushLog("[flow] hanging tips / radial floor relaxation");
     PushLog("[camera] isometric checkpoint / simulation unchanged");
+    PushLog("[tool] drag splash direction + force enabled");
+    PushLog("[patch] slower pools / slower drying / easier drip sources");
 
     int rtW=900;
     int rtH=620;
@@ -1765,53 +1905,98 @@ int main() {
 
         if(
             mouseInBody
-            &&IsMouseButtonPressed(
-                MOUSE_BUTTON_LEFT
-            )
+            &&IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
             &&ui.activeSlider<0
         ) {
-            const Vector2 local{
-                (mouse.x-body.x)
-                    *(rtW/body.width),
-                (mouse.y-body.y)
-                    *(rtH/body.height)
+            const Vector2 localMouse{
+                (mouse.x-body.x)*(rtW/body.width),
+                (mouse.y-body.y)*(rtH/body.height)
             };
 
-            const Ray rr=
-                GetScreenToWorldRayEx(
-                    local,
-                    camera,
-                    rtW,
-                    rtH
-                );
+            const Ray rr=GetScreenToWorldRayEx(
+                localMouse,
+                camera,
+                rtW,
+                rtH
+            );
 
             const Ray3 ray{
                 bv(rr.position),
-                blood::normalize(
-                    bv(rr.direction)
-                )
+                blood::normalize(bv(rr.direction))
             };
 
-            const auto hit=
-                raycast(
-                    surfaces,
-                    ray
-                );
+            const auto hit=raycast(surfaces,ray);
 
             if(hit) {
-                const int index=
-                    int(
-                        hit->surface
-                        -&surfaces[0]
-                    );
+                ui.dragActive=true;
+                ui.dragStart=mouse;
+                ui.dragSurface=int(hit->surface-&surfaces[0]);
+                ui.dragLocal=hit->local;
+                ui.dragSpeed=state.speed;
+                ui.dragDirection=state.direction;
+            }
+        }
 
-                depositAt(
-                    state,
-                    surfaces,
-                    topology,
-                    index,
-                    hit->local
+        if(ui.dragActive) {
+            const Vector2 dragPixels{
+                (mouse.x-ui.dragStart.x)*(rtW/body.width),
+                (mouse.y-ui.dragStart.y)*(rtH/body.height)
+            };
+
+            double direction=ui.dragDirection;
+            double speed=ui.dragSpeed;
+
+            if(
+                ui.dragSurface>=0
+                &&ui.dragSurface<int(surfaces.size())
+                &&dragImpact(
+                    surfaces[std::size_t(ui.dragSurface)],
+                    ui.dragLocal,
+                    camera,
+                    rtW,
+                    rtH,
+                    dragPixels,
+                    direction,
+                    speed
+                )
+            ) {
+                ui.dragDirection=direction;
+                ui.dragSpeed=speed;
+            }
+
+            if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+                const double screenLength=std::hypot(
+                    double(mouse.x-ui.dragStart.x),
+                    double(mouse.y-ui.dragStart.y)
                 );
+
+                if(
+                    ui.dragSurface>=0
+                    &&ui.dragSurface<int(surfaces.size())
+                ) {
+                    if(screenLength<7.0) {
+                        depositAt(
+                            state,
+                            surfaces,
+                            topology,
+                            ui.dragSurface,
+                            ui.dragLocal
+                        );
+                    } else {
+                        depositAt(
+                            state,
+                            surfaces,
+                            topology,
+                            ui.dragSurface,
+                            ui.dragLocal,
+                            ui.dragDirection,
+                            ui.dragSpeed
+                        );
+                    }
+                }
+
+                ui.dragActive=false;
+                ui.dragSurface=-1;
             }
         }
 
@@ -1844,7 +2029,8 @@ int main() {
 
         DrawMainView(
             mainView,
-            view
+            view,
+            ui
         );
 
         DrawDebug(

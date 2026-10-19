@@ -115,6 +115,71 @@ int main() {
     }
 
     {
+        const auto surfaces=makeElevatedWall();
+        const auto topology=blood2::buildTopology(surfaces);
+
+        FieldSet fields=blood2::makeFieldSet(
+            surfaces.size(),
+            20.0
+        );
+
+        auto& root=fields.surfaces[0].cellAt(10,12);
+        root.amount=0.34f;
+        root.wetness=1.0f;
+
+        blood5::State state;
+        blood5::Settings settings;
+
+        settings.sourceDensity=1.0;
+        settings.sourceDensityMultiplier=10.0;
+        settings.sourceScanInterval=0.01;
+        settings.sourceSiteCooldown=0.20;
+        settings.maxSourcesPerSurface=2;
+        settings.adhesion=0.08;
+        settings.dripRate=4.0;
+        settings.contactTransfer=false;
+
+        std::vector<blood3::WorldDroplet> droplets;
+
+        int spawned=0;
+
+        for(int step=0;step<90;++step) {
+            const auto stats=blood5::update(
+                fields,
+                surfaces,
+                topology,
+                droplets,
+                {0,0,0},
+                state,
+                1.0/120.0,
+                settings
+            );
+
+            spawned+=stats.spawnedSources;
+        }
+
+        bool movedDown=false;
+
+        for(int gy=0;gy<12;++gy) {
+            if(
+                blood4::amountAt(
+                    fields.surfaces[0],
+                    10,
+                    gy
+                )>0.004
+            ) {
+                movedDown=true;
+                break;
+            }
+        }
+
+        assert(spawned>=1);
+        assert(movedDown);
+
+        ++passed;
+    }
+
+    {
         const auto surfaces=makeFloor();
 
         FieldSet fields=blood2::makeFieldSet(

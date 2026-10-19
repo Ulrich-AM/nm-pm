@@ -19,10 +19,24 @@ using blood3::WorldDroplet;
 
 struct Settings : blood4::Settings {
     double tipHangTime{0.42};
-    double radialPoolRate{2.6};
+    double radialPoolRate{0.22};
     double poolRadiusCells{3.0};
     double poolIrregularity{0.055};
+    double sourceAmountThreshold{0.18};
+    double sourceWetnessThreshold{0.20};
+    double sourceDensityMultiplier{2.0};
     int maxHangingTips{24};
+
+    Settings() {
+        dripRate=2.70;
+        puddleRate=0.22;
+        adhesion=0.14;
+        dryRate=0.008;
+        sourceDensity=0.16;
+        sourceScanInterval=0.18;
+        sourceSiteCooldown=1.20;
+        maxSourcesPerSurface=6;
+    }
 };
 
 struct HangingDrop {
@@ -157,6 +171,166 @@ inline int updateHangingDrops(
     return released;
 }
 
+inline int discoverSourcesRefined(
+    FieldSet& fields,
+    const std::vector<PlanarSurface>& surfaces,
+    State& state,
+    const Settings& settings
+) {
+    if(state.sourceScanTimer>0.0)return 0;
+
+    state.sourceScanTimer=settings.sourceScanInterval;
+
+    int spawned=0;
+    const auto cells=blood3::activeWetCells(fields);
+
+    for(const auto& snap:cells) {
+        if(snap.surface<0||snap.surface>=int(surfaces.size()))continue;
+
+        const auto& surface=
+            surfaces[std::size_t(snap.surface)];
+
+        if(blood4::horizontal(surface))continue;
+
+        if(
+            snap.amount<settings.sourceAmountThreshold
+            ||snap.wetness<settings.sourceWetnessThreshold
+        ) {
+            continue;
+        }
+
+        if(
+            blood4::sourceCountOnSurface(
+                state,
+                snap.surface
+            )>=settings.maxSourcesPerSurface
+        ) {
+            continue;
+        }
+
+        if(
+            blood4::hasNearbySource(
+                state,
+                snap.surface,
+                snap.gx,
+                snap.gy,
+                4
+            )
+        ) {
+            continue;
+        }
+
+        const std::uint64_t key=
+            blood4::siteKey(
+                snap.surface,
+                snap.gx,
+                snap.gy
+            );
+
+        if(
+            state.siteCooldown.find(key)
+            !=state.siteCooldown.end()
+        ) {
+            continue;
+        }
+
+        const Vec3 gravity{0,0,-9.81};
+
+        const Vec3 tangent=
+            blood::surfaceGravity(
+                gravity,
+                surface.normal
+            );
+
+        const double gU=
+            blood::dot(
+                tangent,
+                surface.axisU
+            );
+
+        const double gV=
+            blood::dot(
+                tangent,
+                surface.axisV
+            );
+
+        if(std::hypot(gU,gV)<0.20)continue;
+
+        const auto& field=
+            fields.surfaces[
+                std::size_t(snap.surface)
+            ];
+
+        if(
+            !blood4::localPeakAcrossFlow(
+                field,
+                snap.gx,
+                snap.gy,
+                gU,
+                gV,
+                snap.amount
+            )
+        ) {
+            continue;
+        }
+
+        const double chance=
+            blood4::hash01(
+                std::uint32_t(snap.surface+1),
+                std::uint32_t(snap.gx+4096),
+                std::uint32_t(snap.gy+8192)
+            );
+
+        const double richness=
+            std::clamp(
+                (
+                    snap.amount
+                    -settings.sourceAmountThreshold
+                    +0.10
+                )/0.55,
+                0.65,
+                1.80
+            );
+
+        const double probability=
+            std::clamp(
+                settings.sourceDensity
+                *settings.sourceDensityMultiplier
+                *richness,
+                0.0,
+                1.0
+            );
+
+        if(chance>probability)continue;
+
+        blood4::DripSource source;
+
+        source.surface=snap.surface;
+        source.gx=snap.gx;
+        source.gy=snap.gy;
+        source.rootX=snap.gx;
+        source.rootY=snap.gy;
+
+        source.seed=blood3::mixSeed(
+            0x5a91bu,
+            ++state.sourceSerial
+        );
+
+        source.timer=
+            0.02
+            +0.09*blood4::hash01(
+                source.seed,
+                std::uint32_t(snap.gx),
+                std::uint32_t(snap.gy)
+            );
+
+        state.sources.push_back(source);
+        ++spawned;
+    }
+
+    return spawned;
+}
+
 struct RadialTransfer {
     int surface{};
     int sx{};
@@ -282,7 +456,7 @@ inline double updateRadialPools(
             );
 
         const double maxOut=std::min(
-            movable*0.14,
+            movable*0.08,
             movable*fraction
         );
 
@@ -387,6 +561,14 @@ inline Stats update(
 ) {
     blood4::tickCooldowns(state,dt);
 
+    const int refinedSpawned=
+        discoverSourcesRefined(
+            fields,
+            surfaces,
+            state,
+            settings
+        );
+
     const std::size_t oldDropletCount=
         droplets.size();
 
@@ -404,6 +586,7 @@ inline Stats update(
     Stats out;
 
     static_cast<blood4::Stats&>(out)=base;
+    out.spawnedSources+=refinedSpawned;
 
     out.tipsFormed=
         captureNewTips(
