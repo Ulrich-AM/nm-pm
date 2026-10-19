@@ -42,20 +42,36 @@ add_executable(blood_phase1_tests
 )
 target_include_directories(blood_phase1_tests PRIVATE phases/phase1)
 
+add_executable(blood_phase2
+    phases/phase2/main.cpp
+)
+target_include_directories(blood_phase2 PRIVATE phases/phase0 phases/phase2)
+target_link_libraries(blood_phase2 PRIVATE raylib)
+
+add_executable(blood_phase2_tests
+    phases/phase2/test_phase2.cpp
+)
+target_include_directories(blood_phase2_tests PRIVATE phases/phase0 phases/phase2)
+
 if (MSVC)
     target_compile_options(blood_phase0 PRIVATE /W4 /permissive-)
     target_compile_options(blood_phase0_tests PRIVATE /W4 /permissive-)
     target_compile_options(blood_phase1 PRIVATE /W4 /permissive-)
     target_compile_options(blood_phase1_tests PRIVATE /W4 /permissive-)
+    target_compile_options(blood_phase2 PRIVATE /W4 /permissive-)
+    target_compile_options(blood_phase2_tests PRIVATE /W4 /permissive-)
 else()
     target_compile_options(blood_phase0 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(blood_phase0_tests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(blood_phase1 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(blood_phase1_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(blood_phase2 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(blood_phase2_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 include(CTest)
 if (BUILD_TESTING)
     add_test(NAME blood_phase0_tests COMMAND blood_phase0_tests)
     add_test(NAME blood_phase1_tests COMMAND blood_phase1_tests)
+    add_test(NAME blood_phase2_tests COMMAND blood_phase2_tests)
 endif()
