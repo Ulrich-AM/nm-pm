@@ -53,11 +53,13 @@ jobs:
           Copy-Item build/Release/vdspr_phase5.exe dist/SpriteProjection-Rigid.exe
           Copy-Item build/Release/vdspr_phase6.exe dist/SpriteProjection-Articulation.exe
           Copy-Item build/Release/vdspr_phase7.exe dist/SpriteProjection-ThreeLink.exe
+          Copy-Item build/Release/vdspr_phase8.exe dist/SpriteProjection-BodyAnimation.exe
           Copy-Item README.md dist/README.md
           Copy-Item DOCUMENTATION.html dist/DOCUMENTATION.html
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item ../../AI_DISCLOSURE.md dist/AI_DISCLOSURE.md
           Copy-Item DEPENDENCIES.md dist/DEPENDENCIES.md
+          Copy-Item THIRD_PARTY_NOTICES.md dist/THIRD_PARTY_NOTICES.md
           Compress-Archive -Path dist/* -DestinationPath sprite-projection-windows-x64.zip -Force
 
       - name: Create GitHub Release
@@ -69,7 +71,7 @@ jobs:
           $notes = @"
           NM-PM milestone release for the Sprite Projection study.
 
-          The package contains the preserved rigid-object lab, the two-link articulated lab, and the current three-link chain lab, together with the living documentation, architecture notes, dependency information, and AI disclosure.
+          The package contains the preserved rigid-object, two-link, and three-link research harnesses plus the current animation-driven body lab, together with the living documentation, architecture notes, dependency information, third-party notices, and AI disclosure.
 
           See DOCUMENTATION.html for the exact experiment state associated with this release.
           "@
