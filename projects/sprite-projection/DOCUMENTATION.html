@@ -160,6 +160,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <a href="#sp003">SP-003</a>
           <a href="#sp004">SP-004</a>
           <a href="#sp005">SP-005</a>
+          <a href="#sp006">SP-006</a>
         </div>
         <a class="side-label" href="#evidence">Visual Evidence</a>
         <a class="side-label" href="#failures">Failed Approaches</a>
@@ -185,8 +186,8 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <div class="meta">
             <b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span>
             <b>Study path</b><span><code>projects/sprite-projection/</code></span>
-            <b>Current phase</b><span>Phase 4 stabilized</span>
-            <b>Internal build</b><span>1.6.1</span>
+            <b>Current phase</b><span>Phase 5 rigid stress testing</span>
+            <b>Internal build</b><span>1.7.0</span>
             <b>Primary artifact</b><span><code>DOCUMENTATION.html</code></span>
           </div>
           <div class="note">This page is the canonical living notebook for the study. The clean project URL <code>projects/sprite-projection/</code> redirects here, while the NM-PM homepage remains the collection index.</div>
@@ -202,7 +203,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
             <div><b>Rebuild</b>Transform or blend sprites</div>
             <div><b>Measure</b>Compare to true projection</div>
           </div>
-          <p>Phase 4 currently uses a 40-image yaw x pitch sprite bank, six reconstruction methods, screen-space roll, and quantitative silhouette measurements. The next major bundle begins only after the stabilized Phase 4 build is accepted as the new baseline.</p>
+          <p>Phase 5 freezes the Phase 4 reconstruction methods and applies them to four new adversarial rigid subjects. A2 targets protrusions, A3 targets thin structure, A4 targets concavity and negative space, and A5 targets self-occlusion. E5 compares all six methods across A1-A5 without retuning the original formulas.</p>
         </section>
 
         <section id="problem">
@@ -234,6 +235,17 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <pre>CORE center=( 0.00, 0.00, 0.00) half=(0.82,0.54,0.34)
 TOP  center=( 0.36, 0.73, 0.08) half=(0.32,0.24,0.18)
 ARM  center=(-0.93,-0.18,-0.06) half=(0.27,0.21,0.20)</pre>
+          <h3>Phase 5 stress set</h3>
+          <table>
+            <thead><tr><th>Subject</th><th>Stress target</th><th>Reason</th></tr></thead>
+            <tbody>
+              <tr><td>A2</td><td>Protrusions</td><td>Long off-center appendages and a depth-facing spur amplify view-dependent silhouette changes.</td></tr>
+              <tr><td>A3</td><td>Thin structure</td><td>Narrow rods and slabs expose disappearing features, boundary error, and blending instability.</td></tr>
+              <tr><td>A4</td><td>Concavity</td><td>A U-shaped negative-space opening tests whether reconstruction preserves holes and concave silhouettes.</td></tr>
+              <tr><td>A5</td><td>Occlusion</td><td>Front and rear components at different depths force visibility changes through rotation.</td></tr>
+            </tbody>
+          </table>
+          <div class="note">A1 remains the frozen design subject. A2-A5 are not used to retune the existing methods before E5 is measured.</div>
         </section>
 
         <section id="bank">
@@ -275,7 +287,7 @@ Roll:  not captured</pre>
             <li>centroid displacement in pixels;</li>
             <li>requested orientation, selected views, and residual angles.</li>
           </ul>
-          <p>Numerical findings are not written into this notebook until the corresponding native experiment has actually been executed and its export reviewed.</p>
+          <p>E5 extends the same measurements across A1-A5 and reports each method's mean IoU change relative to A1. No universal pass/fail threshold is imposed before measurement. Numerical findings are not written into this notebook until the corresponding native export has actually been executed and reviewed.</p>
         </section>
 
         <section id="experiments">
@@ -285,7 +297,8 @@ Roll:  not captured</pre>
           <div class="experiment" id="sp003"><div class="id">SP-003</div><div class="status">Implemented</div><div class="desc">Phase 2.2 / E3.1 baseline NEAR, STRETCH, SHEAR, and AFFINE comparison.</div></div>
           <div class="experiment" id="sp004"><div class="id">SP-004</div><div class="status">Implemented</div><div class="desc">E3.2 DUAL neighboring-yaw reconstruction.</div></div>
           <div class="experiment" id="sp005"><div class="id">SP-005</div><div class="status">Results pending</div><div class="desc">Phase 4 / E4 yaw x pitch bank, GRID4 interpolation, and screen-space roll evaluation.</div></div>
-          <p>Durable experiment identifiers remain stable even if implementation phases are later renamed or merged.</p>
+          <div class="experiment" id="sp006"><div class="id">SP-006</div><div class="status">Results pending</div><div class="desc">Phase 5 / E5 rigid-geometry generalization across A1-A5 using protrusion, thin, concave, and occlusion-heavy stress subjects.</div></div>
+          <p>Durable experiment identifiers remain stable even if implementation phases are later renamed or merged. The complete SP-006 protocol is also preserved in <code>experiments/SP-006.md</code>.</p>
         </section>
 
         <section id="evidence">
@@ -331,7 +344,8 @@ Roll:  not captured</pre>
 7. Apply roll as screen-space 2D rotation.
 8. Draw at the projected screen position and depth.
 9. When requested, compare against the reference projection.
-10. Export measurements for later review.</pre>
+10. For E5, repeat the frozen pipeline across A1-A5.
+11. Export per-orientation metrics and cross-subject summaries for later review.</pre>
           <p>The native harness targets C++20 and raylib 6.2. Research-specific coordinate math, bank selection, reconstruction logic, and evaluation metrics remain project code rather than raylib 3D functionality.</p>
         </section>
 
@@ -367,8 +381,8 @@ Roll:  not captured</pre>
             <li>The pitch bank currently clamps outside +/-60 degrees.</li>
             <li>GRID4 can ghost when visibility changes strongly between stored views.</li>
             <li>Perspective projection is outside the current experimental baseline.</li>
-            <li>Only rigid subjects have been evaluated so far.</li>
-            <li>Phase 3 and Phase 4 numerical findings still require native execution and review.</li>
+            <li>Phase 5 remains intentionally rigid. Joints, pivots, multi-part depth ordering, and articulated sprite composition are deferred to Phase 6.</li>
+            <li>Phase 3, Phase 4, and Phase 5 numerical findings still require native execution and review.</li>
             <li>No reconstruction method has yet passed the promotion rule.</li>
           </ul>
         </section>
@@ -385,6 +399,7 @@ Roll:  not captured</pre>
               <tr><td>2026-10-18</td><td>MAINT-4A</td><td>Default window reduced while high-resolution resources were preserved. Black experiment viewports restored.</td></tr>
               <tr><td>2026-10-18</td><td>REPO-INIT</td><td>Canonical source, CI, release workflow, and living documentation migrated into NM-PM.</td></tr>
               <tr><td>2026-10-18</td><td>DOCS-ROUTE</td><td>Homepage project title linked to a clean study URL and project documentation restyled to match the NM-PM site.</td></tr>
+              <tr><td>2026-10-19</td><td>SP-006</td><td>Phase 5 rigid stress set A2-A5 and E5 cross-subject generalization sweep implemented.</td></tr>
             </tbody>
           </table>
         </section>
@@ -400,6 +415,7 @@ Roll:  not captured</pre>
               <tr><td>1.5.0</td><td>Phase 3 quantitative yaw experiment.</td></tr>
               <tr><td>1.6.0</td><td>Yaw x pitch capture grid, GRID4, screen-space roll, and E4.</td></tr>
               <tr><td>1.6.1</td><td>Phase 4 stabilization and NM-PM repository integration.</td></tr>
+              <tr><td>1.7.0</td><td>Phase 5 rigid stress subjects A2-A5, lazy capture banks, and E5 generalization evaluation.</td></tr>
             </tbody>
           </table>
           <p>Public milestone releases use separate tags such as <code>sprite-projection-v0.1.0</code>.</p>
