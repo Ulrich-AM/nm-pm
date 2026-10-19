@@ -201,23 +201,23 @@ void addBoxSurfaces(std::vector<PlanarSurface>& surfaces,const Box& box){
     );
     surfaces.emplace_back(
         p+".front","box-side",
-        Vec3{box.max.x,box.min.y,box.min.z},
-        Vec3{-1,0,0},Vec3{0,0,1},sx,sz
-    );
-    surfaces.emplace_back(
-        p+".back","box-side",
-        Vec3{box.min.x,box.max.y,box.min.z},
+        Vec3{box.min.x,box.min.y,box.min.z},
         Vec3{1,0,0},Vec3{0,0,1},sx,sz
     );
     surfaces.emplace_back(
+        p+".back","box-side",
+        Vec3{box.max.x,box.max.y,box.min.z},
+        Vec3{-1,0,0},Vec3{0,0,1},sx,sz
+    );
+    surfaces.emplace_back(
         p+".left","box-side",
-        Vec3{box.min.x,box.min.y,box.min.z},
-        Vec3{0,1,0},Vec3{0,0,1},sy,sz
+        Vec3{box.min.x,box.max.y,box.min.z},
+        Vec3{0,-1,0},Vec3{0,0,1},sy,sz
     );
     surfaces.emplace_back(
         p+".right","box-side",
-        Vec3{box.max.x,box.max.y,box.min.z},
-        Vec3{0,-1,0},Vec3{0,0,1},sy,sz
+        Vec3{box.max.x,box.min.y,box.min.z},
+        Vec3{0,1,0},Vec3{0,0,1},sy,sz
     );
 }
 
@@ -391,8 +391,8 @@ void drawField(
                     }};
 
                     const Color color=bloodColor(bc);
-                    DrawTriangle3D(rv(world[0]),rv(world[2]),rv(world[1]),color);
-                    DrawTriangle3D(rv(world[0]),rv(world[3]),rv(world[2]),color);
+                    DrawTriangle3D(rv(world[0]),rv(world[1]),rv(world[2]),color);
+                    DrawTriangle3D(rv(world[0]),rv(world[2]),rv(world[3]),color);
                 }
             }
         }
