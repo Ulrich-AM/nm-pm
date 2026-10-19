@@ -8,10 +8,10 @@ Project: https://github.com/raysan5/raylib
 
 ## Assimp
 
-Phase 8 uses Open Asset Import Library (Assimp) 6.0.5 to import FBX skeleton and animation data.
+Phase 8 and Phase 9 use Open Asset Import Library (Assimp) 6.0.5 to import FBX skeleton and animation data.
 
 Project: https://github.com/assimp/assimp
 
-The fetched NM-PM build disables unused importers/exporters and links Assimp statically into the Phase 8 executable.
+The fetched NM-PM build disables unused importers/exporters and links Assimp statically into the Phase 8 and Phase 9 executables.
 
 Refer to the upstream projects for their complete license texts and notices.
