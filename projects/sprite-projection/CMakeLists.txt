@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(view_dependent_sprite_projection_phase5 LANGUAGES CXX)
+project(view_dependent_sprite_projection LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
