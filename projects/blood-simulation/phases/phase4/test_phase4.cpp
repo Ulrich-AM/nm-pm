@@ -1,5 +1,8 @@
 #include "phase4_dynamics.hpp"
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -355,6 +358,14 @@ int main() {
 
         blood4::State state;
         blood4::Settings settings;
+
+        blood4::updateContactTransfer(
+            fields,
+            surfaces,
+            {1.0,1.0,0.0},
+            state,
+            1.0/60.0
+        );
 
         blood4::updateContactTransfer(
             fields,
