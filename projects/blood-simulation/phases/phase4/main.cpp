@@ -75,10 +75,10 @@ struct State {
     double seed=31.0;
     bool varyImpacts=true;
 
-    double flowRate=2.4;
+    double flowRate=1.0;
     double puddleSpread=1.35;
     double adhesion=0.18;
-    double sourceDensity=0.16;
+    double sourceDensity=0.11;
     double dryRate=0.038;
     double timeScale=1.0;
     bool contactTransfer=true;
@@ -847,10 +847,10 @@ bool runE4(
         <<"support_transfers,detached,landed\n";
 
     Settings settings;
-    settings.dripRate=2.4;
+    settings.dripRate=1.0;
     settings.puddleRate=1.35;
     settings.adhesion=0.18;
-    settings.sourceDensity=0.16;
+    settings.sourceDensity=0.11;
     settings.dryRate=0.035;
     settings.contactTransfer=false;
 
@@ -1032,8 +1032,8 @@ void DrawSidebar(
         {r.x+9,y,r.width-18,21},
         "drip rate",
         state.flowRate,
-        0.4,
-        5.0,
+        0.35,
+        3.0,
         6,
         ui
     );
@@ -1065,8 +1065,8 @@ void DrawSidebar(
         {r.x+9,y,r.width-18,21},
         "drip density",
         state.sourceDensity,
-        0.04,
-        0.32,
+        0.03,
+        0.25,
         9,
         ui
     );
