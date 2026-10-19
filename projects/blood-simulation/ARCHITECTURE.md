@@ -1,136 +1,146 @@
 # Blood Simulation Architecture
 
-**NM-PM project:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
-**Architecture checkpoint:** Phase 1  
+**Architecture checkpoint:** Phase 2  
 **Date:** 2026-10-19
 
-## Coordinate and camera boundary
+## Coordinate boundary
 
 Simulation space remains:
 
 ```text
 X = left / right
-Y = front / back room depth
+Y = front / back
 Z = height
 ```
 
-The camera is a view layer.
+Persistent blood state lives in surface-local coordinates. Camera yaw, pitch, and projection remain view concerns only.
 
-Phase 1 uses an orthographic side-room camera with adjustable yaw and pitch. The default yaw is increased from Phase 0 so side faces are easier to read, but blood state remains world/surface-local and therefore does not depend on the camera.
-
-## Preserved native phases
+## Native phase structure
 
 ```text
 phases/
-├── phase0/
-│   ├── main.cpp
-│   ├── phase0_math.hpp
-│   └── test_phase0.cpp
-└── phase1/
-    ├── main.cpp
-    ├── phase1_splats.hpp
-    └── test_phase1.cpp
+├── phase0/   world and planar surface contract
+├── phase1/   representation comparison
+└── phase2/   sparse persistent field lifecycle
 ```
 
-Phase 0 remains frozen as the world/surface foundation.
+Phase 2 reuses `phase0_math.hpp`.
 
-Phase 1 reuses `phase0_math.hpp` and adds representation-specific logic without changing the surface coordinate contract.
+## Procedural deposit
 
-## Phase 1 representation boundary
+An impact event produces a deterministic `Pattern`.
 
-A controlled impact event contains:
+The pattern contains:
+
+- one irregular oriented central ellipse;
+- boundary lobes;
+- thin directional capsules;
+- satellite discs;
+- optional fine mist.
+
+High-level shape is driven by speed, incidence, direction, and volume.
+
+Small-scale irregularity is driven by seed.
+
+## Shared-edge topology
+
+Each planar rectangle exposes four finite edges:
 
 ```text
-surface-local position
-direction
-speed
-incident angle
-volume
-droplet radius
-deterministic seed
+U0  U1  V0  V1
 ```
 
-That event is fed into all five representation candidates.
+Topology construction compares world-space edge segments and links exact matches.
 
-### Premade raster baseline
+When a generated sample leaves its source surface:
 
-Uses one of four fixed shape signatures.
+1. identify the crossed source edge;
+2. compute distance beyond that edge;
+3. locate the linked neighbor edge;
+4. convert the shared edge point to neighbor-local coordinates;
+5. move the same overflow distance inward from the neighbor edge;
+6. continue recursively if another edge is crossed.
 
-It exists to provide a cheap, intentionally repetitive comparison point.
+If no neighbor exists, the sample is discarded.
 
-### Procedural vector
+This solves static visual hanging without introducing premature fluid-flow semantics.
 
-Stores generated blobs and streaks as live local geometry.
+## Sparse surface field
 
-### Generated raster
+Each surface owns an `unordered_map` of 16 × 16 tiles.
 
-Uses procedural geometry as a temporary construction stage, then rasterizes it and discards the vector geometry.
+A tile is created only when a deposit touches its region.
 
-### Surface field
-
-Deposits directly into a local raster field.
-
-Its memory estimate reserves channels for later amount, wetness, age, and local velocity state.
-
-### Hybrid
-
-Stores the central body in a coarser raster patch while keeping thin streaks and satellites procedural.
-
-## Common evaluation raster
-
-All candidates are converted to a shared evaluation coverage grid for measurements.
-
-This allows comparable calculations for:
-
-- major-axis direction error;
-- coverage signature hashing;
-- seed diversity.
-
-The evaluation raster is evidence only. It does not force the runtime representation to be raster-based.
-
-## Phase 1 UI boundary
-
-The native harness is divided into:
+Each cell contains:
 
 ```text
-left panel   -> representation + impact + camera properties
-center       -> main orthographic room experiment
-right panel  -> metrics + local-surface preview + BS-002 export
+amount
+wetness
+age
+velocityU
+velocityV
+frozen
 ```
 
-The visual language intentionally follows the light research-tool layout established by Sprite Projection.
+The velocity channels are intentionally dormant until a later flow phase.
 
-## E1 export
+## Lifecycle
 
-The Phase 1 harness can export:
+Deposition adds amount and refreshes wetness.
+
+Active cells:
 
 ```text
-results/phase1/E1_representation_metrics.csv
-results/phase1/E1_representation_summary.csv
+age += dt
+wetness -= dryingRate * dt * thicknessFactor
 ```
 
-The sweep uses 24 deterministic impact events across all five methods.
+When wetness reaches the freeze threshold:
 
-## Future surface state
+```text
+frozen = true
+wetness = 0
+velocity = 0
+```
 
-Phase 1 remains static.
+Frozen cells remain renderable but no longer require lifecycle updates.
 
-Phase 2 may introduce active fields containing quantities such as:
+## Rendering
 
-- blood amount;
-- wetness;
-- age;
-- local flow velocity.
+Blood field cells are drawn as quads in world space, slightly offset along the supporting surface normal.
 
-No representation is promoted until Phase 1 evidence and visual review justify it.
+They are rendered inside the normal 3D depth pass rather than as screen-space overlays.
+
+Therefore blood obeys ordinary occlusion.
+
+## UI
+
+Phase 2 deliberately matches the completed Sprite Projection tool structure:
+
+```text
+left sidebar 286 px
+main experiment panel
+bottom debug/results strip 150 px
+```
+
+Windows builds load Arial when available to avoid the default bitmap-font appearance seen in Phase 1.
+
+## Evidence
+
+BS-003 tests morphology and static shared-edge continuation.
+
+BS-004 tests sparse allocation, accumulation, drying, freezing, and lifecycle cost.
+
+E2 exports field state across a 60-second simulated lifecycle.
 
 ## Architecture rules
 
-1. Simulation state uses world or surface-local coordinates, never screen coordinates.
-2. Camera type and camera yaw are view concerns.
-3. Impact events remain representation-neutral.
-4. Completed phase harnesses stay runnable.
-5. Static representation comparison precedes dynamic flow.
-6. Rasterization may be a persistence strategy even when generation begins mathematically.
-7. Untouched surfaces should not allocate dense active state in later phases.
-8. Static irregular geometry is validated before moving or deforming surfaces.
+1. Blood state never depends on screen position.
+2. Camera view remains replaceable.
+3. Static deposit wrapping uses real surface adjacency.
+4. Dynamic cross-surface flow is not faked by the static wrapper.
+5. Untouched surface regions allocate no tiles.
+6. Dry cells stop lifecycle updates.
+7. Earlier phase harnesses stay in source control.
+8. New milestone ZIPs may package only the current executable because prior releases preserve earlier executables.
+9. Irregular static surfaces remain a later generalization.
