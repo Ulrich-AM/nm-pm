@@ -10,5 +10,7 @@ The Blood Simulation study uses durable identifiers beginning with `BS-`.
 | BS-004 | Phase 2 | Implemented | Test sparse persistent field accumulation, wetness, age, drying, and freezing |
 | BS-005 | Phase 3 | Implemented | Test gravity-driven surface flow, floor puddling, supported wall-base transfer, and detached world-space droplets |
 | BS-006 | Phase 3 | Implemented | Test blended field rendering and deterministic variation across repeated nominally identical impacts |
+| BS-007 | Phase 4 | Implemented | Test sparse drip channels, support probing, intermittent detachment, and rounded puddle spreading |
+| BS-008 | Phase 4 | Implemented | Test dynamic connected-surface transfer and player contact pickup/smearing |
 
 Failed and superseded experiments remain in the registry.
