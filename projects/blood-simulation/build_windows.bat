@@ -19,5 +19,5 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo Build complete.
-echo Run run_phase2.bat for the current persistent-field lab.
+echo Run run_phase3.bat for the current gravity-flow lab.
 echo Older phase launchers remain available for regression testing.
