@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(view_dependent_sprite_projection_phase4 LANGUAGES CXX)
+project(view_dependent_sprite_projection_phase5 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -7,7 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
-# Prefer an already installed raylib 6.2. Otherwise fetch the pinned release.
 find_package(raylib 6.2 QUIET)
 if (NOT raylib_FOUND)
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -21,16 +20,16 @@ if (NOT raylib_FOUND)
     FetchContent_MakeAvailable(raylib)
 endif()
 
-add_executable(vdspr_phase4
+add_executable(vdspr_phase5
     src/main.cpp
 )
-target_include_directories(vdspr_phase4 PRIVATE src)
-target_link_libraries(vdspr_phase4 PRIVATE raylib)
+target_include_directories(vdspr_phase5 PRIVATE src)
+target_link_libraries(vdspr_phase5 PRIVATE raylib)
 
 if (MSVC)
-    target_compile_options(vdspr_phase4 PRIVATE /W4 /permissive-)
+    target_compile_options(vdspr_phase5 PRIVATE /W4 /permissive-)
 else()
-    target_compile_options(vdspr_phase4 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(vdspr_phase5 PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_executable(vdspr_math_tests
