@@ -25,17 +25,17 @@ using blood2::SurfaceTopology;
 using blood3::WorldDroplet;
 
 struct Settings {
-    double dripRate{2.4};
+    double dripRate{1.0};
     double puddleRate{1.35};
     double adhesion{0.18};
     double dryRate{0.038};
-    double sourceDensity{0.16};
-    double sourceScanInterval{0.20};
-    double sourceSiteCooldown{1.35};
-    double globalDetachCooldown{0.20};
+    double sourceDensity{0.11};
+    double sourceScanInterval{0.24};
+    double sourceSiteCooldown{1.55};
+    double globalDetachCooldown{0.35};
     double supportProbeDepth{0.24};
-    int maxSourcesPerSurface{5};
-    int maxDroplets{72};
+    int maxSourcesPerSurface{4};
+    int maxDroplets{48};
     bool contactTransfer{true};
 };
 
@@ -125,6 +125,22 @@ inline std::pair<int,int> localCell(
 inline double amountAt(const SurfaceField& field,int gx,int gy) {
     const BloodCell* c=field.findCell(gx,gy);
     return c?c->amount:0.0;
+}
+
+inline BloodCell* findCellMutable(
+    SurfaceField& field,
+    int gx,
+    int gy
+) {
+    const int tx=blood2::floorDiv(gx,blood2::kTileSize);
+    const int ty=blood2::floorDiv(gy,blood2::kTileSize);
+    const int lx=gx-tx*blood2::kTileSize;
+    const int ly=gy-ty*blood2::kTileSize;
+    const auto it=field.tiles.find(blood2::tileKey(tx,ty));
+    if(it==field.tiles.end())return nullptr;
+    return &it->second.cells[
+        std::size_t(ly*blood2::kTileSize+lx)
+    ];
 }
 
 inline bool hasNearbySource(
@@ -380,24 +396,51 @@ inline Stats updateDripChannels(
             ?(gV>=0?1:-1)
             :0;
 
-        const double movable=
-            std::max(
-                0.0,
-                double(cell.amount)
-                -settings.adhesion*1.25
-            );
+        const bool atRoot=
+            source.surface>=0
+            &&source.gx==source.rootX
+            &&source.gy==source.rootY;
 
-        if(movable<=0.015) {
-            retireSource(state,source,settings.sourceSiteCooldown);
-            continue;
+        double movable=0.0;
+        double stepAmount=0.0;
+
+        if(atRoot) {
+            movable=
+                std::max(
+                    0.0,
+                    double(cell.amount)
+                    -settings.adhesion*1.25
+                );
+            if(movable<=0.020) {
+                retireSource(
+                    state,
+                    source,
+                    settings.sourceSiteCooldown
+                );
+                continue;
+            }
+            stepAmount=
+                std::min(
+                    movable*0.50,
+                    0.095
+                    +0.025*double(cell.wetness)
+                );
+        } else {
+            movable=std::max(0.0,double(cell.amount)-0.010);
+            if(movable<=0.012) {
+                retireSource(
+                    state,
+                    source,
+                    settings.sourceSiteCooldown
+                );
+                continue;
+            }
+            stepAmount=
+                std::min(
+                    movable*0.78,
+                    0.085
+                );
         }
-
-        const double stepAmount=
-            std::min(
-                movable,
-                0.035
-                +0.075*double(cell.wetness)
-            );
 
         const double u=(source.gx+0.5)/field.cellsPerUnit;
         const double v=(source.gy+0.5)/field.cellsPerUnit;
@@ -557,11 +600,11 @@ inline Stats updateDripChannels(
 
         if(source.alive) {
             source.timer=
-                (0.065+0.090*hash01(
+                (0.12+0.18*hash01(
                     source.seed,
                     std::uint32_t(source.gx+17),
                     std::uint32_t(source.gy+31)
-                ))/std::max(0.25,settings.dripRate);
+                ))/std::max(0.35,settings.dripRate);
         }
     }
 
@@ -894,14 +937,23 @@ inline double updateContactTransfer(
 
     for(int oy=-1;oy<=1;++oy) {
         for(int ox=-1;ox<=1;++ox) {
-            BloodCell& c=field.cellAt(gx+ox,gy+oy);
-            if(c.amount<=0.03f||c.wetness<=0.20f)continue;
+            BloodCell* c=findCellMutable(
+                field,
+                gx+ox,
+                gy+oy
+            );
+            if(!c||c->amount<=0.03f||c->wetness<=0.20f)continue;
             const double take=
                 std::min(
-                    double(c.amount)*0.018,
+                    double(c->amount)*0.018,
                     0.010
                 );
-            c.amount=float(std::max(0.0,double(c.amount)-take));
+            c->amount=float(
+                std::max(
+                    0.0,
+                    double(c->amount)-take
+                )
+            );
             picked+=take;
         }
     }
