@@ -2,6 +2,10 @@ name: Sprite Projection Release
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - "projects/sprite-projection/RELEASE_REQUEST"
     tags:
       - "sprite-projection-v*"
 
@@ -18,6 +22,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = (Get-Content RELEASE_REQUEST -Raw).Trim()
+          }
+          if ($tag -notmatch '^sprite-projection-v\d+\.\d+\.\d+$') {
+            throw "Invalid Sprite Projection release tag: $tag"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
 
       - name: Configure
         run: cmake -S . -B build
@@ -43,8 +61,32 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          gh release create "${{ github.ref_name }}" `
+          $notes = @"
+          First public NM-PM milestone release for the Sprite Projection study.
+
+          Current research state: Phase 5 rigid geometry stress testing, internal harness build 1.7.0.
+
+          Highlights:
+          - 40-view yaw x pitch sprite banks
+          - NEAR, STRETCH, SHEAR, AFFINE, DUAL, and GRID4 reconstruction
+          - screen-space roll reconstruction
+          - A1 baseline plus A2 protrusion, A3 thin-structure, A4 concavity, and A5 occlusion stress subjects
+          - E3, E4, and E5 quantitative evaluation paths
+          - silhouette IoU, symmetric boundary error, and centroid displacement metrics
+          - 16-test native validation suite
+          - NM-PM living documentation and AI disclosure included in the package
+
+          The attached Windows ZIP is intended as an easy-to-run research checkpoint rather than a final reference implementation.
+          "@
+
+          if (gh release view "$env:RELEASE_TAG" *> $null) {
+            throw "Release $env:RELEASE_TAG already exists."
+          }
+
+          gh release create "$env:RELEASE_TAG" `
             "sprite-projection-windows-x64.zip" `
-            --title "Sprite Projection ${{ github.ref_name }}" `
-            --generate-notes
+            --target "${{ github.sha }}" `
+            --title "Sprite Projection v0.1.0 - Phase 5 Rigid Stress" `
+            --notes "$notes"
