@@ -270,13 +270,8 @@ bool ExportBankSheet(
             ImageDrawImage(
                 &sheet,
                 cell,
-                Rectangle{0,0,(float)cell.width,(float)cell.height},
-                Rectangle{
-                    (float)(y*kSpriteSize),
-                    (float)(p*kSpriteSize),
-                    (float)kSpriteSize,
-                    (float)kSpriteSize
-                },
+                y*kSpriteSize,
+                p*kSpriteSize,
                 WHITE
             );
 
@@ -367,8 +362,8 @@ bool ExportBodySpriteSheets() {
         ImageDrawImage(
             &contact,
             sheet,
-            Rectangle{0,0,(float)sheet.width,(float)sheet.height},
-            Rectangle{0,(float)(y0+labelHeight),(float)sheetWidth,(float)sheetHeight},
+            0,
+            y0+labelHeight,
             WHITE
         );
 
