@@ -52,6 +52,7 @@ jobs:
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/Release/vdspr_phase5.exe dist/SpriteProjection-Rigid.exe
           Copy-Item build/Release/vdspr_phase6.exe dist/SpriteProjection-Articulation.exe
+          Copy-Item build/Release/vdspr_phase7.exe dist/SpriteProjection-ThreeLink.exe
           Copy-Item README.md dist/README.md
           Copy-Item DOCUMENTATION.html dist/DOCUMENTATION.html
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
@@ -68,7 +69,7 @@ jobs:
           $notes = @"
           NM-PM milestone release for the Sprite Projection study.
 
-          The package contains both the preserved rigid-object lab and the current articulated multi-sprite lab, together with the living documentation, architecture notes, dependency information, and AI disclosure.
+          The package contains the preserved rigid-object lab, the two-link articulated lab, and the current three-link chain lab, together with the living documentation, architecture notes, dependency information, and AI disclosure.
 
           See DOCUMENTATION.html for the exact experiment state associated with this release.
           "@
