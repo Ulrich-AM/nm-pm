@@ -1,30 +1,12 @@
 # Blood Simulation Architecture
 
 **NM-PM project:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
-**Architecture checkpoint:** Phase 0  
+**Architecture checkpoint:** Phase 1  
 **Date:** 2026-10-19
 
-## Phase 0 objective
+## Coordinate and camera boundary
 
-Phase 0 intentionally solves no fluid-simulation problem.
-
-It establishes:
-
-```text
-world-space event
-        ↓
-surface intersection
-        ↓
-surface-local coordinates
-        ↓
-future persistent blood representation
-```
-
-Later phases should be able to compare several blood representations without rebuilding collision, coordinates, camera projection, or surface identity.
-
-## Coordinate system
-
-World space uses:
+Simulation space remains:
 
 ```text
 X = left / right
@@ -32,129 +14,123 @@ Y = front / back room depth
 Z = height
 ```
 
-Gameplay movement currently lies on the XY floor plane.
+The camera is a view layer.
 
-The camera is **orthographic**, not perspective and not isometric. It looks mostly into the room from the front with a downward component so Y depth remains readable. Objects do not become smaller merely because they move farther toward the back wall.
+Phase 1 uses an orthographic side-room camera with adjustable yaw and pitch. The default yaw is increased from Phase 0 so side faces are easier to read, but blood state remains world/surface-local and therefore does not depend on the camera.
 
-The intended visual family is a side-scroller / beat-em-up room with usable front-back movement.
-
-## Native reference harness
-
-The canonical Phase 0 runtime is C++20 + raylib:
+## Preserved native phases
 
 ```text
-phases/phase0/
-├── main.cpp
-├── phase0_math.hpp
-└── test_phase0.cpp
+phases/
+├── phase0/
+│   ├── main.cpp
+│   ├── phase0_math.hpp
+│   └── test_phase0.cpp
+└── phase1/
+    ├── main.cpp
+    ├── phase1_splats.hpp
+    └── test_phase1.cpp
 ```
 
-### main.cpp
+Phase 0 remains frozen as the world/surface foundation.
 
-Owns the native experiment harness:
+Phase 1 reuses `phase0_math.hpp` and adds representation-specific logic without changing the surface coordinate contract.
 
-- orthographic Camera3D;
-- room drawing;
-- player input and simple collision;
-- mouse ray generation;
-- nearest surface probing;
-- debug markers;
-- local/world coordinate display.
+## Phase 1 representation boundary
 
-### phase0_math.hpp
-
-Owns renderer-independent mathematics:
-
-- Vec3 operations;
-- plane projection;
-- tangential gravity projection;
-- planar surface basis;
-- local/world conversion;
-- finite ray intersection.
-
-### test_phase0.cpp
-
-Provides the native regression suite without requiring a window.
-
-## Browser preview
-
-The existing `src/` JavaScript harness is retained as a convenient GitHub Pages preview.
-
-Its camera has been corrected from the initial isometric interpretation to the same orthographic side-room intent.
-
-The browser preview is useful evidence and debugging support, but later production-like experiments should treat the native phase harnesses as canonical.
-
-## Surface contract
-
-A planar surface stores:
-
-- stable identifier;
-- world origin;
-- local U/V tangent basis;
-- surface normal;
-- finite dimensions;
-- local-to-world conversion;
-- world-to-local conversion;
-- finite ray intersection.
-
-For planar surfaces:
+A controlled impact event contains:
 
 ```text
-P = O + uU + vV
+surface-local position
+direction
+speed
+incident angle
+volume
+droplet radius
+deterministic seed
 ```
 
-Persistent blood state must live in world or surface-local space, never screen space.
+That event is fed into all five representation candidates.
 
-## Gravity on surfaces
+### Premade raster baseline
 
-The generic future flow primitive is already isolated:
+Uses one of four fixed shape signatures.
+
+It exists to provide a cheap, intentionally repetitive comparison point.
+
+### Procedural vector
+
+Stores generated blobs and streaks as live local geometry.
+
+### Generated raster
+
+Uses procedural geometry as a temporary construction stage, then rasterizes it and discards the vector geometry.
+
+### Surface field
+
+Deposits directly into a local raster field.
+
+Its memory estimate reserves channels for later amount, wetness, age, and local velocity state.
+
+### Hybrid
+
+Stores the central body in a coarser raster patch while keeping thin streaks and satellites procedural.
+
+## Common evaluation raster
+
+All candidates are converted to a shared evaluation coverage grid for measurements.
+
+This allows comparable calculations for:
+
+- major-axis direction error;
+- coverage signature hashing;
+- seed diversity.
+
+The evaluation raster is evidence only. It does not force the runtime representation to be raster-based.
+
+## Phase 1 UI boundary
+
+The native harness is divided into:
 
 ```text
-g_surface = g - dot(g, n) n
+left panel   -> representation + impact + camera properties
+center       -> main orthographic room experiment
+right panel  -> metrics + local-surface preview + BS-002 export
 ```
 
-Phase 0 tests it but does not yet move blood.
+The visual language intentionally follows the light research-tool layout established by Sprite Projection.
 
-## Future irregular surfaces
+## E1 export
 
-The current rectangle surface is a controlled starting point, not a permanent requirement.
-
-A future triangle or patch implementation should still answer:
+The Phase 1 harness can export:
 
 ```text
-world point -> local surface position
-local surface position -> world point
-surface normal at position
-ray intersection
-surface edge / adjacency
+results/phase1/E1_representation_metrics.csv
+results/phase1/E1_representation_summary.csv
 ```
 
-For connected triangle geometry:
+The sweep uses 24 deterministic impact events across all five methods.
 
-1. blood state belongs to a local patch or chart;
-2. gravity is projected onto the local tangent plane;
-3. crossing a shared edge transfers state into the neighbor;
-4. reaching an open edge can accumulate or detach a world-space droplet.
+## Future surface state
 
-Static irregular geometry must be validated before deforming surfaces.
+Phase 1 remains static.
 
-## Phase preservation
+Phase 2 may introduce active fields containing quantities such as:
 
-Each implementation phase receives its own native folder as it becomes materially different.
+- blood amount;
+- wetness;
+- age;
+- local flow velocity.
 
-Completed phase harnesses should be preserved instead of rewriting the previous executable in place.
-
-Phase milestone tags are documented in `RELEASES.md`.
+No representation is promoted until Phase 1 evidence and visual review justify it.
 
 ## Architecture rules
 
 1. Simulation state uses world or surface-local coordinates, never screen coordinates.
-2. The camera is a view layer.
-3. The canonical camera family is orthographic side-room, not isometric.
-4. Impact events remain representation-neutral.
-5. Surface blood representation is not selected during Phase 0.
-6. Shared mathematics stays independent of raylib, Canvas, and the DOM when practical.
-7. Untouched surfaces should not require dense blood storage in later phases.
-8. Surface adjacency is introduced only when a controlled experiment needs it.
-9. Completed phase harnesses remain reproducible.
-10. Static irregular geometry is proven before moving or deforming geometry.
+2. Camera type and camera yaw are view concerns.
+3. Impact events remain representation-neutral.
+4. Completed phase harnesses stay runnable.
+5. Static representation comparison precedes dynamic flow.
+6. Rasterization may be a persistence strategy even when generation begins mathematically.
+7. Untouched surfaces should not allocate dense active state in later phases.
+8. Static irregular geometry is validated before moving or deforming surfaces.
