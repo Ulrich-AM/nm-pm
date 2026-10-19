@@ -32,12 +32,20 @@ add_executable(vdspr_phase6
 target_include_directories(vdspr_phase6 PRIVATE src)
 target_link_libraries(vdspr_phase6 PRIVATE raylib)
 
+add_executable(vdspr_phase7
+    src/chain_lab.cpp
+)
+target_include_directories(vdspr_phase7 PRIVATE src)
+target_link_libraries(vdspr_phase7 PRIVATE raylib)
+
 if (MSVC)
     target_compile_options(vdspr_phase5 PRIVATE /W4 /permissive-)
     target_compile_options(vdspr_phase6 PRIVATE /W4 /permissive-)
+    target_compile_options(vdspr_phase7 PRIVATE /W4 /permissive-)
 else()
     target_compile_options(vdspr_phase5 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(vdspr_phase6 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(vdspr_phase7 PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_executable(vdspr_math_tests
