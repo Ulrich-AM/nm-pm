@@ -1109,18 +1109,6 @@ void DrawSidebar(
     );
     y+=24;
 
-    Slider(
-        {r.x+9,y,r.width-18,21},
-        "pitch",
-        state.cameraPitch,
-        8,
-        22,
-        12,
-        ui,
-        " deg"
-    );
-    y+=23;
-
     Checkbox(
         {r.x+9,y,r.width-18,20},
         "floor grid",
@@ -1139,10 +1127,12 @@ void DrawSidebar(
         "room.back-wall"
     );
 
+    const float stampW=(r.width-23)*0.5f;
+
     if(
         Button(
-            {r.x+9,y,r.width-18,23},
-            "STAMP HIGH WALL"
+            {r.x+9,y,stampW,23},
+            "HIGH WALL"
         )
         &&back>=0
     ) {
@@ -1160,7 +1150,6 @@ void DrawSidebar(
             local
         );
     }
-    y+=28;
 
     const int boxSide=findSurface(
         surfaces,
@@ -1169,8 +1158,8 @@ void DrawSidebar(
 
     if(
         Button(
-            {r.x+9,y,r.width-18,23},
-            "STAMP BOX SIDE"
+            {r.x+14+stampW,y,stampW,23},
+            "BOX SIDE"
         )
         &&boxSide>=0
     ) {
