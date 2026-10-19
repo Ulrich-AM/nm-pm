@@ -114,11 +114,11 @@ code{font-family:Consolas,"Courier New",monospace;background:var(--code);border:
 .meta b{font-weight:400;color:var(--muted)}
 .meta span{color:var(--text)}
 footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
-*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+*{scrollbar-width:thin;scrollbar-color:var(--muted) var(--panel)}
 ::-webkit-scrollbar{width:7px;height:7px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--line);border:1px solid transparent;background-clip:padding-box}
-::-webkit-scrollbar-button{display:none}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--muted);border:1px solid var(--panel);background-clip:padding-box}
+::-webkit-scrollbar-button{display:none}\n::-webkit-scrollbar-corner{background:var(--panel)}
 @media(max-width:1050px){
   #layout{grid-template-columns:220px minmax(0,1fr)}
   #toc{display:none}
