@@ -3,17 +3,17 @@ setlocal
 cd /d "%~dp0"
 title NM-PM Sprite Projection - Run
 
-if exist "build\Release\vdspr_phase5.exe" (
-  start "" "build\Release\vdspr_phase5.exe"
+if exist "build\Release\vdspr_phase6.exe" (
+  start "" "build\Release\vdspr_phase6.exe"
   exit /b 0
 )
 
-if exist "build\vdspr_phase5.exe" (
-  start "" "build\vdspr_phase5.exe"
+if exist "build\vdspr_phase6.exe" (
+  start "" "build\vdspr_phase6.exe"
   exit /b 0
 )
 
-echo The Phase 5 executable has not been built yet.
+echo The Phase 6 executable has not been built yet.
 echo Run build_windows.bat first.
 echo.
 pause
