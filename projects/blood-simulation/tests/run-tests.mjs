@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { IsoCamera } from "../src/camera.js";
+import { SideOrthoCamera } from "../src/camera.js";
 import {
   almostEqual,
   distance,
@@ -71,8 +71,8 @@ test("nearest hit selects crate top before floor", () => {
   assert.ok(almostEqual(hit.point.z, 1.55));
 });
 
-test("orthographic screen ray passes through projected world point", () => {
-  const camera = new IsoCamera({
+test("side-room orthographic screen ray passes through projected world point", () => {
+  const camera = new SideOrthoCamera({
     target: { x: 6, y: 4.5, z: 1.5 },
     pixelsPerUnit: 60
   });
