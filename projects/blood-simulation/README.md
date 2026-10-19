@@ -3,7 +3,8 @@
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
 **Current phase:** Phase 2 - persistent surface blood field  
-**Current milestone:** `blood-simulation-v0.3.0`
+**Current milestone:** `blood-simulation-v0.3.0`  
+**Recommended Phase 2 build:** `blood-simulation-v0.3.1`
 
 This study investigates performance-oriented approximations for blood motion and persistent surface deposits in a true-XYZ orthographic side-room environment.
 
