@@ -162,6 +162,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <a href="#sp005">SP-005</a>
           <a href="#sp006">SP-006</a>
           <a href="#sp007">SP-007</a>
+          <a href="#sp008">SP-008</a>
         </div>
         <a class="side-label" href="#evidence">Visual Evidence</a>
         <a class="side-label" href="#failures">Failed Approaches</a>
@@ -188,8 +189,8 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <div class="meta">
             <b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span>
             <b>Study path</b><span><code>projects/sprite-projection/</code></span>
-            <b>Current phase</b><span>Phase 6 articulated multi-sprite testing</span>
-            <b>Internal build</b><span>1.8.0</span>
+            <b>Current phase</b><span>Phase 7 three-link articulated sprite testing</span>
+            <b>Internal build</b><span>1.9.0</span>
             <b>Primary artifact</b><span><code>DOCUMENTATION.html</code></span>
           </div>
           <div class="note">This page is the canonical living notebook for the study. The clean project URL <code>projects/sprite-projection/</code> redirects here, while the NM-PM homepage remains the collection index.</div>
@@ -205,7 +206,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
             <div><b>Rebuild</b>Transform or blend sprites</div>
             <div><b>Measure</b>Compare to true projection</div>
           </div>
-          <p>Phase 5 remains preserved as a rigid-object checkpoint. Phase 6 now introduces independent part sprites through a deliberately simple two-link hinge rig. The upper and lower links each receive their own 40-view directional bank, both use the same shared reconstruction code as the rigid experiments, and their sprites are pivot-registered to mathematically projected joint positions.</p>
+          <p>Phase 5 remains preserved as the rigid-object checkpoint and Phase 6 remains the two-link articulation baseline. Phase 7 adds a third independently reconstructed sprite and a second hinge. The chain now tests compounding orientation error, repeated depth-order changes, and three-part overlap before the study moves to a simplified full-body subject.</p>
         </section>
 
         <section id="problem">
@@ -303,6 +304,7 @@ Roll:  not captured</pre>
           <div class="experiment" id="sp005"><div class="id">SP-005</div><div class="status">Results pending</div><div class="desc">Phase 4 / E4 yaw x pitch bank, GRID4 interpolation, and screen-space roll evaluation.</div></div>
           <div class="experiment" id="sp006"><div class="id">SP-006</div><div class="status">Results pending</div><div class="desc">Phase 5 / E5 rigid-geometry generalization across A1-A5 using protrusion, thin, concave, and occlusion-heavy stress subjects.</div></div>
           <div class="experiment" id="sp007"><div class="id">SP-007</div><div class="status">Results pending</div><div class="desc">Phase 6 / E6 two independently reconstructed, pivot-registered link sprites joined by true 3D hinge kinematics and simple center-depth ordering.</div></div>
+          <div class="experiment" id="sp008"><div class="id">SP-008</div><div class="status">Results pending</div><div class="desc">Phase 7 / E7 three independently reconstructed link sprites, two hinges, three directional banks, and repeated depth-order transitions.</div></div>
           <p>Durable experiment identifiers remain stable even if implementation phases are later renamed or merged. Full protocols are preserved under <code>experiments/</code>.</p>
         </section>
 
@@ -311,6 +313,7 @@ Roll:  not captured</pre>
           <div class="figure"><b>SP-REF-001 - Orientation-grid reference</b><p>User-provided reference showing directional images arranged across two orientation axes. It informed the current yaw x pitch contact-sheet structure.</p></div>
           <div class="figure"><b>SP-FAIL-001 - Blank approximation viewport</b><p>Phase 2.1 screenshot showed loaded anchor thumbnails while the large approximation view remained blank. This isolated the problem to the custom low-level sprite renderer.</p></div>
           <div class="figure"><b>SP-UI-001 - Oversized Phase 4 window</b><p>The 1600 x 980 default window exceeded usable desktop height. Build 1.6.1 reduced the default to 1360 x 820 while keeping high-resolution capture and font resources.</p></div>
+          <div class="figure"><b>SP-FAIL-002 - Phase 6 roll-sign joint separation</b><p>User-provided Phase 6 screenshot showed the true two-link geometry remaining connected while the sprite approximation rotated the visible links in the opposite screen-space roll direction, producing a visible gap at the hinge. Inspection traced this to the sign difference between mathematical roll after Y-up to Y-down projection and raylib texture rotation.</p></div>
           <p>When visual behavior cannot be understood reliably from text, screenshots or recordings should be collected instead of guessed from descriptions.</p>
         </section>
 
@@ -322,6 +325,8 @@ Roll:  not captured</pre>
           <p>A smoothly rotating diagnostic reference underneath the sprite made discrete view switching look artificially smooth. It is now optional and disabled by default.</p>
           <h3>Oversized readability pass</h3>
           <p>Increasing the whole window size improved apparent readability but hid normal window controls on the target desktop. Quality improvements now come from source resolution, high-DPI rendering, and font rasterization rather than a larger default window.</p>
+          <h3>Direct mathematical roll passed to raylib</h3>
+          <p>Phase 6 originally passed mathematical roll directly to raylib texture rotation. Because the projection flips world Y into screen Y, the visible rotation sign is reversed. The true geometry and sprite parts therefore rotated in opposite screen directions under roll and the hinge visibly separated. The shared reconstruction layer now converts mathematical roll to the opposite-sign raylib rotation, and the convention has a regression test.</p>
         </section>
 
         <section id="promotion">
@@ -346,15 +351,19 @@ Roll:  not captured</pre>
 4. Select a reconstruction method.
 5. Read only frozen disk-backed sprite captures.
 6. Reconstruct yaw and pitch appearance.
-7. Apply roll as screen-space 2D rotation.
+7. Convert mathematical roll to the opposite-sign raylib screen rotation, then apply it as 2D texture rotation.
 8. Draw at the projected screen position and depth.
 9. When requested, compare against the reference projection.
 10. For E5, repeat the frozen pipeline across A1-A5.
 11. For SP-007, compute a two-link 3D pose with matrix-composed hinge motion.
 12. Reconstruct each link independently from its own pivot-registered sprite bank.
 13. Sort complete part sprites by 3D center depth.
-14. For E6, compare the composed articulated silhouette against true geometry.</pre>
-          <p>The native project now builds two experiment harnesses. <code>vdspr_phase5</code> preserves the rigid study, while <code>vdspr_phase6</code> runs the articulated lab. Shared pose math and reconstruction algorithms live outside both UI harnesses.</p>
+14. For E6, compare the composed two-link silhouette against true geometry.
+15. For SP-008, compute a three-link chain with two different diagonal hinge axes.
+16. Reconstruct upper, middle, and lower links from three independent pivot-registered banks.
+17. Sort all three sprites by 3D center depth and compose them.
+18. For E7, evaluate 216 three-link poses across all six reconstruction methods.</pre>
+          <p>The native project now builds three experiment harnesses. <code>vdspr_phase5</code> preserves rigid reconstruction, <code>vdspr_phase6</code> preserves the two-link articulation baseline, and <code>vdspr_phase7</code> runs the current three-link chain experiment. Shared pose math and reconstruction algorithms live outside the UI harnesses.</p>
         </section>
 
         <section id="architecture">
@@ -369,9 +378,11 @@ Roll:  not captured</pre>
               <tr><td><code>subject_catalog.hpp</code></td><td>C0 and A1-A5 rigid subject definitions.</td></tr>
               <tr><td><code>box_geometry.hpp</code></td><td>Reusable cuboid faces and edges.</td></tr>
               <tr><td><code>sprite_reconstruction.hpp</code></td><td>Canonical NEAR/STRETCH/SHEAR/AFFINE/DUAL/GRID4 implementation.</td></tr>
-              <tr><td><code>articulation_math.hpp</code></td><td>Matrix composition, arbitrary-axis hinge motion, YPR extraction, two-link kinematics.</td></tr>
+              <tr><td><code>articulation_math.hpp</code></td><td>Matrix composition, arbitrary-axis hinge motion, YPR extraction, two-link and three-link kinematics.</td></tr>
+              <tr><td><code>articulated_parts.hpp</code></td><td>Shared pivot-centered articulated part geometry, capture banks, and per-part sprite placement.</td></tr>
               <tr><td><code>main.cpp</code></td><td>Preserved Phase 5 rigid experiment harness.</td></tr>
-              <tr><td><code>articulation_lab.cpp</code></td><td>Phase 6 multi-sprite articulation harness.</td></tr>
+              <tr><td><code>articulation_lab.cpp</code></td><td>Preserved Phase 6 two-link articulation harness.</td></tr>
+              <tr><td><code>chain_lab.cpp</code></td><td>Phase 7 three-link, two-hinge articulation harness.</td></tr>
             </tbody>
           </table>
           <p>The detailed review is preserved in <code>ARCHITECTURE.md</code>. UI helper duplication is currently tolerated, but reconstruction and pose mathematics must not be duplicated between experiments.</p>
@@ -409,10 +420,10 @@ Roll:  not captured</pre>
             <li>The pitch bank currently clamps outside +/-60 degrees.</li>
             <li>GRID4 can ghost when visibility changes strongly between stored views.</li>
             <li>Perspective projection is outside the current experimental baseline.</li>
-            <li>SP-007 uses complete-part center Z for ordering. More complicated overlap may require finer depth handling.</li>
-            <li>SP-007 fixes each sprite's top pivot at the capture center, so it does not yet test arbitrary per-view pivot metadata.</li>
-            <li>The first articulation rig has only two links and one hinge. Three-link chains and anatomy remain later work.</li>
-            <li>Phase 3 through Phase 6 numerical findings still require native execution and review.</li>
+            <li>SP-007 and SP-008 use complete-part center Z for ordering. More complicated overlap may require finer depth handling.</li>
+            <li>Articulated sprites still use a fixed proximal pivot at the capture center rather than arbitrary per-view pivot metadata.</li>
+            <li>Phase 7 has three links and two hinges, but it is still a mechanical chain rather than a body.</li>
+            <li>Phase 3 through Phase 7 numerical findings still require native execution and review.</li>
             <li>No reconstruction method has yet passed the promotion rule.</li>
           </ul>
         </section>
@@ -432,6 +443,8 @@ Roll:  not captured</pre>
               <tr><td>2026-10-19</td><td>SP-006</td><td>Phase 5 rigid stress set A2-A5 and E5 cross-subject generalization sweep implemented.</td></tr>
               <tr><td>2026-10-19</td><td>ARCH-001</td><td>Pre-articulation architecture review extracted subject data, cuboid topology, and canonical reconstruction from the rigid harness.</td></tr>
               <tr><td>2026-10-19</td><td>SP-007</td><td>Separate two-link articulation lab implemented with pivot-registered per-part banks, matrix-composed hinge motion, endpoint trace, depth ordering, and E6.</td></tr>
+              <tr><td>2026-10-19</td><td>SP-FAIL-002</td><td>Phase 6 visual evidence exposed reversed screen-space sprite roll. The shared mathematical-roll to raylib-rotation conversion was corrected and regression-tested.</td></tr>
+              <tr><td>2026-10-19</td><td>SP-008</td><td>Phase 7 three-link chain implemented with two hinges, three independent directional banks, shared articulated part helpers, and E7.</td></tr>
             </tbody>
           </table>
         </section>
@@ -449,6 +462,7 @@ Roll:  not captured</pre>
               <tr><td>1.6.1</td><td>Phase 4 stabilization and NM-PM repository integration.</td></tr>
               <tr><td>1.7.0</td><td>Phase 5 rigid stress subjects A2-A5, lazy capture banks, and E5 generalization evaluation.</td></tr>
               <tr><td>1.8.0</td><td>Architecture split plus Phase 6 two-link articulated sprite lab and E6 evaluation.</td></tr>
+              <tr><td>1.9.0</td><td>Screen-roll sign correction, shared articulated-part helpers, Phase 7 three-link chain, and E7 evaluation.</td></tr>
             </tbody>
           </table>
           <p>Public milestone releases use separate tags such as <code>sprite-projection-v0.1.0</code>.</p>
