@@ -13,7 +13,7 @@ on:
       - ".github/workflows/blood-simulation-ci.yml"
 
 jobs:
-  node-tests:
+  browser-tests:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -22,11 +22,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Use Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Run tests
+      - name: Run browser-math tests
         run: npm test
+
+  windows-native:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projects/blood-simulation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build
+      - name: Build Release
+        run: cmake --build build --config Release
+      - name: Run native tests
+        run: ctest --test-dir build -C Release --output-on-failure
