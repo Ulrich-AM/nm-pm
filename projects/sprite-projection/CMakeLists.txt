@@ -26,10 +26,18 @@ add_executable(vdspr_phase5
 target_include_directories(vdspr_phase5 PRIVATE src)
 target_link_libraries(vdspr_phase5 PRIVATE raylib)
 
+add_executable(vdspr_phase6
+    src/articulation_lab.cpp
+)
+target_include_directories(vdspr_phase6 PRIVATE src)
+target_link_libraries(vdspr_phase6 PRIVATE raylib)
+
 if (MSVC)
     target_compile_options(vdspr_phase5 PRIVATE /W4 /permissive-)
+    target_compile_options(vdspr_phase6 PRIVATE /W4 /permissive-)
 else()
     target_compile_options(vdspr_phase5 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(vdspr_phase6 PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_executable(vdspr_math_tests
