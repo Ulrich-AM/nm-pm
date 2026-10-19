@@ -1,6 +1,6 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 3  
+**Architecture checkpoint:** Phase 4  
 **Date:** 2026-10-19
 
 ## Coordinate boundary
@@ -17,7 +17,7 @@ Persistent blood state lives in surface-local coordinates.
 
 World droplets live in XYZ space.
 
-The camera remains a replaceable view layer.
+Camera state remains presentation-only.
 
 ## Native phase structure
 
@@ -26,114 +26,130 @@ phases/
 ├── phase0/   world and planar surface contract
 ├── phase1/   representation comparison
 ├── phase2/   sparse persistent field lifecycle
-└── phase3/   gravity flow + world droplets
+├── phase3/   broad gravity flow + world droplets
+└── phase4/   sparse channels + connected/contact transfer
 ```
 
-Phase 3 reuses the Phase 2 field without rewriting earlier phases.
+Phase 4 reuses the Phase 2 field and Phase 3 world-droplet representation while replacing the broad surface-flow policy.
 
-## Nominal impact variation
+## Drip-source discovery
 
-Repeated impacts may derive deterministic variation from:
+Wet non-horizontal cells are periodically inspected.
+
+A candidate source requires:
+
+1. amount above threshold;
+2. wetness above threshold;
+3. a local peak across the gravity-flow direction;
+4. deterministic spatial selection;
+5. no nearby active source;
+6. no regional cooldown;
+7. available per-surface source capacity.
+
+This keeps source count low and reproducible.
+
+## Channel transport
+
+An active drip source advances one local cell at a time along projected gravity.
+
+At the root, enough blood must exist above adhesion to begin movement.
+
+After the packet leaves the root, the packet may continue below the original adhesion threshold while a fraction remains behind as trail residue.
+
+This separates:
 
 ```text
-base seed
-+ impact serial
+large stationary stain
+        ↓
+small active packet
+        ↓
+narrow gravity trail
 ```
 
-The event seed changes small-scale morphology and adds bounded perturbation to nominal physical controls.
+instead of moving the entire wet mass.
 
-Exact deterministic repetition remains available by disabling variation.
+## Regional cooldown
 
-## Blended field presentation
+Retiring a source places a cooldown over a small circular neighborhood around the source root.
 
-Simulation cells remain discrete.
+This prevents adjacent cells in the same wet patch from immediately replacing the retired source.
 
-For rendering only, a weighted 3 × 3 neighborhood is sampled.
+## Dynamic connected transfer
 
-This produces a smooth visual perimeter without diffusing the stored field every frame.
+When a channel exits a surface:
 
-Each rendered cell is drawn once.
+1. exact shared-edge topology is attempted;
+2. the outgoing point is mapped into the neighboring surface;
+3. transfer is accepted when it does not move materially upward against gravity;
+4. the same source continues in the target field.
 
-Overlap therefore merges through stored amount instead of transparent decal stacking.
+## Partial support probing
 
-## Surface flow
+Exact topology cannot represent every physical support relationship.
 
-For each active wet cell:
+Phase 4 therefore adds a short downward world-space probe at an outgoing edge.
 
-1. project world gravity into the surface tangent plane;
-2. convert the tangent vector into local U/V components;
-3. compute movable blood above adhesion;
-4. transfer a bounded fraction toward neighboring cells;
-5. store local flow velocity in the existing velocity channels.
+If an upward-facing surface is found within the probe distance, material transfers into its local field and no droplet is spawned.
 
-The solver is intentionally local and first-order.
+This handles box-side to room-floor contact without requiring a false full-edge topology link.
 
-## Horizontal pooling
+## Unsupported detachment
 
-When tangential gravity is near zero on an upward-facing surface, amount differences create a small pressure-spread transfer to four local neighbors.
+A world-space droplet is spawned only when:
 
-This creates widening floor puddles without a full free-surface solver.
+- no compatible linked surface accepts the channel;
+- no immediate supporting surface is found;
+- packet amount is sufficient;
+- the global detach cooldown is clear;
+- active droplet count is below the cap.
 
-## Supported wall-base transfer
+## World-droplet collision
 
-If downward wall flow crosses a linked edge and the neighbor faces upward, material transfers directly into that neighbor field.
+Droplets use swept segment collision.
 
-This controlled special case handles wall-to-floor accumulation.
+Phase 4 lowers the accepted near-hit threshold so a droplet beginning close to a floor can still collide with it rather than advancing underneath the plane.
 
-General arbitrary connected-surface flow remains Phase 4 work.
+## Puddle spreading
 
-## Unsupported-edge detachment
+Upward-facing surfaces use a conservative eight-neighbor pressure-spread pass.
 
-If flow leaves a surface without a supported upward neighbor and the source cell exceeds the detachment threshold, material is removed from the surface field and converted into a world droplet.
+Cardinal and diagonal neighbors participate.
 
-## World droplets
+Outflow is bounded by available amount, adhesion, wetness, pressure difference, and timestep.
 
-A droplet stores:
+The eight-neighbor stencil produces a more isotropic footprint than the Phase 3 four-neighbor rule.
 
-```text
-position XYZ
-velocity XYZ
-volume
-radius
-seed
-alive
-```
+## Contact transfer
 
-Each simulation step:
+The player has a small carried-blood reservoir.
 
-```text
-v += gravity * dt
-p_next = p + v * dt
-segment cast p -> p_next
-```
+Wet floor cells beneath the player may contribute a bounded pickup amount.
 
-If a surface is hit, a new local impact event is reconstructed and deposited into the persistent field.
+After sufficient movement distance, carried blood is deposited using a short directional weighted kernel.
+
+The result remains in the same persistent surface field.
 
 ## Fixed substep
 
-Phase 3 uses a maximum simulation substep of 1/120 s.
-
-Large display-frame deltas are divided into multiple flow steps.
-
-This keeps transfer and detachment stable when time scale is increased.
+The native harness retains a maximum simulation substep of 1/120 s.
 
 ## Evidence
 
-BS-005 validates surface flow, floor puddling, supported wall-base transfer, and detached droplets.
+BS-007 validates sparse channels, support probing, intermittent detachment, rounded puddle spreading, and floor collision.
 
-BS-006 validates blended field rendering and deterministic repeated-impact variation.
+BS-008 validates connected transfer and player contact pickup/smearing.
 
-E3 records a 45-second gravity-flow lifecycle.
+E4 records a controlled 45-second Phase 4 lifecycle.
 
 ## Architecture rules
 
-1. Blood state remains camera-independent.
-2. Surface flow operates in local coordinates.
-3. World droplets operate in XYZ coordinates.
-4. Rendering blur does not mutate simulation state.
-5. Interior blood is rendered close to opaque.
-6. Repeated impacts may vary without losing deterministic reproducibility.
-7. Unsupported-edge material may detach into world space.
-8. General arbitrary corner transfer remains deferred to Phase 4.
-9. Older phase harnesses remain preserved in source control.
+1. Most deposited blood should remain stationary.
+2. Only selected wet regions create active drip channels.
+3. Drip-source regions require spacing and cooldown.
+4. Exact connected topology is preferred over world-space probing.
+5. Partial support probing is limited to nearby upward-facing surfaces.
+6. Unsupported edges may detach into world droplets.
+7. Puddles remain surface-local and may not pass through supporting floors.
+8. Contact transfer uses the same persistent field as impacts.
+9. Rendering remains camera-independent.
 10. Current releases package only the current phase executable.
