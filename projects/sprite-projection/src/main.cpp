@@ -858,7 +858,7 @@ void ExportSnapshot(const AppState& s) {
     const fs::path out = fs::current_path() / "phase4_snapshot.json";
     std::ofstream f(out);
     if (!f) { PushLog("[snapshot] write failed"); return; }
-    const char* subject = s.subject == SubjectId::A1 ? "A1" : "C0";
+    const char* subject = SubjectLabel(s.subject);
     const char* method = MethodName(s.method);
     f << "{\n";
     f << "  \"phase\": \"4.0\",\n";
@@ -880,7 +880,7 @@ void ExportSnapshot(const AppState& s) {
 SweepSummary RunE1Sweep(SubjectId subject) {
     namespace fs = std::filesystem;
     SweepSummary sum{};
-    const fs::path out = fs::current_path() / (subject == SubjectId::A1 ? "E1_A1_nearest_summary.txt" : "E1_C0_nearest_summary.txt");
+    const fs::path out = fs::current_path() / ("E1_" + std::string(SubjectSlug(subject)) + "_nearest_summary.txt");
     std::ofstream f(out);
     if (!f) return sum;
     int switches = 0;
@@ -888,7 +888,7 @@ SweepSummary RunE1Sweep(SubjectId subject) {
     double residualAccum = 0.0;
     double maxResidual = 0.0;
     f << "E1 nearest-view baseline\n";
-    f << "subject=" << (subject == SubjectId::A1 ? "A1" : "C0") << "\n";
+    f << "subject=" << SubjectLabel(subject) << "\n";
     f << "angle_deg,anchor_index,anchor_deg,residual_deg\n";
     for (int a=0;a<360;++a) {
         const auto sel = vdspr::selectUniformYawAnchor((double)a, kYawCount);
@@ -1215,6 +1215,119 @@ Phase4Summary RunPhase4Evaluation(SubjectId subject) {
     return out;
 }
 
+
+Phase5Summary RunPhase5StressEvaluation() {
+    namespace fs=std::filesystem;
+    Phase5Summary out{};
+    const std::array<SubjectId,5> subjects={SubjectId::A1,SubjectId::A2,SubjectId::A3,SubjectId::A4,SubjectId::A5};
+    const std::array<MethodId,6> methods={MethodId::Nearest,MethodId::Stretch,MethodId::Shear,MethodId::Affine,MethodId::Dual,MethodId::Grid4};
+
+    const fs::path dir=fs::current_path()/"results"/"phase5";
+    std::error_code ec;
+    fs::create_directories(dir,ec);
+    if (ec) { PushLog(std::string("[E5] directory error / ")+ec.message()); return out; }
+
+    const fs::path csvPath=dir/"E5_rigid_stress_metrics.csv";
+    const fs::path summaryPath=dir/"E5_rigid_stress_summary.csv";
+    std::ofstream csv(csvPath);
+    if (!csv) { PushLog("[E5] could not open metrics CSV"); return out; }
+    csv << "subject,yaw_deg,pitch_deg,method,iou,boundary_error_px,centroid_error_px\n";
+
+    std::array<std::array<double,6>,5> sumIou{};
+    std::array<std::array<double,6>,5> sumBoundary{};
+    std::array<std::array<double,6>,5> sumCentroid{};
+    std::array<std::array<int,6>,5> bestCount{};
+    constexpr int samplesPerSubject=216;
+
+    PushLog("[E5] rigid stress sweep / A1-A5");
+    RenderTexture2D refRt=LoadRenderTexture(kEvalSize,kEvalSize);
+    RenderTexture2D appRt=LoadRenderTexture(kEvalSize,kEvalSize);
+
+    for (int si=0;si<5;++si) {
+        const SubjectId subject=subjects[si];
+        EnsureCapturedBank(subject);
+        if (!CurrentBank(subject).ready) {
+            PushLog(std::string("[E5] bank unavailable / ")+SubjectLabel(subject));
+            UnloadRenderTexture(refRt);
+            UnloadRenderTexture(appRt);
+            return out;
+        }
+
+        PushLog(std::string("[E5] subject / ")+SubjectLabel(subject));
+        for (int pitch=-60;pitch<=60;pitch+=15) {
+            for (int yaw=0;yaw<360;yaw+=15) {
+                Image refImg=RenderReferenceMetricImage4(subject,yaw,pitch,0.0,refRt);
+                const auto refMask=MaskFromImageAlpha(refImg);
+                UnloadImage(refImg);
+
+                double best=-1.0;
+                int bestM=0;
+                for (int mi=0;mi<6;++mi) {
+                    Image appImg=RenderApproxMetricImage4(subject,yaw,pitch,0.0,methods[mi],appRt);
+                    const auto appMask=MaskFromImageAlpha(appImg);
+                    const auto mm=vdspr::CompareMasks(refMask,appMask,kEvalSize,kEvalSize);
+                    UnloadImage(appImg);
+
+                    csv << SubjectSlug(subject) << ',' << yaw << ',' << pitch << ',' << MethodName(methods[mi]) << ','
+                        << std::fixed << std::setprecision(6) << mm.iou << ',' << mm.boundaryErrorPx << ',' << mm.centroidErrorPx << '\n';
+                    sumIou[si][mi]+=mm.iou;
+                    sumBoundary[si][mi]+=mm.boundaryErrorPx;
+                    sumCentroid[si][mi]+=mm.centroidErrorPx;
+                    if (mm.iou>best) { best=mm.iou; bestM=mi; }
+                }
+                ++bestCount[si][bestM];
+            }
+        }
+    }
+
+    csv.close();
+    UnloadRenderTexture(refRt);
+    UnloadRenderTexture(appRt);
+
+    std::ofstream summary(summaryPath);
+    if (!summary) return out;
+    summary << "subject,method,mean_iou,mean_boundary_error_px,mean_centroid_error_px,best_iou_orientations,delta_iou_vs_a1\n";
+
+    std::array<double,6> a1Mean{};
+    for (int mi=0;mi<6;++mi) a1Mean[mi]=sumIou[0][mi]/samplesPerSubject;
+
+    std::array<double,6> stressGeneralMean{};
+    for (int si=0;si<5;++si) {
+        for (int mi=0;mi<6;++mi) {
+            auto& a=out.subjectMethod[si][mi];
+            a.meanIou=sumIou[si][mi]/samplesPerSubject;
+            a.meanBoundary=sumBoundary[si][mi]/samplesPerSubject;
+            a.meanCentroid=sumCentroid[si][mi]/samplesPerSubject;
+            a.bestIouCount=bestCount[si][mi];
+            const double delta=a.meanIou-a1Mean[mi];
+            summary << SubjectSlug(subjects[si]) << ',' << MethodName(methods[mi]) << ','
+                    << a.meanIou << ',' << a.meanBoundary << ',' << a.meanCentroid << ','
+                    << a.bestIouCount << ',' << delta << '\n';
+            if (si>0) stressGeneralMean[mi]+=a.meanIou;
+        }
+    }
+
+    double bestGeneral=-1.0;
+    int bestGeneralMethod=0;
+    summary << "\nmethod,mean_iou_across_A2_A5\n";
+    for (int mi=0;mi<6;++mi) {
+        stressGeneralMean[mi]/=4.0;
+        summary << MethodName(methods[mi]) << ',' << stressGeneralMean[mi] << '\n';
+        if (stressGeneralMean[mi]>bestGeneral) { bestGeneral=stressGeneralMean[mi]; bestGeneralMethod=mi; }
+    }
+    summary << "\nbest_general_method=" << MethodName(methods[bestGeneralMethod]) << '\n';
+    summary << "note=No universal pass/fail threshold is applied. Delta IoU is reported relative to A1 for the same method.\n";
+    summary.close();
+
+    out.valid=true;
+    out.bestGeneralMethod=bestGeneralMethod;
+    out.csvPath=csvPath.string();
+    out.summaryPath=summaryPath.string();
+    PushLog(std::string("[E5] complete / best A2-A5 mean IoU = ")+MethodName(methods[bestGeneralMethod]));
+    PushLog(std::string("[E5] summary / ")+summaryPath.filename().string());
+    return out;
+}
+
 void DrawSpriteBankStrip(Rectangle r, SubjectId subject, int pitchIndex, int selectedAnchor) {
     Panel(r, C_PANEL2, C_LINE);
     Text(std::string("ANCHOR BANK / PITCH ")+Fmt(kPitchSamples[pitchIndex],0)+" deg", r.x+8, r.y+6, 12, C_MUTED);
@@ -1238,11 +1351,17 @@ void DrawSidebar(AppState& s, UIState& ui, Rectangle r) {
     Panel(r,C_PANEL,C_LINE2);
     Text("SPRITE PROJECTION / PROPERTIES",r.x+10,r.y+9,12,C_MUTED);
     float y=r.y+30;
-    Rectangle g{r.x+8,y,r.width-16,68}; Panel(g,C_PANEL2,C_LINE);
-    GroupHeader({g.x,g.y,g.width,21},"SUBJECT");
-    if (Button({g.x+7,g.y+29,(g.width-18)/2,25},"C0",s.subject==SubjectId::C0)) s.subject = SubjectId::C0;
-    if (Button({g.x+10+(g.width-18)/2,g.y+29,(g.width-18)/2,25},"A1",s.subject==SubjectId::A1)) s.subject = SubjectId::A1;
-    y += 76;
+    Rectangle g{r.x+8,y,r.width-16,112}; Panel(g,C_PANEL2,C_LINE);
+    GroupHeader({g.x,g.y,g.width,21},"SUBJECT / RIGID STRESS SET");
+    const float sbw=(g.width-20)/3.0f;
+    if (Button({g.x+5,g.y+29,sbw,25},"C0",s.subject==SubjectId::C0)) { s.subject=SubjectId::C0; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+7+sbw,g.y+29,sbw,25},"A1",s.subject==SubjectId::A1)) { s.subject=SubjectId::A1; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+9+sbw*2,g.y+29,sbw,25},"A2",s.subject==SubjectId::A2)) { s.subject=SubjectId::A2; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+5,g.y+58,sbw,25},"A3",s.subject==SubjectId::A3)) { s.subject=SubjectId::A3; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+7+sbw,g.y+58,sbw,25},"A4",s.subject==SubjectId::A4)) { s.subject=SubjectId::A4; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+9+sbw*2,g.y+58,sbw,25},"A5",s.subject==SubjectId::A5)) { s.subject=SubjectId::A5; EnsureCapturedBank(s.subject); }
+    Text("A2 protrusion / A3 thin / A4 concavity / A5 occlusion",g.x+7,g.y+89,9,C_DIM);
+    y += 120;
 
     g={r.x+8,y,r.width-16,98}; Panel(g,C_PANEL2,C_LINE);
     GroupHeader({g.x,g.y,g.width,21},"METHOD");
@@ -1292,9 +1411,9 @@ void DrawBottom(const AppState& s, Rectangle r) {
     DrawRectangle((int)r.x,(int)r.y,(int)(split-r.x),24,C_PANEL2);
     Text("DEBUG",r.x+8,r.y+6,12,C_MUTED);
     Text("LIVE",split-42,r.y+6,12,C_MUTED);
-    const char* subject = s.subject == SubjectId::A1 ? "A1" : "C0";
+    const char* subject = SubjectLabel(s.subject);
     const char* method = MethodName(s.method);
-    const SpriteBank& bank = (s.subject == SubjectId::A1) ? gBankA1 : gBankC0;
+    const SpriteBank& bank = CurrentBank(s.subject);
     const std::array<std::pair<std::string,std::string>,15> kv = {{
         {"subject", subject},
         {"method", method},
@@ -1307,10 +1426,10 @@ void DrawBottom(const AppState& s, Rectangle r) {
         {"roll", Fmt(s.roll,1) + " deg"},
         {"sprite.scale", std::to_string(s.spriteDisplayScale) + "x"},
         {"bank.source", bank.fromDisk ? "disk PNG grid" : "not loaded"},
-        {"bank.path", bank.directory.empty() ? "-" : bank.directory},
         {"tests", std::to_string(s.testPassed)+"/"+std::to_string(s.testTotal)},
         {"E3 best", s.phase3.valid ? MethodName((MethodId)s.phase3.bestMeanIouMethod) : std::string("pending")},
-        {"E4 best", s.phase4.valid ? MethodName((MethodId)s.phase4.bestMeanIouMethod) : std::string("pending")}
+        {"E4 best", s.phase4.valid ? MethodName((MethodId)s.phase4.bestMeanIouMethod) : std::string("pending")},
+        {"E5 general", s.phase5.valid ? MethodName((MethodId)s.phase5.bestGeneralMethod) : std::string("pending")}
     }};
     float y = r.y + 31;
     for (int i=0;i<(int)kv.size();++i) {
@@ -1382,6 +1501,11 @@ void DrawQuickPanel(AppState& s, DragPanel& q, Rectangle monitor) {
         const auto path = std::filesystem::current_path() / "results" / "phase4";
         PushLog(std::string("[results4] ") + path.string());
     }
+    if (Button({x,y+196,bw,23},"E5 STRESS")) s.phase5 = RunPhase5StressEvaluation();
+    if (Button({x+bw+4,y+196,bw,23},"P5 DIR")) {
+        const auto path = std::filesystem::current_path() / "results" / "phase5";
+        PushLog(std::string("[results5] ") + path.string());
+    }
 }
 
 void DrawMonitor(AppState& s, DragPanel& quick, Rectangle r) {
@@ -1390,7 +1514,7 @@ void DrawMonitor(AppState& s, DragPanel& quick, Rectangle r) {
     const Rectangle header{r.x+9,r.y+9,r.width-18,23};
     DrawRectangleRec(header, C_PANEL);
     DrawRectangleLinesEx(header, 1, C_LINE);
-    const char* subj = s.subject == SubjectId::A1 ? "A1-R1" : "C0";
+    const char* subj = SubjectLabel(s.subject);
     const char* meth = MethodShortName(s.method);
     Text(std::string("MAIN VIEW / ")+subj+" / "+meth, header.x+8, header.y+5, 12, C_BRIGHT);
     Text("left true projection", header.x+285, header.y+5, 11, C_MUTED);
@@ -1487,6 +1611,7 @@ void HandleKeyboard(AppState& s) {
     if (IsKeyPressed(KEY_SIX)) s.method = MethodId::Grid4;
     if (IsKeyPressed(KEY_P)) s.phase3 = RunPhase3Evaluation(s.subject);
     if (IsKeyPressed(KEY_O)) s.phase4 = RunPhase4Evaluation(s.subject);
+    if (IsKeyPressed(KEY_I)) s.phase5 = RunPhase5StressEvaluation();
     if (IsKeyPressed(KEY_F11)) ToggleFullscreen();
     const double step = (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) ? 45.0 : 1.0;
     if (IsKeyPressed(KEY_LEFT)) s.yaw = vdspr::wrap180(s.yaw - step);
@@ -1497,7 +1622,7 @@ void HandleKeyboard(AppState& s) {
 
 int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
-    InitWindow(kInitialWidth, kInitialHeight, "NM-PM / Sprite Projection / Phase 4 Orientation Lab");
+    InitWindow(kInitialWidth, kInitialHeight, "NM-PM / Sprite Projection / Phase 5 Rigid Stress Lab");
     SetWindowMinSize(1180,760);
     SetWindowPosition(36,36);
     SetTargetFPS(120);
@@ -1529,8 +1654,9 @@ int main() {
     PushLog("[phase] 2.2 / disk-bank runtime renderer + method comparison active");
     PushLog("[phase] 3.0 / quantitative evaluation + DUAL reconstruction active");
     PushLog("[phase] 4.0 / yaw x pitch grid + GRID4 + screen-space roll active");
+    PushLog("[phase] 5.0 / A2-A5 rigid stress subjects + E5 generalization sweep active");
     PushLog("[ui] compact light chrome / black experiment viewports / 128 px capture bank");
-    PushLog("[nm-pm] Sprite Projection study / pre-Phase-5 stabilization");
+    PushLog("[nm-pm] Sprite Projection study / Phase 5 rigid stress testing");
 
     int lastAnchor = -1;
     while (!WindowShouldClose()) {
@@ -1564,6 +1690,10 @@ int main() {
 
     UnloadBank(gBankC0);
     UnloadBank(gBankA1);
+    UnloadBank(gBankA2);
+    UnloadBank(gBankA3);
+    UnloadBank(gBankA4);
+    UnloadBank(gBankA5);
     if (gOwnFont) UnloadFont(gFont);
     CloseWindow();
     return 0;
