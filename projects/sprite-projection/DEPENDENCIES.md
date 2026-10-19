@@ -17,7 +17,7 @@ https://github.com/raysan5/raylib
 
 ## Assimp 6.0.5
 
-Used only by the Phase 8 body-animation harness for FBX animation import.
+Used by the Phase 8 and Phase 9 body-animation harnesses for FBX animation import.
 
 The project pins Assimp 6.0.5. When it is fetched by CMake, the build is configured as:
 
@@ -51,6 +51,8 @@ The research-specific components remain local project code:
 - simplified-body retargeting
 - fixed-proportion body pose generation
 - FBX bone-name mapping policy
-- E1 through E8 experiment exports
+- mixed-density directional bank policies
+- final-rig retargeting and optional joint fallbacks
+- E1 through E9 experiment exports
 
 No ImGui, raygui, GLM, OpenCV, or external JSON library is required.
