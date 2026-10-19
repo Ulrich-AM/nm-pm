@@ -145,6 +145,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
         <h3>System</h3>
         <a class="side-label" href="#coordinates">Coordinate Model</a>
         <a class="side-label" href="#subjects">Subjects</a>
+        <a class="side-label" href="#animation">Animation Input</a>
         <a class="side-label" href="#bank">Orientation Bank</a>
         <a class="side-label" href="#methods">Methods</a>
         <a class="side-label" href="#roll">Roll Policy</a>
@@ -163,6 +164,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <a href="#sp006">SP-006</a>
           <a href="#sp007">SP-007</a>
           <a href="#sp008">SP-008</a>
+          <a href="#sp009">SP-009</a>
         </div>
         <a class="side-label" href="#evidence">Visual Evidence</a>
         <a class="side-label" href="#failures">Failed Approaches</a>
@@ -189,8 +191,8 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <div class="meta">
             <b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span>
             <b>Study path</b><span><code>projects/sprite-projection/</code></span>
-            <b>Current phase</b><span>Phase 7 three-link articulated sprite testing</span>
-            <b>Internal build</b><span>1.9.0</span>
+            <b>Current phase</b><span>Phase 8 animation-driven simplified-body testing</span>
+            <b>Internal build</b><span>2.0.0</span>
             <b>Primary artifact</b><span><code>DOCUMENTATION.html</code></span>
           </div>
           <div class="note">This page is the canonical living notebook for the study. The clean project URL <code>projects/sprite-projection/</code> redirects here, while the NM-PM homepage remains the collection index.</div>
@@ -206,7 +208,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
             <div><b>Rebuild</b>Transform or blend sprites</div>
             <div><b>Measure</b>Compare to true projection</div>
           </div>
-          <p>Phase 5 remains preserved as the rigid-object checkpoint and Phase 6 remains the two-link articulation baseline. Phase 7 adds a third independently reconstructed sprite and a second hinge. The chain now tests compounding orientation error, repeated depth-order changes, and three-part overlap before the study moves to a simplified full-body subject.</p>
+          <p>Phase 5 through Phase 7 remain preserved as rigid and mechanical articulation checkpoints. Phase 8 now drives a ten-part simplified body from time-varying animation. The body can use a deterministic internal clip or retarget the first animation from an FBX file through an importer boundary, while the sprite renderer continues to operate only on the resulting NM-PM body poses.</p>
         </section>
 
         <section id="problem">
@@ -251,6 +253,29 @@ ARM  center=(-0.93,-0.18,-0.06) half=(0.27,0.21,0.20)</pre>
           <div class="note">A1 remains the frozen design subject. A2-A5 are not used to retune the existing methods before E5 is measured.</div>
           <h3>Phase 6 two-link rig</h3>
           <p>The first articulated subject is intentionally non-anatomical. An upper rectangular link connects to a lower rectangular link at one hinge. The hinge axis is diagonal in local XZ, so bending changes both apparent 2D direction and depth. This makes it useful for testing multi-sprite orientation, pivot registration, and front/back ordering without anatomy introducing additional variables.</p>
+          <h3>Phase 8 simplified body</h3>
+          <p>The first full-body subject contains ten rendered parts: torso, head, paired upper arms and forearms, and paired thighs and shins. Left and right symmetric limbs share the same directional bank, so ten visible parts are reconstructed from six reusable bank types. Fingers, feet, facial parts, clothing, and arbitrary body proportions are intentionally excluded from this checkpoint.</p>
+        </section>
+
+        <section id="animation">
+          <h2>Animation Input</h2>
+          <p>Phase 8 separates motion input from sprite reconstruction. FBX is treated as an authoring and validation source rather than as part of the renderer.</p>
+<pre>FBX animation
+    ↓
+Assimp 6.0.5 import
+    ↓
+humanoid joint mapping
+    ↓
+30 FPS joint sampling
+    ↓
+source-basis normalization
+    ↓
+fixed-proportion NM-PM body retarget
+    ↓
+per-part directional sprites</pre>
+          <p>The importer reads the first animation clip and requires recognizable equivalents of pelvis, chest, head, upper arms, forearms, hands, thighs, lower legs, and feet. Common Mixamo-style names and several generic left/right aliases are supported. Missing required joints cause an explicit import failure rather than silent substitution.</p>
+          <p>The executable can auto-load <code>assets/body_rig/input.fbx</code>, accepts drag-and-drop FBX files, and always includes a deterministic built-in fallback clip so the research harness remains runnable without external assets.</p>
+          <div class="note">Imported body proportions do not redefine the experiment. Phase 8 uses the source animation's joint directions and timing, then retargets them onto one fixed NM-PM body.</div>
         </section>
 
         <section id="bank">
@@ -259,7 +284,7 @@ ARM  center=(-0.93,-0.18,-0.06) half=(0.27,0.21,0.20)</pre>
 <pre>Yaw:   0, 45, 90, 135, 180, 225, 270, 315 degrees
 Pitch: -60, -30, 0, +30, +60 degrees
 Roll:  not captured</pre>
-          <p>This produces 40 stored 128 x 128 captures for each subject. Captures are exported as PNG files, then loaded back from disk before being used by the approximation view. That separation prevents the runtime sprite side from silently reusing live reference geometry.</p>
+          <p>This produces 40 stored 128 x 128 captures for each rigid or unique part-bank subject. Captures are exported as PNG files, then loaded back from disk before being used by the approximation view. In Phase 8, six unique body-part banks produce 240 stored captures while symmetric left/right limbs reuse the same bank.</p>
         </section>
 
         <section id="methods">
@@ -292,7 +317,7 @@ Roll:  not captured</pre>
             <li>centroid displacement in pixels;</li>
             <li>requested orientation, selected views, and residual angles.</li>
           </ul>
-          <p>E5 extends the same measurements across A1-A5 and reports each method's mean IoU change relative to A1. E6 evaluates the combined silhouette of the two-link articulated rig across 180 root/joint poses using all six methods. No universal pass/fail threshold is imposed before measurement. Numerical findings are not written into this notebook until the corresponding native export has actually been executed and reviewed.</p>
+          <p>E5 extends the same measurements across A1-A5. E6 evaluates the two-link rig, E7 evaluates the three-link chain, and E8 evaluates 18 temporal animation samples across four yaw views and three pitch views, producing 216 full-body poses before reconstruction-method multiplication. E8 can operate on either the built-in deterministic clip or the currently imported FBX clip. No universal pass/fail threshold is imposed before measurement. Numerical findings are not written into this notebook until the corresponding native export has actually been executed and reviewed.</p>
         </section>
 
         <section id="experiments">
@@ -305,6 +330,7 @@ Roll:  not captured</pre>
           <div class="experiment" id="sp006"><div class="id">SP-006</div><div class="status">Results pending</div><div class="desc">Phase 5 / E5 rigid-geometry generalization across A1-A5 using protrusion, thin, concave, and occlusion-heavy stress subjects.</div></div>
           <div class="experiment" id="sp007"><div class="id">SP-007</div><div class="status">Results pending</div><div class="desc">Phase 6 / E6 two independently reconstructed, pivot-registered link sprites joined by true 3D hinge kinematics and simple center-depth ordering.</div></div>
           <div class="experiment" id="sp008"><div class="id">SP-008</div><div class="status">Results pending</div><div class="desc">Phase 7 / E7 three independently reconstructed link sprites, two hinges, three directional banks, and repeated depth-order transitions.</div></div>
+          <div class="experiment" id="sp009"><div class="id">SP-009</div><div class="status">Results pending</div><div class="desc">Phase 8 / E8 animation-driven simplified body, six reusable directional banks across ten parts, deterministic fallback animation, and optional FBX retargeting.</div></div>
           <p>Durable experiment identifiers remain stable even if implementation phases are later renamed or merged. Full protocols are preserved under <code>experiments/</code>.</p>
         </section>
 
@@ -362,8 +388,13 @@ Roll:  not captured</pre>
 15. For SP-008, compute a three-link chain with two different diagonal hinge axes.
 16. Reconstruct upper, middle, and lower links from three independent pivot-registered banks.
 17. Sort all three sprites by 3D center depth and compose them.
-18. For E7, evaluate 216 three-link poses across all six reconstruction methods.</pre>
-          <p>The native project now builds three experiment harnesses. <code>vdspr_phase5</code> preserves rigid reconstruction, <code>vdspr_phase6</code> preserves the two-link articulation baseline, and <code>vdspr_phase7</code> runs the current three-link chain experiment. Shared pose math and reconstruction algorithms live outside the UI harnesses.</p>
+18. For E7, evaluate 216 three-link poses across all six reconstruction methods.
+19. For SP-009, sample either the built-in clip or the first FBX animation into a common body-pose representation.
+20. Normalize the source coordinate basis and retarget joint directions onto fixed NM-PM body proportions.
+21. Build ten segment poses and reconstruct them from six reusable directional banks.
+22. Sort complete body-part sprites by center depth and compose the full body.
+23. For E8, evaluate 216 temporal/view body poses across all six reconstruction methods.</pre>
+          <p>The native project now builds four experiment harnesses. <code>vdspr_phase5</code>, <code>vdspr_phase6</code>, and <code>vdspr_phase7</code> preserve earlier checkpoints, while <code>vdspr_phase8</code> runs the animation-driven body study. The FBX importer terminates at the body-pose boundary; reconstruction code does not depend on Assimp scene objects.</p>
         </section>
 
         <section id="architecture">
@@ -380,9 +411,12 @@ Roll:  not captured</pre>
               <tr><td><code>sprite_reconstruction.hpp</code></td><td>Canonical NEAR/STRETCH/SHEAR/AFFINE/DUAL/GRID4 implementation.</td></tr>
               <tr><td><code>articulation_math.hpp</code></td><td>Matrix composition, arbitrary-axis hinge motion, YPR extraction, two-link and three-link kinematics.</td></tr>
               <tr><td><code>articulated_parts.hpp</code></td><td>Shared pivot-centered articulated part geometry, capture banks, and per-part sprite placement.</td></tr>
+              <tr><td><code>body_animation.hpp</code></td><td>Fixed-proportion body joints, animation sampling, retargeting, segment-pose construction, and fallback clip.</td></tr>
+              <tr><td><code>assimp_fbx_import.hpp</code></td><td>FBX skeleton/animation bridge, joint-name mapping, animation-channel sampling, and source-basis normalization.</td></tr>
               <tr><td><code>main.cpp</code></td><td>Preserved Phase 5 rigid experiment harness.</td></tr>
               <tr><td><code>articulation_lab.cpp</code></td><td>Preserved Phase 6 two-link articulation harness.</td></tr>
-              <tr><td><code>chain_lab.cpp</code></td><td>Phase 7 three-link, two-hinge articulation harness.</td></tr>
+              <tr><td><code>chain_lab.cpp</code></td><td>Preserved Phase 7 three-link articulation harness.</td></tr>
+              <tr><td><code>body_lab.cpp</code></td><td>Phase 8 animation-driven simplified-body harness and E8.</td></tr>
             </tbody>
           </table>
           <p>The detailed review is preserved in <code>ARCHITECTURE.md</code>. UI helper duplication is currently tolerated, but reconstruction and pose mathematics must not be duplicated between experiments.</p>
@@ -422,8 +456,10 @@ Roll:  not captured</pre>
             <li>Perspective projection is outside the current experimental baseline.</li>
             <li>SP-007 and SP-008 use complete-part center Z for ordering. More complicated overlap may require finer depth handling.</li>
             <li>Articulated sprites still use a fixed proximal pivot at the capture center rather than arbitrary per-view pivot metadata.</li>
-            <li>Phase 7 has three links and two hinges, but it is still a mechanical chain rather than a body.</li>
-            <li>Phase 3 through Phase 7 numerical findings still require native execution and review.</li>
+            <li>Phase 8's body is deliberately simplified and has no fingers, feet geometry, facial parts, clothing, or per-bone twist preservation.</li>
+            <li>FBX bone-name mapping is heuristic and currently requires a recognizable humanoid hierarchy. Unmapped required joints reject the import.</li>
+            <li>Imported root translation and arbitrary source proportions are not preserved in the retargeted research body.</li>
+            <li>Phase 3 through Phase 8 numerical findings still require native execution and review.</li>
             <li>No reconstruction method has yet passed the promotion rule.</li>
           </ul>
         </section>
@@ -445,6 +481,7 @@ Roll:  not captured</pre>
               <tr><td>2026-10-19</td><td>SP-007</td><td>Separate two-link articulation lab implemented with pivot-registered per-part banks, matrix-composed hinge motion, endpoint trace, depth ordering, and E6.</td></tr>
               <tr><td>2026-10-19</td><td>SP-FAIL-002</td><td>Phase 6 visual evidence exposed reversed screen-space sprite roll. The shared mathematical-roll to raylib-rotation conversion was corrected and regression-tested.</td></tr>
               <tr><td>2026-10-19</td><td>SP-008</td><td>Phase 7 three-link chain implemented with two hinges, three independent directional banks, shared articulated part helpers, and E7.</td></tr>
+              <tr><td>2026-10-19</td><td>SP-009</td><td>Phase 8 simplified body implemented with deterministic motion, Assimp FBX import, fixed-proportion retargeting, six reusable banks across ten parts, and E8.</td></tr>
             </tbody>
           </table>
         </section>
@@ -463,6 +500,7 @@ Roll:  not captured</pre>
               <tr><td>1.7.0</td><td>Phase 5 rigid stress subjects A2-A5, lazy capture banks, and E5 generalization evaluation.</td></tr>
               <tr><td>1.8.0</td><td>Architecture split plus Phase 6 two-link articulated sprite lab and E6 evaluation.</td></tr>
               <tr><td>1.9.0</td><td>Screen-roll sign correction, shared articulated-part helpers, Phase 7 three-link chain, and E7 evaluation.</td></tr>
+              <tr><td>2.0.0</td><td>Phase 8 animation-driven simplified body, Assimp 6.0.5 FBX bridge, fixed-proportion retargeting, shared limb banks, and E8.</td></tr>
             </tbody>
           </table>
           <p>Public milestone releases use separate tags such as <code>sprite-projection-v0.1.0</code>.</p>
@@ -479,6 +517,7 @@ Roll:  not captured</pre>
       <a href="#problem">Research Problem</a>
       <a href="#coordinates">Coordinate Model</a>
       <a href="#subjects">Subjects</a>
+      <a href="#animation">Animation Input</a>
       <a href="#bank">Orientation Bank</a>
       <a href="#methods">Methods</a>
       <a href="#metrics">Measurements</a>
