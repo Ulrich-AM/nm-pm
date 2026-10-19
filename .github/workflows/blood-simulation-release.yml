@@ -46,11 +46,12 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 0
+      - name: Package preserved phases
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/Release/blood_phase0.exe dist/BloodSimulation-Phase0.exe
+          Copy-Item build/Release/blood_phase1.exe dist/BloodSimulation-Phase1.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -59,6 +60,7 @@ jobs:
           New-Item -ItemType Directory -Force dist/experiments | Out-Null
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
           Copy-Item experiments/BS-001.md dist/experiments/BS-001.md
+          Copy-Item experiments/BS-002.md dist/experiments/BS-002.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -74,11 +76,11 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM milestone release for Blood Simulation Phase 0.
+          NM-PM milestone release for Blood Simulation Phase 1.
 
-          This release establishes the true-XYZ world/surface foundation using an orthographic side-room camera. It includes the native Windows harness, Phase 0 documentation, BS-001 experiment record, and the browser preview.
+          This release preserves the Phase 0 world/surface foundation and adds the Phase 1 static representation-comparison lab with adjustable orthographic yaw, a light three-panel research UI, five splat representation candidates, and BS-002 measurement/export support.
 
-          The blood surface representation remains intentionally undecided until Phase 1 comparisons.
+          No final surface representation is declared yet.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
