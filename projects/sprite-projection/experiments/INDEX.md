@@ -9,5 +9,6 @@ Detailed experiment discussion remains in `DOCUMENTATION.html`. This index provi
 | SP-003 | Phase 2.2 / E3.1 | Implemented | Baseline NEAR, STRETCH, SHEAR, and AFFINE comparison |
 | SP-004 | E3.2 | Implemented | DUAL neighboring-yaw reconstruction |
 | SP-005 | Phase 4 / E4 | Implemented, native results pending | Yaw × pitch bank, GRID4, and screen-space roll |
+| SP-006 | Phase 5 / E5 | Implemented, native results pending | Generalization stress test across protrusion, thin, concave, and occlusion-heavy rigid subjects |
 
 Failed and superseded experiments remain in the registry rather than being deleted.
