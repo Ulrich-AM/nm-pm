@@ -245,7 +245,7 @@ inline BodyFrame RetargetBodyDirections(const BodyFrame& raw) {
             {1,-0.7,0}
         )*forearmLen;
 
-    o[JointIndex(BodyJoint::LeftHip)]=-right*hipHalf;
+    o[JointIndex(BodyJoint::LeftHip)]=right*(-hipHalf);
     o[JointIndex(BodyJoint::RightHip)]=right*hipHalf;
 
     o[JointIndex(BodyJoint::LeftKnee)]=o[JointIndex(BodyJoint::LeftHip)]
