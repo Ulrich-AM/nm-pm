@@ -1608,7 +1608,7 @@ int main() {
             double remaining=
                 frameDt*state.timeScale;
 
-            const FlowSettings settings=
+            const Settings settings=
                 flowSettings(state);
 
             while(remaining>1e-8) {
