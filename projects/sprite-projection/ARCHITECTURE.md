@@ -1,7 +1,7 @@
 # Sprite Projection Architecture
 
 **NM-PM project:** Sprite Projection  
-**Architecture checkpoint:** Phase 7 / three-link articulation  
+**Architecture checkpoint:** Phase 8 / animation-driven simplified body  
 **Date:** 2026-10-19
 
 This file records the architecture review performed after the first public milestone release and before the articulated multi-sprite experiments expanded further.
@@ -35,9 +35,12 @@ src/
 ├── sprite_reconstruction.hpp
 ├── articulation_math.hpp
 ├── articulated_parts.hpp
+├── body_animation.hpp
+├── assimp_fbx_import.hpp
 ├── main.cpp
 ├── articulation_lab.cpp
-└── chain_lab.cpp
+├── chain_lab.cpp
+└── body_lab.cpp
 ```
 
 ### calibration_math.hpp
@@ -119,6 +122,31 @@ Owns shared articulated-part rendering/capture helpers introduced for Phase 7:
 
 This keeps Phase 7 from copying the same part-bank and placement logic into another experiment harness.
 
+### body_animation.hpp
+
+Owns the application-independent simplified-body representation:
+
+- 15 retarget joints;
+- fixed NM-PM body proportions;
+- ten rendered body segments;
+- segment-orientation construction;
+- animation sampling and interpolation;
+- deterministic built-in motion clip;
+- body retarget self-tests.
+
+### assimp_fbx_import.hpp
+
+Owns the Phase 8 FBX input bridge:
+
+- Assimp scene loading;
+- humanoid bone-name aliases;
+- animation-channel interpolation;
+- source-basis normalization;
+- 30 FPS animation sampling;
+- conversion from imported joint transforms to the fixed NM-PM body.
+
+The importer does not expose the FBX mesh to the sprite renderer.
+
 ### main.cpp
 
 Remains the Phase 5 rigid-object experiment harness.
@@ -133,9 +161,15 @@ Owns the preserved Phase 6 two-link articulated experiment UI and rendering harn
 
 ### chain_lab.cpp
 
-Owns the Phase 7 three-link, two-hinge articulated experiment.
+Owns the preserved Phase 7 three-link, two-hinge articulated experiment.
 
 It uses three independent pivot-registered sprite banks and the shared articulated-part helper layer.
+
+### body_lab.cpp
+
+Owns the Phase 8 animation-driven body experiment.
+
+It renders ten body parts using six shared directional banks, accepts FBX through drag-and-drop or a conventional startup path, and falls back to a deterministic internal clip when no external asset is present.
 
 ## Bank ownership
 
@@ -151,6 +185,15 @@ SP-008 uses three independent directional banks:
 - chain-upper
 - chain-middle
 - chain-lower
+
+SP-009 uses six reusable body-part banks across ten rendered parts:
+
+- torso
+- head
+- upper arm, shared by left and right
+- forearm, shared by left and right
+- thigh, shared by left and right
+- shin, shared by left and right
 
 Each articulated capture is pivot-registered. The link's top pivot is placed at the exact center of every stored 128 x 128 image. Runtime placement therefore aligns the sprite texture center to the mathematically projected joint position.
 
@@ -171,6 +214,7 @@ The project now uses separate executable harnesses for materially different rese
 - `vdspr_phase5`: rigid reconstruction and generalization
 - `vdspr_phase6`: two-link articulated multi-sprite composition
 - `vdspr_phase7`: three-link, two-hinge articulated composition
+- `vdspr_phase8`: animation-driven simplified body with optional FBX import
 
 Shared research algorithms belong in headers under `src/`.
 
@@ -185,6 +229,8 @@ Experiment-specific controls and displays may remain local to their harness.
 5. Generated captures and result dumps remain reproducible local output, not canonical source.
 6. UI reuse is optional. Research logic reuse is mandatory.
 7. Do not introduce a generalized engine abstraction until at least two experiments require the same abstraction.
+8. External animation formats terminate at an importer boundary; the reconstruction layer consumes only NM-PM body poses.
+9. Imported character proportions do not redefine the research subject. Phase 8 retargets motion onto fixed body proportions.
 
 ## Remaining technical debt
 
@@ -210,4 +256,6 @@ The first public milestone, `sprite-projection-v0.1.0`, remains the Phase 5 rigi
 
 `sprite-projection-v0.2.0` preserves the Phase 6 two-link articulation milestone.
 
-Phase 7 development occurs after that release and should not alter the published v0.2.0 package. A later milestone may package all three harnesses after native Phase 7 behavior is reviewed.
+Phase 7 is preserved by `sprite-projection-v0.3.0`.
+
+Phase 8 adds the animation-source bridge and body harness after that release. The Phase 8 milestone release should package all historical harnesses plus the new body lab, while keeping external FBX files optional and unbundled.
