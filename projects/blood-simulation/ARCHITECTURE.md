@@ -6,9 +6,9 @@
 
 ## Phase 0 objective
 
-The first architecture checkpoint intentionally solves no blood-fluid problem.
+Phase 0 intentionally solves no fluid-simulation problem.
 
-It establishes a stable relationship between:
+It establishes:
 
 ```text
 world-space event
@@ -17,152 +17,144 @@ surface intersection
         ↓
 surface-local coordinates
         ↓
-future persistent surface representation
+future persistent blood representation
 ```
 
-This boundary is important because later experiments will compare multiple blood representations. Those experiments should not need to reinvent collision, coordinate conversion, camera projection, or surface identification.
+Later phases should be able to compare several blood representations without rebuilding collision, coordinates, camera projection, or surface identity.
 
 ## Coordinate system
 
 World space uses:
 
 ```text
-X = room width
-Y = room depth
+X = left / right
+Y = front / back room depth
 Z = height
 ```
 
-Gameplay movement is currently constrained to the XY floor plane.
+Gameplay movement currently lies on the XY floor plane.
 
-The renderer uses an orthographic isometric camera. The camera is a view of the true XYZ world, not the source of simulation coordinates.
+The camera is **orthographic**, not perspective and not isometric. It looks mostly into the room from the front with a downward component so Y depth remains readable. Objects do not become smaller merely because they move farther toward the back wall.
 
-## Current module boundaries
+The intended visual family is a side-scroller / beat-em-up room with usable front-back movement.
+
+## Native reference harness
+
+The canonical Phase 0 runtime is C++20 + raylib:
 
 ```text
-src/
-├── math.js
-├── camera.js
-├── surfaces.js
-├── world.js
-├── impact.js
-└── main.js
+phases/phase0/
+├── main.cpp
+├── phase0_math.hpp
+└── test_phase0.cpp
 ```
 
-### math.js
+### main.cpp
 
-Pure vector and projection helpers.
+Owns the native experiment harness:
 
-It already contains the generic surface-gravity projection:
+- orthographic Camera3D;
+- room drawing;
+- player input and simple collision;
+- mouse ray generation;
+- nearest surface probing;
+- debug markers;
+- local/world coordinate display.
+
+### phase0_math.hpp
+
+Owns renderer-independent mathematics:
+
+- Vec3 operations;
+- plane projection;
+- tangential gravity projection;
+- planar surface basis;
+- local/world conversion;
+- finite ray intersection.
+
+### test_phase0.cpp
+
+Provides the native regression suite without requiring a window.
+
+## Browser preview
+
+The existing `src/` JavaScript harness is retained as a convenient GitHub Pages preview.
+
+Its camera has been corrected from the initial isometric interpretation to the same orthographic side-room intent.
+
+The browser preview is useful evidence and debugging support, but later production-like experiments should treat the native phase harnesses as canonical.
+
+## Surface contract
+
+A planar surface stores:
+
+- stable identifier;
+- world origin;
+- local U/V tangent basis;
+- surface normal;
+- finite dimensions;
+- local-to-world conversion;
+- world-to-local conversion;
+- finite ray intersection.
+
+For planar surfaces:
+
+```text
+P = O + uU + vV
+```
+
+Persistent blood state must live in world or surface-local space, never screen space.
+
+## Gravity on surfaces
+
+The generic future flow primitive is already isolated:
 
 ```text
 g_surface = g - dot(g, n) n
 ```
 
-Phase 0 does not use that quantity for blood motion yet. It exists as a tested mathematical primitive for later flow experiments.
-
-### camera.js
-
-Owns orthographic isometric world-to-screen projection and screen-to-world rays.
-
-Simulation code must not depend on screen coordinates.
-
-### surfaces.js
-
-Owns `PlanarSurface`.
-
-Each surface has:
-
-- stable identifier;
-- world origin;
-- orthonormal local U/V basis;
-- normal;
-- dimensions;
-- local-to-world conversion;
-- world-to-local conversion;
-- finite ray intersection;
-- reserved neighbor metadata for future connected-surface experiments.
-
-`createBoxSurfaces()` expands a rectangular solid into six independent planar surfaces.
-
-### world.js
-
-Owns the surface registry, nearest-hit raycast, Phase 0 room construction, obstacle footprints, and simple player collision.
-
-### impact.js
-
-Converts a surface intersection and incoming trajectory into a representation-neutral impact event.
-
-This is the intended Phase 1 input boundary.
-
-### main.js
-
-Owns only the interactive browser harness:
-
-- Canvas rendering;
-- input;
-- player movement;
-- debug drawing;
-- impact markers;
-- human-readable hit information.
-
-Research logic should remain outside this file when practical.
-
-## Surface contract
-
-The current surface model is planar, but its API is deliberately expressed in terms that can later be generalized.
-
-A future irregular surface implementation should still be able to answer:
-
-```text
-world point → local surface position
-local surface position → world point
-surface normal at position
-ray intersection
-surface boundary / adjacency
-```
-
-A triangle-mesh implementation may use barycentric or chart coordinates internally without changing the higher-level blood-event contract.
-
-## Why local surface coordinates exist now
-
-A blood deposit must remain attached to a surface even though the camera is isometric.
-
-Therefore persistent state should never be stored in screen space.
-
-For a planar surface:
-
-```text
-P = O + u U + v V
-```
-
-where:
-
-- `O` is the surface origin;
-- `U` and `V` are the local tangent axes;
-- `u` and `v` are the local surface coordinates.
-
-That is enough for Phase 0 walls, floors, and box faces.
+Phase 0 tests it but does not yet move blood.
 
 ## Future irregular surfaces
 
-Phase 0 does not implement mesh flow, but the intended extension is a connected patch model.
+The current rectangle surface is a controlled starting point, not a permanent requirement.
 
-For triangular geometry:
+A future triangle or patch implementation should still answer:
 
-1. blood state belongs to the local triangle or an associated surface chart;
+```text
+world point -> local surface position
+local surface position -> world point
+surface normal at position
+ray intersection
+surface edge / adjacency
+```
+
+For connected triangle geometry:
+
+1. blood state belongs to a local patch or chart;
 2. gravity is projected onto the local tangent plane;
-3. flow crossing a shared edge transfers to the neighboring triangle;
-4. flow reaching an unconnected edge may accumulate or detach as a world-space droplet.
+3. crossing a shared edge transfers state into the neighbor;
+4. reaching an open edge can accumulate or detach a world-space droplet.
 
-The study must first validate static connected geometry before considering moving or deforming surfaces.
+Static irregular geometry must be validated before deforming surfaces.
+
+## Phase preservation
+
+Each implementation phase receives its own native folder as it becomes materially different.
+
+Completed phase harnesses should be preserved instead of rewriting the previous executable in place.
+
+Phase milestone tags are documented in `RELEASES.md`.
 
 ## Architecture rules
 
 1. Simulation state uses world or surface-local coordinates, never screen coordinates.
-2. The isometric renderer is a view layer.
-3. Impact events remain representation-neutral.
-4. Surface blood representation is not selected during Phase 0.
-5. Shared mathematics stays independent of Canvas and the DOM.
-6. A later blood field must not require all surfaces to allocate dense storage when untouched.
-7. Surface adjacency is reserved in the abstraction but should not be implemented beyond what an experiment requires.
-8. Static irregular geometry must be proven before moving or deforming geometry is attempted.
+2. The camera is a view layer.
+3. The canonical camera family is orthographic side-room, not isometric.
+4. Impact events remain representation-neutral.
+5. Surface blood representation is not selected during Phase 0.
+6. Shared mathematics stays independent of raylib, Canvas, and the DOM when practical.
+7. Untouched surfaces should not require dense blood storage in later phases.
+8. Surface adjacency is introduced only when a controlled experiment needs it.
+9. Completed phase harnesses remain reproducible.
+10. Static irregular geometry is proven before moving or deforming geometry.
