@@ -2,37 +2,42 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Current phase:** Phase 2 - persistent surface blood field  
-**Current milestone:** `blood-simulation-v0.3.0`  
-**Recommended Phase 2 build:** `blood-simulation-v0.3.1`
+**Current phase:** Phase 3 - gravity-driven flow and detached droplets  
+**Current milestone:** `blood-simulation-v0.4.0`
 
 This study investigates performance-oriented approximations for blood motion and persistent surface deposits in a true-XYZ orthographic side-room environment.
 
-Phase 2 keeps the camera adjustable and camera-independent, but changes the blood system substantially:
-
-- more recognizable procedural stain morphology;
-- clipping at open surface edges;
-- continuation across real shared edges such as crate top → crate side or floor → wall;
-- sparse tiled persistent surface fields;
-- accumulation;
-- wetness and age;
-- drying and freezing;
-- world-space rendering with normal depth occlusion.
+Phase 3 builds directly on the sparse persistent field from Phase 2.
 
 ## Current native harness
 
 ```text
-phases/phase2/
+phases/phase3/
 ├── main.cpp
-├── phase2_field.hpp
-└── test_phase2.cpp
+├── phase3_flow.hpp
+└── test_phase3.cpp
 ```
 
-Earlier phase folders remain in the repository for reproducibility, but new releases no longer need to repackage every old executable because earlier releases already preserve them.
+Earlier phase folders remain in source control for reproducibility.
 
-## UI
+## Phase 3 additions
 
-Phase 2 now follows the actual Sprite Projection native layout instead of the Phase 1 dashboard interpretation:
+- gravity projected into each surface's local tangent plane;
+- downward flow on walls;
+- pressure-based lateral spreading on horizontal surfaces;
+- supported wall-to-floor transfer;
+- unsupported-edge droplet detachment;
+- world-space droplet gravity and collision;
+- droplet redeposition back into the persistent field;
+- blended neighborhood rendering;
+- higher interior opacity so overlapping blood reads as one field;
+- deterministic per-impact variation around nominal settings.
+
+## UI cleanup
+
+The small in-viewport control banner from Phase 2 has been removed.
+
+The native tool keeps the Sprite Projection-style structure:
 
 ```text
 286 px left research sidebar
@@ -40,70 +45,85 @@ large central experiment panel
 150 px full-width bottom debug/results strip
 ```
 
-The UI uses the same light gray palette, flat controls, group headers, spacing, and Windows Arial loading used by the completed Sprite Projection methodology.
+## Repeated impact variation
 
-## BS-003 - Morphology and edge continuation
+The visible seed control is now a **base seed**.
 
-The static deposit generator now combines:
+With `vary repeated impacts` enabled, each hit derives a deterministic event seed from the base seed and impact serial, plus small bounded variation in direction, speed, incidence, and volume.
 
-- dense central stain;
-- irregular harmonic boundary;
-- lobes;
-- directional streaks;
-- satellite droplets;
-- high-energy mist.
+This means repeated hits with identical nominal settings no longer look like clones.
 
-The result is intended to resemble a persistent impact stain rather than a decorative mid-air splash sprite.
+Disable the option for exact repeatability.
 
-Static deposit samples that cross a real shared surface edge are transformed into the neighboring surface's local coordinate system.
+## Blended field rendering
 
-Samples crossing an open edge are clipped.
+The simulation field itself remains discrete.
 
-## BS-004 - Persistent field lifecycle
+Rendering samples a weighted 3 × 3 neighborhood and draws one combined surface layer.
 
-Every surface owns sparse 16 × 16 field tiles allocated only where blood exists.
+Interior blood is close to opaque, while only the smoothed perimeter retains lower alpha.
 
-Each cell currently stores:
+This avoids the translucent-sticker stacking appearance from earlier phases.
+
+## Gravity flow
+
+On sloped or vertical surfaces:
 
 ```text
-amount
-wetness
-age
-velocity U
-velocity V
-frozen
+g_surface = g - dot(g, n) n
 ```
 
-Velocity channels are reserved for later flow phases.
+is converted into local U/V flow direction.
 
-Repeated hits accumulate amount. Wet cells age and dry. Once sufficiently dry, a cell becomes frozen and stops lifecycle updates while remaining visible.
+Blood above an adhesion threshold transfers toward neighboring cells according to wetness and flow rate.
+
+Horizontal surfaces instead use local pressure equalization to create puddles.
+
+## Detached droplets
+
+If blood reaches an unsupported edge with enough accumulated wet material, a world-space droplet is spawned.
+
+The droplet:
+
+1. accelerates under gravity;
+2. moves through XYZ space;
+3. raycasts its swept segment;
+4. lands on the first surface hit;
+5. generates a new persistent deposit.
+
+## E3 export
+
+```text
+results/phase3/E3_gravity_flow.csv
+```
+
+The deterministic 45-second sweep records:
+
+- wet cells;
+- frozen cells;
+- active droplets;
+- puddle cells;
+- total amount;
+- moved amount;
+- detached droplets;
+- landed droplets.
 
 ## Controls
 
 - `W/S`: front/back movement
 - `A/D`: left/right movement
-- left click: deposit blood on a visible surface
-- `Space`: pause/resume field lifecycle
-- `R`: clear field
+- left click: deposit on a visible surface
+- `Space`: pause/resume flow and drying
+- `R`: clear field and droplets
 - `F11`: fullscreen
 
-The left sidebar exposes impact speed, incidence, volume, direction, seed, drying rate, time scale, yaw, pitch, grid, and normals.
-
-## E2 export
-
-The bottom strip can export:
-
-```text
-results/phase2/E2_field_lifecycle.csv
-```
-
-The sweep records wet cells, frozen cells, allocated tile count, total blood amount, and field memory across a simulated 60-second lifecycle.
+The sidebar exposes nominal impact properties, base seed, repeated-hit variation, flow rate, puddle spread, adhesion, drying rate, time scale, yaw, pitch, and grid.
 
 ## Build
 
 ```text
 build_windows.bat
-run_phase2.bat
+run_phase3.bat
 ```
 
 ## Release mapping
@@ -111,7 +131,7 @@ run_phase2.bat
 ```text
 Phase 0 -> blood-simulation-v0.1.0
 Phase 1 -> blood-simulation-v0.2.0
-Phase 2 -> blood-simulation-v0.3.0
+Phase 2 -> blood-simulation-v0.3.x
 Phase 3 -> blood-simulation-v0.4.0
 Phase 4 -> blood-simulation-v0.5.0
 Phase 5 -> blood-simulation-v0.6.0
@@ -120,9 +140,7 @@ Phase 6 -> blood-simulation-v0.7.0
 
 ## Next phase
 
-Phase 3 will investigate gravity-driven redistribution, wall drips, puddles, and detached world-space droplets.
-
-The current static edge continuation is not treated as a substitute for that later flow model.
+Phase 4 will generalize dynamic transfer across connected surfaces and investigate smearing and contact transfer.
 
 ## AI transparency
 
