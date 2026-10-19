@@ -485,9 +485,9 @@ bool runE2(
     FieldSet fields=blood2::makeFieldSet(surfaces.size(),26.0);
 
     std::array<ImpactParams,3> impacts{};
-    impacts[0]={101,20,18,0.75,0.85};
-    impacts[1]={8011,55,22,1.05,1.10};
-    impacts[2]={15931,-30,17,1.35,1.35};
+    impacts[0]={101,20,18,25,0.85};
+    impacts[1]={8011,55,22,50,1.10};
+    impacts[2]={15931,-30,17,68,1.35};
 
     const std::array<SurfaceLocal,3> locals{{
         SurfaceLocal{6.0,8.86,0.5,0.984,0},
