@@ -451,7 +451,7 @@ int findSurface(const std::vector<PlanarSurface>& surfaces,const std::string& id
 }
 
 void clearFields(State& state,std::size_t surfaceCount){
-    state.fields=blood2::makeFieldSet(surfaceCount,26.0);
+    state.fields=blood2::makeFieldSet(surfaceCount,42.0);
     state.impacts=0;
     state.lastTouched=0;
     state.lastWrappedSamples=0;
@@ -482,7 +482,7 @@ bool runE2(
         return false;
     }
 
-    FieldSet fields=blood2::makeFieldSet(surfaces.size(),26.0);
+    FieldSet fields=blood2::makeFieldSet(surfaces.size(),42.0);
 
     std::array<ImpactParams,3> impacts{};
     impacts[0]={101,20,18,25,0.85};
@@ -739,7 +739,7 @@ int main(){
     const SurfaceTopology topology=blood2::buildTopology(surfaces);
 
     State state;
-    state.fields=blood2::makeFieldSet(surfaces.size(),26.0);
+    state.fields=blood2::makeFieldSet(surfaces.size(),42.0);
     UIState ui;
 
     PushLog("[boot] Phase 2 persistent field");
