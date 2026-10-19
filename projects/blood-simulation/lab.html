@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blood Simulation Phase 0 Lab - NM-PM</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#171a1f;
+  --panel:#20242a;
+  --panel2:#262b32;
+  --line:#3a414b;
+  --text:#d2d5da;
+  --muted:#89919b;
+  --accent:#8e1d2b;
+  --good:#75b88a;
+  --bad:#d87878;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{overflow:hidden}
+button,input{font:inherit}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:6px 9px;cursor:pointer}
+button:hover{background:#30363f}
+#app{height:100vh;display:grid;grid-template-rows:46px minmax(0,1fr)}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+header b{font-size:13px;font-weight:500}
+header small{color:var(--muted);margin-left:8px}
+header nav{display:flex;gap:6px}
+#layout{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 310px}
+#viewport{min-width:0;min-height:0;position:relative;background:#11151a}
+#view{display:block;width:100%;height:100%;touch-action:none}
+aside{overflow:auto;border-left:1px solid var(--line);background:var(--panel);padding:16px}
+h2{font-size:13px;margin:0 0 9px;font-weight:600}
+p{font-size:11px;line-height:1.5;color:var(--muted);margin:0 0 15px}
+.group{border-top:1px solid var(--line);padding-top:13px;margin-top:13px}
+.row{display:grid;grid-template-columns:90px 1fr;gap:8px;margin:6px 0;font:11px/1.35 Consolas,"Courier New",monospace}
+.row span:first-child{color:var(--muted)}
+.row span:last-child{overflow-wrap:anywhere}
+label{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text);margin:8px 0}
+.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pass{color:var(--good)!important}
+.fail{color:var(--bad)!important}
+kbd{border:1px solid var(--line);background:var(--panel2);padding:1px 4px;font:10px Consolas,monospace}
+.note{border-left:2px solid var(--accent);padding-left:9px}
+@media(max-width:760px){
+  body{overflow:auto}
+  #app{height:auto;min-height:100vh}
+  #layout{display:block}
+  #viewport{height:65vh}
+  aside{border-left:0;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div><b>Blood Simulation / Phase 0 Surface Lab</b><small>true XYZ world + isometric renderer</small></div>
+    <nav>
+      <button onclick="location.href='DOCUMENTATION.html'">DOCS</button>
+      <button onclick="location.href='../../'">HOME</button>
+    </nav>
+  </header>
+
+  <div id="layout">
+    <section id="viewport">
+      <canvas id="view"></canvas>
+    </section>
+
+    <aside>
+      <h2>World-space probe</h2>
+      <p class="note">No blood model is being selected here. Phase 0 only validates the world and surface coordinate contract that later splats, fields, drips, and irregular surfaces will depend on.</p>
+
+      <div class="row"><span>status</span><span id="status">ready</span></div>
+      <div class="row"><span>surface</span><span id="surfaceValue">none</span></div>
+      <div class="row"><span>world XYZ</span><span id="worldValue">-</span></div>
+      <div class="row"><span>local UV</span><span id="localValue">-</span></div>
+      <div class="row"><span>normal</span><span id="normalValue">-</span></div>
+      <div class="row"><span>incident</span><span id="angleValue">-</span></div>
+
+      <div class="group">
+        <h2>Display</h2>
+        <label><input id="gridToggle" type="checkbox" checked> floor grid <kbd>G</kbd></label>
+        <label><input id="normalToggle" type="checkbox"> surface normals <kbd>N</kbd></label>
+        <div class="actions">
+          <button id="clearButton">CLEAR MARKERS</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Validation</h2>
+        <div class="row"><span>geometry</span><span id="checksValue">not run</span></div>
+        <div class="actions">
+          <button id="checksButton">RUN CHECKS</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Controls</h2>
+        <p><kbd>W</kbd>/<kbd>S</kbd> move through room depth. <kbd>A</kbd>/<kbd>D</kbd> move left/right. Arrow keys mirror those controls. Left-click any visible surface to create a temporary impact probe. <kbd>R</kbd> clears probes.</p>
+      </div>
+
+      <div class="group">
+        <h2>Phase 1 handoff</h2>
+        <p>Every probe already produces a structured impact event containing the hit surface, world position, local surface coordinates, normal, incident direction, speed, volume, droplet radius, and deterministic seed.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
