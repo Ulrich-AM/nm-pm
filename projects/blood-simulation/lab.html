@@ -56,7 +56,7 @@ kbd{border:1px solid var(--line);background:var(--panel2);padding:1px 4px;font:1
 <body>
 <div id="app">
   <header>
-    <div><b>Blood Simulation / Phase 0 Surface Lab</b><small>true XYZ world + isometric renderer</small></div>
+    <div><b>Blood Simulation / Phase 0 Surface Lab</b><small>true XYZ world + orthographic side-room renderer</small></div>
     <nav>
       <button onclick="location.href='DOCUMENTATION.html'">DOCS</button>
       <button onclick="location.href='../../'">HOME</button>
@@ -70,7 +70,7 @@ kbd{border:1px solid var(--line);background:var(--panel2);padding:1px 4px;font:1
 
     <aside>
       <h2>World-space probe</h2>
-      <p class="note">No blood model is being selected here. Phase 0 only validates the world and surface coordinate contract that later splats, fields, drips, and irregular surfaces will depend on.</p>
+      <p class="note">No blood model is being selected here. Phase 0 only validates the corrected orthographic world and surface coordinate contract that later splats, fields, drips, and irregular surfaces will depend on.</p>
 
       <div class="row"><span>status</span><span id="status">ready</span></div>
       <div class="row"><span>surface</span><span id="surfaceValue">none</span></div>
