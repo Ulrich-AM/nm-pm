@@ -2,124 +2,115 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Current phase:** Phase 0 - world and surface foundation  
-**Phase 0 milestone:** `blood-simulation-v0.1.0`
+**Current phase:** Phase 1 - static splat representation comparison  
+**Current milestone:** `blood-simulation-v0.2.0`
 
 This study investigates performance-oriented approximations for blood motion and persistent blood deposits in a 2.5D orthographic side-room environment backed by a mathematically three-dimensional world.
 
-The visual target is closer to a side-scrolling / beat-em-up room than to an isometric game: characters move left/right and front/back across a ground plane while the camera uses orthographic projection with no distance-based perspective shrink.
+The camera remains orthographic, but Phase 1 increases the default yaw so obstacle sides and room depth are easier to read. Camera yaw and pitch are exposed as test properties rather than treated as part of the blood model.
 
-The study does not assume that the final system will use premade raster decals, live vector geometry, a raster blood field, or any single hybrid representation. Those alternatives remain research candidates for later comparison.
-
-## Phase 0
-
-Phase 0 establishes the coordinate and surface model that every later blood representation will depend on.
-
-Implemented:
-
-- true XYZ world coordinates;
-- orthographic side-room camera with X/Y ground movement and Z height;
-- a walkable room with floor, walls, and box obstacles;
-- reusable planar surfaces with local two-dimensional coordinates;
-- stable surface normals and local/world conversion;
-- nearest-surface ray intersection and impact probing;
-- structured representation-neutral impact events;
-- basic player collision against room bounds and obstacles;
-- a native C++/raylib reference harness;
-- a browser preview using the same camera intent;
-- native and browser regression tests.
-
-## Native Phase 0 harness
-
-Canonical implementation:
+## Preserved phase harnesses
 
 ```text
-phases/phase0/
-├── main.cpp
-├── phase0_math.hpp
-└── test_phase0.cpp
+phases/
+├── phase0/
+│   ├── main.cpp
+│   ├── phase0_math.hpp
+│   └── test_phase0.cpp
+└── phase1/
+    ├── main.cpp
+    ├── phase1_splats.hpp
+    └── test_phase1.cpp
 ```
 
-Build on Windows:
+Phase 0 remains the world/surface-coordinate foundation.
+
+Phase 1 is the current canonical experiment harness.
+
+## Phase 1
+
+BS-002 compares five static representations under identical controlled impacts:
+
+- premade raster baseline;
+- procedural vector splat;
+- procedurally generated raster splat;
+- persistent surface-field candidate;
+- hybrid coarse-raster + procedural-detail candidate.
+
+The native UI follows the same research-tool layout language used by the Sprite Projection methodology:
+
+- light property panel on the left;
+- main experiment viewport in the middle;
+- measurements and local surface preview on the right.
+
+### Test properties
+
+The left panel exposes:
+
+- impact speed;
+- incident angle;
+- volume;
+- local surface direction;
+- deterministic seed;
+- camera yaw;
+- camera pitch.
+
+Clicking a visible surface places the current controlled impact on that surface.
+
+### Measurements
+
+The right panel reports:
+
+- generation time;
+- estimated memory;
+- direction error;
+- primitive/cell count;
+- 16-seed diversity;
+- merge potential.
+
+The **RUN / EXPORT E1 SUITE** action evaluates 24 deterministic impacts across all five methods and writes CSV evidence under `results/phase1/`.
+
+## Build and run
+
+Build every preserved native phase:
 
 ```text
 build_windows.bat
 ```
 
-Run:
+Run Phase 0:
 
 ```text
 run_phase0.bat
 ```
 
-The native executable is the preserved Phase 0 milestone artifact.
-
-## Browser preview
-
-The GitHub Pages preview remains available at:
+Run Phase 1:
 
 ```text
-lab.html
+run_phase1.bat
 ```
-
-It is useful for quick visual inspection, but it is not the canonical runtime.
-
-## Controls
-
-- `W` / `S`: move front/back through room depth;
-- `A` / `D`: move left/right;
-- arrow keys: equivalent movement controls;
-- left click: cast a world-space impact probe onto a visible surface;
-- `G`: toggle the floor grid;
-- `N`: toggle surface-normal visualization;
-- `R`: clear impact markers.
-
-## Impact event contract
-
-A successful probe produces:
-
-```text
-surface id
-surface kind
-world-space XYZ hit position
-surface-local UV position
-surface normal
-incoming direction
-incident angle
-speed
-volume
-droplet radius
-deterministic seed
-```
-
-Phase 1 will feed identical events to competing static blood representations.
 
 ## Phase releases
-
-Blood Simulation publishes one milestone line per phase:
 
 ```text
 Phase 0 -> blood-simulation-v0.1.0
 Phase 1 -> blood-simulation-v0.2.0
 Phase 2 -> blood-simulation-v0.3.0
-...
+Phase 3 -> blood-simulation-v0.4.0
+Phase 4 -> blood-simulation-v0.5.0
+Phase 5 -> blood-simulation-v0.6.0
 Phase 6 -> blood-simulation-v0.7.0
 ```
 
-Patch releases may fix a phase without changing its research scope.
-
-See `RELEASES.md`.
+Each phase release preserves earlier runnable harnesses.
 
 ## Research direction
 
-1. static splat generation and representation comparison;
-2. persistent field, accumulation, wetness, aging, drying, and freezing;
-3. gravity-driven flow, walls, drips, puddles, and detached droplets;
-4. connected surfaces, edge transfer, smearing, and contact transfer;
-5. arbitrary polygonal and irregular static surfaces;
-6. scaling tests and frozen reference architecture.
+The representation winner is intentionally not chosen during implementation.
 
-Moving and deforming surfaces remain outside the initial study.
+Phase 2 should carry forward the most promising representation or hybrid based on measured cost, directional fidelity, visual review, merge behavior, and suitability for persistent state.
+
+Later planned phases add accumulation and drying, gravity flow and drips, surface transfer, irregular geometry, and scale testing.
 
 ## Primary documentation
 
