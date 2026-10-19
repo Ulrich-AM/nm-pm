@@ -46,11 +46,11 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 3
+      - name: Package Phase 4
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/blood_phase3.exe dist/BloodSimulation-Phase3.exe
+          Copy-Item build/Release/blood_phase4.exe dist/BloodSimulation-Phase4.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -58,8 +58,8 @@ jobs:
 
           New-Item -ItemType Directory -Force dist/experiments | Out-Null
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
-          Copy-Item experiments/BS-005.md dist/experiments/BS-005.md
-          Copy-Item experiments/BS-006.md dist/experiments/BS-006.md
+          Copy-Item experiments/BS-007.md dist/experiments/BS-007.md
+          Copy-Item experiments/BS-008.md dist/experiments/BS-008.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -73,11 +73,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM milestone release for Blood Simulation Phase 3.
+          NM-PM milestone release for Blood Simulation Phase 4.
 
-          This release adds gravity-driven surface flow, floor puddling, supported wall-to-floor transfer, unsupported-edge droplet detachment, world-space droplet redeposition, smoother field blending, and deterministic repeated-impact variation.
+          This release replaces broad whole-stain wall flow with sparse drip channels, adds regional source cooldowns, rounded eight-neighbor puddles, partial support probing, corrected near-floor collision, connected dynamic transfer, and player contact pickup/smearing.
 
-          The in-viewport control banner has been removed. This ZIP contains the current Phase 3 executable only.
+          The NM-PM documentation scrollbars now follow the active theme and the legacy Blood Simulation LAB navigation entry has been removed.
+
+          This ZIP contains the current Phase 4 executable only.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
