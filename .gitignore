@@ -20,3 +20,7 @@ Thumbs.db
 .DS_Store
 *.user
 *.suo
+
+# Local animation test assets
+**/assets/body_rig/*.fbx
+!**/assets/body_rig/README.md
