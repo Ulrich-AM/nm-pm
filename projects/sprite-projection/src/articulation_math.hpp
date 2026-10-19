@@ -133,9 +133,60 @@ inline TwoLinkRigPose BuildTwoLinkRig(
     return pose;
 }
 
+
+struct ThreeLinkRigPose {
+    LinkPose upper{};
+    LinkPose middle{};
+    LinkPose lower{};
+    Vec3 hingeA{};
+    Vec3 hingeB{};
+};
+
+inline ThreeLinkRigPose BuildThreeLinkRig(
+    double rootYawDeg,
+    double rootPitchDeg,
+    double rootRollDeg,
+    double jointADeg,
+    double jointBDeg,
+    double upperLength=1.20,
+    double middleLength=1.00,
+    double lowerLength=0.90
+) {
+    const Vec3 hingeAxisA=normalize(Vec3{1.0,0.0,0.70});
+    const Vec3 hingeAxisB=normalize(Vec3{0.65,0.0,-1.0});
+
+    const Mat3 root=MatrixFromYPR(rootYawDeg,rootPitchDeg,rootRollDeg);
+    const Mat3 middle=Mul(root,RotationAxis(hingeAxisA,jointADeg));
+    const Mat3 lower=Mul(middle,RotationAxis(hingeAxisB,jointBDeg));
+
+    ThreeLinkRigPose pose{};
+
+    pose.upper.pivot={0,0,0};
+    pose.upper.orientation=root;
+    pose.upper.center=pose.upper.pivot+Transform(root,{0,-upperLength*0.5,0});
+    pose.upper.end=pose.upper.pivot+Transform(root,{0,-upperLength,0});
+    pose.upper.euler=ExtractYPR(root);
+
+    pose.hingeA=pose.upper.end;
+    pose.middle.pivot=pose.hingeA;
+    pose.middle.orientation=middle;
+    pose.middle.center=pose.middle.pivot+Transform(middle,{0,-middleLength*0.5,0});
+    pose.middle.end=pose.middle.pivot+Transform(middle,{0,-middleLength,0});
+    pose.middle.euler=ExtractYPR(middle);
+
+    pose.hingeB=pose.middle.end;
+    pose.lower.pivot=pose.hingeB;
+    pose.lower.orientation=lower;
+    pose.lower.center=pose.lower.pivot+Transform(lower,{0,-lowerLength*0.5,0});
+    pose.lower.end=pose.lower.pivot+Transform(lower,{0,-lowerLength,0});
+    pose.lower.euler=ExtractYPR(lower);
+
+    return pose;
+}
+
 struct ArticulationTestResult { const char* name; bool pass; };
 
-inline std::array<ArticulationTestResult,6> RunArticulationSelfTests() {
+inline std::array<ArticulationTestResult,10> RunArticulationSelfTests() {
     constexpr double eps=1e-8;
 
     const auto zero=BuildTwoLinkRig(0,0,0,0,1.0,1.0);
@@ -156,13 +207,24 @@ inline std::array<ArticulationTestResult,6> RunArticulationSelfTests() {
     const bool bendMoved=std::abs(bent.lower.end.x-zero.lower.end.x)>0.1 ||
                          std::abs(bent.lower.end.z-zero.lower.end.z)>0.1;
 
+    const auto chain=BuildThreeLinkRig(12.0,-8.0,25.0,35.0,-40.0,1.2,1.0,0.9);
+    const double chainUpper=length(chain.upper.end-chain.upper.pivot);
+    const double chainMiddle=length(chain.middle.end-chain.middle.pivot);
+    const double chainLower=length(chain.lower.end-chain.lower.pivot);
+    const bool chainPivots=length(chain.middle.pivot-chain.upper.end)<eps &&
+                           length(chain.lower.pivot-chain.middle.end)<eps;
+
     return {{
         {"articulation upper link preserves requested length", std::abs(upperLen-1.0)<eps},
         {"articulation lower link preserves requested length", std::abs(lowerLen-1.0)<eps},
         {"articulation zero hinge is a straight two-link chain", straight},
         {"articulation child pivot equals parent endpoint", length(zero.lower.pivot-zero.upper.end)<eps},
         {"articulation YPR matrix extraction round-trips", roundTrip},
-        {"articulation hinge rotation changes child endpoint", bendMoved}
+        {"articulation hinge rotation changes child endpoint", bendMoved},
+        {"three-link upper length is preserved", std::abs(chainUpper-1.2)<eps},
+        {"three-link middle length is preserved", std::abs(chainMiddle-1.0)<eps},
+        {"three-link lower length is preserved", std::abs(chainLower-0.9)<eps},
+        {"three-link pivots remain exactly chained", chainPivots}
     }};
 }
 
