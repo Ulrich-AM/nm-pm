@@ -719,7 +719,7 @@ void RunE9(State& state) {
     std::array<int,6> bestCount{};
     int samples=0;
 
-    csv<<"source,time_sec,view_yaw_deg,view_pitch_deg,method,iou,boundary_error_px,centroid_error_px\\n";
+    csv<<"source,time_sec,view_yaw_deg,view_pitch_deg,method,iou,boundary_error_px,centroid_error_px\n";
 
     RenderTexture2D refRt=LoadRenderTexture(kEvalSize,kEvalSize);
     RenderTexture2D appRt=LoadRenderTexture(kEvalSize,kEvalSize);
@@ -758,7 +758,7 @@ void RunE9(State& state) {
                        <<std::fixed<<std::setprecision(6)<<t<<','
                        <<yaw<<','<<pitch<<','
                        <<vdspr::MethodName(methods[mi])<<','
-                       <<mm.iou<<','<<mm.boundaryErrorPx<<','<<mm.centroidErrorPx<<'\\n';
+                       <<mm.iou<<','<<mm.boundaryErrorPx<<','<<mm.centroidErrorPx<<'\n';
 
                     sumIou[mi]+=mm.iou;
                     sumBoundary[mi]+=mm.boundaryErrorPx;
@@ -777,16 +777,16 @@ void RunE9(State& state) {
     csv.close();
 
     std::ofstream summary(summaryPath);
-    summary<<"source="<<(state.imported?"fbx":"demo")<<'\\n';
-    summary<<"clip="<<state.clip.name<<'\\n';
-    summary<<"poses="<<samples<<'\\n';
-    summary<<"rendered_parts=16\\n";
-    summary<<"unique_banks=10\\n";
-    summary<<"total_unique_sprites=360\\n";
-    summary<<"hand_foot_yaw_step=90\\n";
-    summary<<"other_parts_yaw_step=45\\n";
-    summary<<"neck_visual_policy=merged_with_head\\n\\n";
-    summary<<"method,mean_iou,mean_boundary_error_px,mean_centroid_error_px,best_iou_poses\\n";
+    summary<<"source="<<(state.imported?"fbx":"demo")<<'\n';
+    summary<<"clip="<<state.clip.name<<'\n';
+    summary<<"poses="<<samples<<'\n';
+    summary<<"rendered_parts=16\n";
+    summary<<"unique_banks=10\n";
+    summary<<"total_unique_sprites=360\n";
+    summary<<"hand_foot_yaw_step=90\n";
+    summary<<"other_parts_yaw_step=45\n";
+    summary<<"neck_visual_policy=merged_with_head\n\n";
+    summary<<"method,mean_iou,mean_boundary_error_px,mean_centroid_error_px,best_iou_poses\n";
 
     double bestMean=-1.0;
     int bestMeanMethod=0;
@@ -796,13 +796,13 @@ void RunE9(State& state) {
         const double centroid=sumCentroid[mi]/samples;
 
         summary<<vdspr::MethodName(methods[mi])<<','
-               <<iou<<','<<boundary<<','<<centroid<<','<<bestCount[mi]<<'\\n';
+               <<iou<<','<<boundary<<','<<centroid<<','<<bestCount[mi]<<'\n';
 
         if(iou>bestMean){bestMean=iou;bestMeanMethod=mi;}
     }
 
-    summary<<"\\nbest_mean_iou_method="<<vdspr::MethodName(methods[bestMeanMethod])<<'\\n';
-    summary<<"note=final reference candidate; promotion still depends on reviewed experiment evidence\\n";
+    summary<<"\nbest_mean_iou_method="<<vdspr::MethodName(methods[bestMeanMethod])<<'\n';
+    summary<<"note=final reference candidate; promotion still depends on reviewed experiment evidence\n";
     summary.close();
 
     state.e9Valid=true;
