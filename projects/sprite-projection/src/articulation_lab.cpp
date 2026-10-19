@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <deque>
 #include <filesystem>
 #include <fstream>
@@ -214,8 +215,8 @@ void AppendVisibleFaces(const PartGeometry& geo,Color fill,std::vector<DrawFace>
     }
 }
 
-void DrawReferenceRig(const TwoLinkRigPose& rig,Rectangle view,double ppu,bool pivots) {
-    const Vector2 origin{view.x+view.width*0.5f,view.y+58.0f};
+void DrawReferenceRig(const TwoLinkRigPose& rig,Rectangle view,double ppu,bool pivots,float pivotY=58.0f) {
+    const Vector2 origin{view.x+view.width*0.5f,view.y+pivotY};
     const auto upper=BuildPartGeometry(kUpper,rig.upper,origin,ppu);
     const auto lower=BuildPartGeometry(kLower,rig.lower,origin,ppu);
 
@@ -400,8 +401,8 @@ void DrawPartSprite(
     );
 }
 
-void DrawApproxRig(const TwoLinkRigPose& rig,Rectangle view,MethodId method,double ppu,bool pivots) {
-    const Vector2 origin{view.x+view.width*0.5f,view.y+58.0f};
+void DrawApproxRig(const TwoLinkRigPose& rig,Rectangle view,MethodId method,double ppu,bool pivots,float pivotY=58.0f) {
+    const Vector2 origin{view.x+view.width*0.5f,view.y+pivotY};
 
     struct Item {
         const PartSpec* spec;
@@ -442,14 +443,14 @@ std::vector<std::uint8_t> MaskFromImageAlpha(Image image,unsigned char threshold
 void RenderReferenceEval(const TwoLinkRigPose& rig,RenderTexture2D rt) {
     BeginTextureMode(rt);
     ClearBackground(Color{0,0,0,0});
-    DrawReferenceRig(rig,{0,0,(float)kSpriteSize,(float)kSpriteSize},kCapturePpu,false);
+    DrawReferenceRig(rig,{0,0,(float)kSpriteSize,(float)kSpriteSize},kCapturePpu,false,18.0f);
     EndTextureMode();
 }
 
 void RenderApproxEval(const TwoLinkRigPose& rig,MethodId method,RenderTexture2D rt) {
     BeginTextureMode(rt);
     ClearBackground(Color{0,0,0,0});
-    DrawApproxRig(rig,{0,0,(float)kSpriteSize,(float)kSpriteSize},method,kCapturePpu,false);
+    DrawApproxRig(rig,{0,0,(float)kSpriteSize,(float)kSpriteSize},method,kCapturePpu,false,18.0f);
     EndTextureMode();
 }
 
