@@ -106,12 +106,22 @@ function drawFloorGrid() {
   }
 }
 
-function visibleSurfaces() {
-  return [...world.surfaces].sort((a, b) => {
-    const da = dot(a.center(), camera.forward);
-    const db = dot(b.center(), camera.forward);
-    return db - da;
+function sceneDrawables() {
+  const drawables = world.surfaces.map(surface => ({
+    type: "surface",
+    surface,
+    depth: dot(surface.center(), camera.forward)
+  }));
+
+  drawables.push({
+    type: "player",
+    depth: dot(
+      { x: state.player.x, y: state.player.y, z: 0.65 },
+      camera.forward
+    )
   });
+
+  return drawables.sort((a, b) => b.depth - a.depth);
 }
 
 function drawNormals() {
@@ -214,9 +224,13 @@ function render() {
   ctx.fillStyle = "#11151a";
   ctx.fillRect(0, 0, rect.width, rect.height);
 
-  const surfaces = visibleSurfaces();
+  for (const drawable of sceneDrawables()) {
+    if (drawable.type === "player") {
+      drawPlayer();
+      continue;
+    }
 
-  for (const surface of surfaces) {
+    const surface = drawable.surface;
     if (surface.id === "room.floor") {
       drawSurface(surface);
       drawFloorGrid();
@@ -226,7 +240,6 @@ function render() {
   }
 
   drawImpacts();
-  drawPlayer();
   drawNormals();
 
   ctx.fillStyle = "rgba(0,0,0,.55)";
