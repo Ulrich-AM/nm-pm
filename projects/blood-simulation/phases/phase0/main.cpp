@@ -281,7 +281,7 @@ int main() {
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            const Ray mouseRay = GetMouseRay(GetMousePosition(), camera);
+            const Ray mouseRay = GetScreenToWorldRay(GetMousePosition(), camera);
             Ray3 ray{bv(mouseRay.position), blood::normalize(bv(mouseRay.direction))};
             const auto hit = raycast(surfaces, ray);
 
