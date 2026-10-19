@@ -8,11 +8,13 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Sprite Projection](projects/sprite-projection/) — view-dependent 2D sprite projection over mathematically 3D rigid and articulated objects.
+- [Blood Simulation](projects/blood-simulation/) — real-time hybrid blood simulation for a true-XYZ 2.5D isometric environment.
+
+### Reference
+
+- [Sprite Projection](projects/sprite-projection/) — completed reference study for view-dependent 2D sprite projection over mathematically 3D rigid and articulated objects.
 
 ### Planned
-
-- Fast hybrid blood simulation.
 - Anatomically informed procedural human locomotion.
 - Context-aware physical human reactions.
 - Persistent surface mapping across directional sprites.
