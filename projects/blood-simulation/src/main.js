@@ -1,4 +1,4 @@
-import { IsoCamera } from "./camera.js";
+import { SideOrthoCamera } from "./camera.js";
 import { makeImpactEvent } from "./impact.js";
 import {
   add,
@@ -12,7 +12,7 @@ const canvas = document.getElementById("view");
 const ctx = canvas.getContext("2d");
 const world = createPhase0World();
 
-const camera = new IsoCamera({
+const camera = new SideOrthoCamera({
   target: { x: 6, y: 4.6, z: 1.55 },
   pixelsPerUnit: 58
 });
@@ -252,7 +252,7 @@ function render() {
     rect.height - 30
   );
   ctx.fillStyle = "#79838e";
-  ctx.fillText("W/S depth   A/D left-right   click surface = probe", 22, rect.height - 16);
+  ctx.fillText("W/S front-back   A/D left-right   click surface = probe", 22, rect.height - 16);
 }
 
 function updateMovement(dt) {
