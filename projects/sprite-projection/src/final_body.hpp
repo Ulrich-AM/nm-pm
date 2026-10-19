@@ -115,7 +115,7 @@ inline bool FinalHasUsefulDirection(Vec3 a,Vec3 b) {
     return length(b-a)>1e-6;
 }
 
-inline std::array<FinalBodyPartPose,17> BuildFinalBodyPartPoses(
+inline std::array<FinalBodyPartPose,16> BuildFinalBodyPartPoses(
     const FinalBodyFrame& frame
 ) {
     const auto& j=frame.joint;
@@ -206,11 +206,6 @@ inline std::array<FinalBodyPartPose,17> BuildFinalBodyPartPoses(
         {FinalBodyPartKind::Foot,true,FinalSegmentPose(
             j[FinalJointIndex(FinalBodyJoint::RightAnkle)],
             j[FinalJointIndex(FinalBodyJoint::RightToe)],
-            bodyRight)},
-
-        {FinalBodyPartKind::Hips,false,FinalSegmentPose(
-            pelvis+bodyUp*0.08,
-            pelvis-bodyUp*0.08,
             bodyRight)}
     }};
 }
@@ -528,7 +523,7 @@ inline std::array<FinalBodyTestResult,8> RunFinalBodySelfTests() {
 
     return {{
         {"final body demo clip contains sampled frames", clip.frames.size()>=50},
-        {"final body exposes seventeen rendered parts", parts.size()==17},
+        {"final body exposes sixteen rendered parts", parts.size()==16},
         {"final body preserves lower-body length", std::abs(lowerBody-0.52)<eps},
         {"final body preserves upper-body length", std::abs(upperBody-0.68)<eps},
         {"final body preserves hand length", std::abs(hand-0.32)<eps},
