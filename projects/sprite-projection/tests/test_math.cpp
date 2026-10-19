@@ -3,6 +3,7 @@
 #include "orientation_grid.hpp"
 #include "articulation_math.hpp"
 #include "body_animation.hpp"
+#include "final_body.hpp"
 #include <iostream>
 
 int main() {
@@ -37,6 +38,13 @@ int main() {
 
     const auto body = vdspr::RunBodyAnimationSelfTests();
     for (const auto& r : body) {
+        std::cout << (r.pass ? "PASS" : "FAIL") << " / " << r.name << '\n';
+        if (r.pass) ++passed;
+        ++total;
+    }
+
+    const auto finalBody = vdspr::RunFinalBodySelfTests();
+    for (const auto& r : finalBody) {
         std::cout << (r.pass ? "PASS" : "FAIL") << " / " << r.name << '\n';
         if (r.pass) ++passed;
         ++total;
