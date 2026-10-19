@@ -1351,17 +1351,16 @@ void DrawSidebar(AppState& s, UIState& ui, Rectangle r) {
     Panel(r,C_PANEL,C_LINE2);
     Text("SPRITE PROJECTION / PROPERTIES",r.x+10,r.y+9,12,C_MUTED);
     float y=r.y+30;
-    Rectangle g{r.x+8,y,r.width-16,112}; Panel(g,C_PANEL2,C_LINE);
-    GroupHeader({g.x,g.y,g.width,21},"SUBJECT / RIGID STRESS SET");
+    Rectangle g{r.x+8,y,r.width-16,88}; Panel(g,C_PANEL2,C_LINE);
+    GroupHeader({g.x,g.y,g.width,21},"SUBJECT / STRESS SET");
     const float sbw=(g.width-20)/3.0f;
-    if (Button({g.x+5,g.y+29,sbw,25},"C0",s.subject==SubjectId::C0)) { s.subject=SubjectId::C0; EnsureCapturedBank(s.subject); }
-    if (Button({g.x+7+sbw,g.y+29,sbw,25},"A1",s.subject==SubjectId::A1)) { s.subject=SubjectId::A1; EnsureCapturedBank(s.subject); }
-    if (Button({g.x+9+sbw*2,g.y+29,sbw,25},"A2",s.subject==SubjectId::A2)) { s.subject=SubjectId::A2; EnsureCapturedBank(s.subject); }
-    if (Button({g.x+5,g.y+58,sbw,25},"A3",s.subject==SubjectId::A3)) { s.subject=SubjectId::A3; EnsureCapturedBank(s.subject); }
-    if (Button({g.x+7+sbw,g.y+58,sbw,25},"A4",s.subject==SubjectId::A4)) { s.subject=SubjectId::A4; EnsureCapturedBank(s.subject); }
-    if (Button({g.x+9+sbw*2,g.y+58,sbw,25},"A5",s.subject==SubjectId::A5)) { s.subject=SubjectId::A5; EnsureCapturedBank(s.subject); }
-    Text("A2 protrusion / A3 thin / A4 concavity / A5 occlusion",g.x+7,g.y+89,9,C_DIM);
-    y += 120;
+    if (Button({g.x+5,g.y+27,sbw,22},"C0",s.subject==SubjectId::C0)) { s.subject=SubjectId::C0; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+7+sbw,g.y+27,sbw,22},"A1",s.subject==SubjectId::A1)) { s.subject=SubjectId::A1; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+9+sbw*2,g.y+27,sbw,22},"A2",s.subject==SubjectId::A2)) { s.subject=SubjectId::A2; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+5,g.y+53,sbw,22},"A3",s.subject==SubjectId::A3)) { s.subject=SubjectId::A3; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+7+sbw,g.y+53,sbw,22},"A4",s.subject==SubjectId::A4)) { s.subject=SubjectId::A4; EnsureCapturedBank(s.subject); }
+    if (Button({g.x+9+sbw*2,g.y+53,sbw,22},"A5",s.subject==SubjectId::A5)) { s.subject=SubjectId::A5; EnsureCapturedBank(s.subject); }
+    y += 96;
 
     g={r.x+8,y,r.width-16,98}; Panel(g,C_PANEL2,C_LINE);
     GroupHeader({g.x,g.y,g.width,21},"METHOD");
