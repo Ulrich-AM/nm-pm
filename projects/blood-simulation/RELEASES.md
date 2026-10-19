@@ -22,3 +22,8 @@ The canonical research history remains on `main` and in `DOCUMENTATION.html`.
 ## Phase 2 patch
 
 `blood-simulation-v0.3.1` corrects box-face normals and blood-quad winding so surface deposits consistently render on the visible side of box geometry. Use this build instead of the initial `v0.3.0` package.
+
+
+## Phase 3 milestone
+
+`blood-simulation-v0.4.0` adds gravity-driven surface flow, floor puddling, supported wall-base transfer, unsupported-edge droplet detachment, world-space droplet redeposition, blended field rendering, and deterministic repeated-impact variation.
