@@ -2,7 +2,7 @@
 
 **NM-PM study:** View-Dependent 2D Sprite Projection for 3D Articulated Motion  
 **Canonical path:** `projects/sprite-projection/`  
-**Current internal harness build:** 1.9.0
+**Current internal harness build:** 2.0.0
 
 This study investigates how mathematically three-dimensional orientation can be approximated at runtime using finite sets of two-dimensional raster sprite views, geometric transformation, interpolation, and depth-aware composition.
 
@@ -20,12 +20,13 @@ On the NM-PM site this redirects to the standalone living notebook at `DOCUMENTA
 
 ## Current research state
 
-The active prototype has reached Phase 7 three-link articulated sprite testing:
+The active prototype has reached Phase 8 animation-driven simplified-body testing:
 
 - orthographic reference projection implemented independently of raylib 3D rendering;
 - preserved Phase 5 rigid lab with C0 and A1-A5 stress subjects;
 - a preserved Phase 6 two-link articulated lab;
-- a Phase 7 three-link, two-hinge directional sprite chain lab;
+- a preserved Phase 7 three-link, two-hinge directional sprite chain lab;
+- a Phase 8 simplified-body lab driven by either FBX animation or a deterministic built-in fallback clip;
 - independent 40-image yaw × pitch capture banks for each subject;
 - NEAR, STRETCH, SHEAR, AFFINE, DUAL, and GRID4 reconstruction methods;
 - screen-space roll reconstruction;
@@ -33,14 +34,16 @@ The active prototype has reached Phase 7 three-link articulated sprite testing:
 - E1, E3, E4, and E5 rigid experiment exports;
 - E6 articulated silhouette evaluation across 180 two-link poses;
 - E7 three-link evaluation across 216 root/hinge poses;
-- pivot-registered independent per-link directional sprite banks;
+- E8 full-body evaluation across 216 temporal/view poses;
+- pivot-registered independent per-part directional sprite banks;
+- six reusable body-part banks shared across ten rendered body parts;
 - corrected mathematical-roll to screen-rotation conversion shared by every reconstruction method;
 - true 3D matrix-composed hinge motion and center-depth part ordering;
-- a 27-test non-UI validation suite in the shared test target;
+- an expanded shared non-UI validation suite covering body retargeting and part orientation;
 - retained visual evidence and failed approaches;
 - a compact 1360 × 820 default window with high-resolution capture/font resources and black experiment viewports.
 
-Phase 5 remains available as its own executable and Phase 6 remains available as the two-link baseline. Phase 7 adds a third independently reconstructed sprite and a second hinge before the study moves to a simplified body.
+Phase 5 through Phase 7 remain available as historical experiment executables. Phase 8 is the first complete simplified-body checkpoint and accepts animated FBX input through the Assimp bridge without making the sprite renderer depend on the FBX mesh.
 
 ## Build on Windows
 
@@ -56,9 +59,9 @@ After a successful build:
 run_windows.bat
 ```
 
-The default launcher now opens the Phase 7 three-link chain lab. The build also preserves `vdspr_phase5.exe` and `vdspr_phase6.exe` as earlier research harnesses.
+The default launcher now opens the Phase 8 body-animation lab. The build also preserves `vdspr_phase5.exe`, `vdspr_phase6.exe`, and `vdspr_phase7.exe` as earlier research harnesses.
 
-CMake will use an installed raylib 6.2 when available, otherwise it fetches the pinned raylib 6.2 source.
+CMake will use an installed raylib 6.2 when available, otherwise it fetches the pinned raylib 6.2 source. Phase 8 additionally uses Assimp 6.0.5 for FBX animation import; the fetched build is static and FBX-import-only.
 
 ## Primary documentation
 
@@ -86,6 +89,7 @@ CMake will use an installed raylib 6.2 when available, otherwise it fetches the 
 | SP-006 | Phase 5 / E5 | Rigid-geometry stress testing across A1-A5 |
 | SP-007 | Phase 6 / E6 | Two-link pivot-registered articulated sprite composition |
 | SP-008 | Phase 7 / E7 | Three-link directional sprite chain with two hinges |
+| SP-009 | Phase 8 / E8 | Animation-driven simplified body with optional FBX retargeting |
 
 See `experiments/INDEX.md`.
 
@@ -107,7 +111,7 @@ The harness can regenerate captures and experiment exports locally. Durable expe
 
 Internal harness versions and NM-PM milestone release versions are separate.
 
-The current harness is build `1.9.0`. Future stable checkpoints use tags such as:
+The current harness is build `2.0.0`. Future stable checkpoints use tags such as:
 
 ```text
 sprite-projection-v0.1.0
