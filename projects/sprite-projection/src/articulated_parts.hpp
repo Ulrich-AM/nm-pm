@@ -22,6 +22,7 @@ struct ArticulatedPartSpec {
     double width;
     double depth;
     Color color;
+    int yawCount = kYawCount;
 };
 
 struct ArticulatedPartGeometry {
@@ -154,8 +155,8 @@ inline bool LoadArticulatedPartBank(
     std::array<Texture2D,kBankCount> loaded{};
 
     for(int p=0;p<kPitchCount;++p) {
-        for(int y=0;y<kYawCount;++y) {
-            const int idx=BankIndex(p,y);
+        for(int y=0;y<part.yawCount;++y) {
+            const int idx=BankIndex(p,y,part.yawCount);
             const auto file=dir/ArticulatedPartFileName(part,p,y);
             if(!std::filesystem::exists(file)) {
                 for(auto& texture:loaded) if(texture.id) UnloadTexture(texture);
@@ -173,6 +174,7 @@ inline bool LoadArticulatedPartBank(
 
     UnloadDirectionalBank(bank);
     bank.tex=loaded;
+    bank.yawCount=part.yawCount;
     bank.ready=true;
     bank.fromDisk=true;
     bank.directory=dir.string();
@@ -192,8 +194,9 @@ inline bool CaptureArticulatedPartBank(
     if(ec) return false;
 
     for(int p=0;p<kPitchCount;++p) {
-        for(int y=0;y<kYawCount;++y) {
-            Image img=CaptureArticulatedPartImage(part,y*45.0,kPitchSamplesDeg[p],spriteSize,capturePpu,edgeColor);
+        for(int y=0;y<part.yawCount;++y) {
+            const double yawStep=360.0/static_cast<double>(part.yawCount);
+            Image img=CaptureArticulatedPartImage(part,y*yawStep,kPitchSamplesDeg[p],spriteSize,capturePpu,edgeColor);
             const auto file=dir/ArticulatedPartFileName(part,p,y);
             const bool ok=ExportImage(img,file.string().c_str());
             UnloadImage(img);
@@ -203,10 +206,11 @@ inline bool CaptureArticulatedPartBank(
 
     std::ofstream manifest(dir/"bank_manifest.txt");
     if(!manifest) return false;
-    manifest<<"format=vdspr-articulation-bank-2\n";
+    manifest<<"format=vdspr-articulation-bank-3\n";
     manifest<<"part="<<part.slug<<"\n";
     manifest<<"pivot=texture-center\n";
-    manifest<<"yaw=0,45,90,135,180,225,270,315\n";
+    manifest<<"yaw_count="<<part.yawCount<<"\n";
+    manifest<<"yaw_step="<<(360/part.yawCount)<<"\n";
     manifest<<"pitch=-60,-30,0,30,60\n";
     manifest<<"roll=screen-space-with-inverted-raylib-sign\n";
     manifest.close();
@@ -227,7 +231,8 @@ inline bool EnsureArticulatedPartBank(
     if(std::filesystem::exists(manifest)) {
         std::ifstream file(manifest);
         std::string body((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
-        current=body.find("vdspr-articulation-bank-2")!=std::string::npos;
+        current=body.find("vdspr-articulation-bank-3")!=std::string::npos
+            && body.find("yaw_count="+std::to_string(part.yawCount))!=std::string::npos;
     }
 
     if(current&&LoadArticulatedPartBank(part,bank)) return true;
@@ -258,7 +263,7 @@ inline void DrawArticulatedPartSprite(
         return;
     }
 
-    const auto yawSel=selectUniformYawAnchor(pose.euler.yawDeg,kYawCount);
+    const auto yawSel=selectUniformYawAnchor(pose.euler.yawDeg,bank.yawCount);
     const auto pitchSel=SelectNearestPitchGrid(pose.euler.pitchDeg);
 
     if(method==MethodId::Dual) {
@@ -266,9 +271,14 @@ inline void DrawArticulatedPartSprite(
         return;
     }
 
-    const auto params=BaselineTransformParams(method,yawSel.residualDeg,pose.euler.rollDeg);
+    const auto params=BaselineTransformParams(
+        method,
+        yawSel.residualDeg,
+        pose.euler.rollDeg,
+        180.0/static_cast<double>(bank.yawCount)
+    );
     DrawSpriteTransformed(
-        bank.tex[BankIndex(pitchSel.index,yawSel.index)],
+        bank.tex[BankIndex(pitchSel.index,yawSel.index,bank.yawCount)],
         base,
         params,
         tint
