@@ -176,6 +176,46 @@ inline void EvaluateFinalSceneAtTick(
     }
 }
 
+inline void FillMissingOptionalFinalJoints(
+    FinalBodyFrame& raw,
+    const std::array<std::string,kFinalBodyJointCount>& jointNames
+) {
+    auto& j=raw.joint;
+    const auto missing=[&](FinalBodyJoint joint) {
+        return jointNames[FinalJointIndex(joint)].empty();
+    };
+
+    if(missing(FinalBodyJoint::Spine)) {
+        const Vec3 pelvis=j[FinalJointIndex(FinalBodyJoint::Pelvis)];
+        const Vec3 chest=j[FinalJointIndex(FinalBodyJoint::Chest)];
+        j[FinalJointIndex(FinalBodyJoint::Spine)]=(pelvis+chest)*0.5;
+    }
+
+    if(missing(FinalBodyJoint::Neck)) {
+        const Vec3 chest=j[FinalJointIndex(FinalBodyJoint::Chest)];
+        const Vec3 head=j[FinalJointIndex(FinalBodyJoint::Head)];
+        j[FinalJointIndex(FinalBodyJoint::Neck)]=chest+(head-chest)*0.30;
+    }
+
+    if(missing(FinalBodyJoint::LeftHandTip)) {
+        j[FinalJointIndex(FinalBodyJoint::LeftHandTip)]
+            =j[FinalJointIndex(FinalBodyJoint::LeftWrist)];
+    }
+    if(missing(FinalBodyJoint::RightHandTip)) {
+        j[FinalJointIndex(FinalBodyJoint::RightHandTip)]
+            =j[FinalJointIndex(FinalBodyJoint::RightWrist)];
+    }
+
+    if(missing(FinalBodyJoint::LeftToe)) {
+        j[FinalJointIndex(FinalBodyJoint::LeftToe)]
+            =j[FinalJointIndex(FinalBodyJoint::LeftAnkle)];
+    }
+    if(missing(FinalBodyJoint::RightToe)) {
+        j[FinalJointIndex(FinalBodyJoint::RightToe)]
+            =j[FinalJointIndex(FinalBodyJoint::RightAnkle)];
+    }
+}
+
 inline FinalBodyFrame NormalizeFinalImportedFrameAxes(
     const FinalBodyFrame& raw,
     const FinalBodyFrame& firstRaw
@@ -296,6 +336,7 @@ inline FinalFbxImportResult ImportFbxFinalBodyClip(
             tick,
             raw
         );
+        FillMissingOptionalFinalJoints(raw,jointNames);
         rawFrames.push_back(raw);
     }
 
