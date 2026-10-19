@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <optional>
+#include <optional>\n#include <set>\n#include <utility>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -339,8 +339,8 @@ void drawLocalBlob(
     Color color
 ) {
     constexpr int segments=26;
-    const Vec2 dir{std::cos(blob.angleRad),std::sin(blob.angleRad)};
-    const Vec2 perp{-dir.y,dir.x};
+    const blood1::Vec2 dir{std::cos(blob.angleRad),std::sin(blob.angleRad)};
+    const blood1::Vec2 perp{-dir.y,dir.x};
     const Vec3 centerW=surface.localToWorld(hit.u+blob.center.x,hit.v+blob.center.y,0.018);
     const Vector2 center=worldScreen(centerW,camera,w,h);
 
