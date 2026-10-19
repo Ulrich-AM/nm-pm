@@ -359,10 +359,7 @@ Color bloodColor(const blood2::BloodCell& cell){
 
 void drawField(
     const FieldSet& fields,
-    const std::vector<PlanarSurface>& surfaces,
-    const Camera3D& camera,
-    int width,
-    int height
+    const std::vector<PlanarSurface>& surfaces
 ){
     for(std::size_t si=0;si<fields.surfaces.size();++si){
         const auto& field=fields.surfaces[si];
@@ -393,14 +390,9 @@ void drawField(
                         surface.localToWorld(u-half,v+half,0.020)
                     }};
 
-                    std::array<Vector2,4> p{};
-                    for(int i=0;i<4;++i){
-                        p[std::size_t(i)]=GetWorldToScreenEx(rv(world[std::size_t(i)]),camera,width,height);
-                    }
-
-                    const Color c=bloodColor(bc);
-                    DrawTriangle(p[0],p[1],p[2],c);
-                    DrawTriangle(p[0],p[2],p[3],c);
+                    const Color color=bloodColor(bc);
+                    DrawTriangle3D(rv(world[0]),rv(world[2]),rv(world[1]),color);
+                    DrawTriangle3D(rv(world[0]),rv(world[3]),rv(world[2]),color);
                 }
             }
         }
@@ -613,7 +605,12 @@ void DrawSidebar(
     Text("to deposit the current procedural stain.",r.x+9,y+14,10,C_DIM);
 }
 
-void DrawDebug(State& state,Rectangle r){
+void DrawDebug(
+    State& state,
+    Rectangle r,
+    const std::vector<PlanarSurface>& surfaces,
+    const SurfaceTopology& topology
+){
     Panel(r,C_PANEL,C_LINE2);
 
     GroupHeader({r.x,r.y,r.width,23},"LIVE FIELD / TEST OUTPUT");
@@ -645,7 +642,8 @@ void DrawDebug(State& state,Rectangle r){
     Text("E2",actionX+8,r.y+7,11,C_MUTED);
 
     if(Button({actionX+8,r.y+31,150,24},"RUN / EXPORT E2")){
-        runE2({}, {}, state.e2Status);
+        runE2(surfaces,topology,state.e2Status);
+        PushLog("[E2] "+state.e2Status);
     }
     Text(state.e2Status,actionX+8,r.y+64,9,C_DIM);
 
@@ -826,10 +824,10 @@ int main(){
         ClearBackground(C_VIEW_BG);
         BeginMode3D(camera);
         drawRoom(boxes,state.grid);
+        drawField(state.fields,surfaces);
         drawPlayer(state.player);
         if(state.normals)drawNormals(surfaces);
         EndMode3D();
-        drawField(state.fields,surfaces,camera,rtW,rtH);
         DrawRectangle(10,10,340,45,Fade(WHITE,0.86f));
         DrawRectangleLines(10,10,340,45,Color{150,150,150,255});
         DrawText("W/S FRONT-BACK   A/D LEFT-RIGHT",19,18,13,Color{36,36,36,255});
@@ -841,19 +839,7 @@ int main(){
         DrawSidebar(state,ui,sidebar,surfaces,topology);
         DrawMainView(state,mainView,view,camera,boxes,surfaces);
 
-        // E2 uses the actual surface set, so handle the button's placeholder status here.
-        Rectangle e2Button{
-            debug.x+debug.width*0.54f+8,
-            debug.y+31,
-            150,
-            24
-        };
-        if(CheckCollisionPointRec(mouse,e2Button)&&IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-            runE2(surfaces,topology,state.e2Status);
-            PushLog("[E2] "+state.e2Status);
-        }
-
-        DrawDebug(state,debug);
+        DrawDebug(state,debug,surfaces,topology);
         EndDrawing();
     }
 
