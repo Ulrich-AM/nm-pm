@@ -72,16 +72,24 @@ add_executable(vdspr_phase8
 target_include_directories(vdspr_phase8 PRIVATE src)
 target_link_libraries(vdspr_phase8 PRIVATE raylib ${VDSPR_ASSIMP_TARGET})
 
+add_executable(vdspr_phase9
+    src/final_lab.cpp
+)
+target_include_directories(vdspr_phase9 PRIVATE src)
+target_link_libraries(vdspr_phase9 PRIVATE raylib ${VDSPR_ASSIMP_TARGET})
+
 if (MSVC)
     target_compile_options(vdspr_phase5 PRIVATE /W4 /permissive-)
     target_compile_options(vdspr_phase6 PRIVATE /W4 /permissive-)
     target_compile_options(vdspr_phase7 PRIVATE /W4 /permissive-)
     target_compile_options(vdspr_phase8 PRIVATE /W4 /permissive-)
+    target_compile_options(vdspr_phase9 PRIVATE /W4 /permissive-)
 else()
     target_compile_options(vdspr_phase5 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(vdspr_phase6 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(vdspr_phase7 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(vdspr_phase8 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(vdspr_phase9 PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_executable(vdspr_math_tests
