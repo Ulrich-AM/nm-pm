@@ -58,6 +58,12 @@ inline Vec2 orthographicProject(const Vec3& cameraSpace, double pixelsPerUnit) {
     return {cameraSpace.x*pixelsPerUnit, -cameraSpace.y*pixelsPerUnit};
 }
 
+inline double screenTextureRotationDeg(double mathematicalRollDeg) {
+    // Projecting Y-up world coordinates to Y-down screen coordinates reverses
+    // the visible sign expected by raylib's texture rotation convention.
+    return -mathematicalRollDeg;
+}
+
 struct AnchorSelection {
     int index{};
     double angleDeg{};
