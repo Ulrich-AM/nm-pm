@@ -2,95 +2,110 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Current phase:** Phase 1 - static splat representation comparison  
-**Current milestone:** `blood-simulation-v0.2.0`
+**Current phase:** Phase 2 - persistent surface blood field  
+**Current milestone:** `blood-simulation-v0.3.0`
 
-This study investigates performance-oriented approximations for blood motion and persistent blood deposits in a 2.5D orthographic side-room environment backed by a mathematically three-dimensional world.
+This study investigates performance-oriented approximations for blood motion and persistent surface deposits in a true-XYZ orthographic side-room environment.
 
-The camera remains orthographic, but Phase 1 increases the default yaw so obstacle sides and room depth are easier to read. Camera yaw and pitch are exposed as test properties rather than treated as part of the blood model.
+Phase 2 keeps the camera adjustable and camera-independent, but changes the blood system substantially:
 
-## Preserved phase harnesses
+- more recognizable procedural stain morphology;
+- clipping at open surface edges;
+- continuation across real shared edges such as crate top → crate side or floor → wall;
+- sparse tiled persistent surface fields;
+- accumulation;
+- wetness and age;
+- drying and freezing;
+- world-space rendering with normal depth occlusion.
+
+## Current native harness
 
 ```text
-phases/
-├── phase0/
-│   ├── main.cpp
-│   ├── phase0_math.hpp
-│   └── test_phase0.cpp
-└── phase1/
-    ├── main.cpp
-    ├── phase1_splats.hpp
-    └── test_phase1.cpp
+phases/phase2/
+├── main.cpp
+├── phase2_field.hpp
+└── test_phase2.cpp
 ```
 
-Phase 0 remains the world/surface-coordinate foundation.
+Earlier phase folders remain in the repository for reproducibility, but new releases no longer need to repackage every old executable because earlier releases already preserve them.
 
-Phase 1 is the current canonical experiment harness.
+## UI
 
-## Phase 1
+Phase 2 now follows the actual Sprite Projection native layout instead of the Phase 1 dashboard interpretation:
 
-BS-002 compares five static representations under identical controlled impacts:
+```text
+286 px left research sidebar
+large central experiment panel
+150 px full-width bottom debug/results strip
+```
 
-- premade raster baseline;
-- procedural vector splat;
-- procedurally generated raster splat;
-- persistent surface-field candidate;
-- hybrid coarse-raster + procedural-detail candidate.
+The UI uses the same light gray palette, flat controls, group headers, spacing, and Windows Arial loading used by the completed Sprite Projection methodology.
 
-The native UI follows the same research-tool layout language used by the Sprite Projection methodology:
+## BS-003 - Morphology and edge continuation
 
-- light property panel on the left;
-- main experiment viewport in the middle;
-- measurements and local surface preview on the right.
+The static deposit generator now combines:
 
-### Test properties
+- dense central stain;
+- irregular harmonic boundary;
+- lobes;
+- directional streaks;
+- satellite droplets;
+- high-energy mist.
 
-The left panel exposes:
+The result is intended to resemble a persistent impact stain rather than a decorative mid-air splash sprite.
 
-- impact speed;
-- incident angle;
-- volume;
-- local surface direction;
-- deterministic seed;
-- camera yaw;
-- camera pitch.
+Static deposit samples that cross a real shared surface edge are transformed into the neighboring surface's local coordinate system.
 
-Clicking a visible surface places the current controlled impact on that surface.
+Samples crossing an open edge are clipped.
 
-### Measurements
+## BS-004 - Persistent field lifecycle
 
-The right panel reports:
+Every surface owns sparse 16 × 16 field tiles allocated only where blood exists.
 
-- generation time;
-- estimated memory;
-- direction error;
-- primitive/cell count;
-- 16-seed diversity;
-- merge potential.
+Each cell currently stores:
 
-The **RUN / EXPORT E1 SUITE** action evaluates 24 deterministic impacts across all five methods and writes CSV evidence under `results/phase1/`.
+```text
+amount
+wetness
+age
+velocity U
+velocity V
+frozen
+```
 
-## Build and run
+Velocity channels are reserved for later flow phases.
 
-Build every preserved native phase:
+Repeated hits accumulate amount. Wet cells age and dry. Once sufficiently dry, a cell becomes frozen and stops lifecycle updates while remaining visible.
+
+## Controls
+
+- `W/S`: front/back movement
+- `A/D`: left/right movement
+- left click: deposit blood on a visible surface
+- `Space`: pause/resume field lifecycle
+- `R`: clear field
+- `F11`: fullscreen
+
+The left sidebar exposes impact speed, incidence, volume, direction, seed, drying rate, time scale, yaw, pitch, grid, and normals.
+
+## E2 export
+
+The bottom strip can export:
+
+```text
+results/phase2/E2_field_lifecycle.csv
+```
+
+The sweep records wet cells, frozen cells, allocated tile count, total blood amount, and field memory across a simulated 60-second lifecycle.
+
+## Build
 
 ```text
 build_windows.bat
+run_phase2.bat
 ```
 
-Run Phase 0:
-
-```text
-run_phase0.bat
-```
-
-Run Phase 1:
-
-```text
-run_phase1.bat
-```
-
-## Phase releases
+## Release mapping
 
 ```text
 Phase 0 -> blood-simulation-v0.1.0
@@ -102,19 +117,11 @@ Phase 5 -> blood-simulation-v0.6.0
 Phase 6 -> blood-simulation-v0.7.0
 ```
 
-Each phase release preserves earlier runnable harnesses.
+## Next phase
 
-## Research direction
+Phase 3 will investigate gravity-driven redistribution, wall drips, puddles, and detached world-space droplets.
 
-The representation winner is intentionally not chosen during implementation.
-
-Phase 2 should carry forward the most promising representation or hybrid based on measured cost, directional fidelity, visual review, merge behavior, and suitability for persistent state.
-
-Later planned phases add accumulation and drying, gravity flow and drips, surface transfer, irregular geometry, and scale testing.
-
-## Primary documentation
-
-`DOCUMENTATION.html` is the living technical notebook.
+The current static edge continuation is not treated as a substitute for that later flow model.
 
 ## AI transparency
 
