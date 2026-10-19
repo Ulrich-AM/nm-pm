@@ -46,11 +46,11 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 2
+      - name: Package Phase 3
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/blood_phase2.exe dist/BloodSimulation-Phase2.exe
+          Copy-Item build/Release/blood_phase3.exe dist/BloodSimulation-Phase3.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -58,8 +58,8 @@ jobs:
 
           New-Item -ItemType Directory -Force dist/experiments | Out-Null
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
-          Copy-Item experiments/BS-003.md dist/experiments/BS-003.md
-          Copy-Item experiments/BS-004.md dist/experiments/BS-004.md
+          Copy-Item experiments/BS-005.md dist/experiments/BS-005.md
+          Copy-Item experiments/BS-006.md dist/experiments/BS-006.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -73,13 +73,11 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM milestone release for Blood Simulation Phase 2.
+          NM-PM milestone release for Blood Simulation Phase 3.
 
-          This release adds improved procedural blood-stain morphology, static continuation across real shared surface edges, sparse tiled persistent blood fields, accumulation, wetness, age, drying, and freezing.
+          This release adds gravity-driven surface flow, floor puddling, supported wall-to-floor transfer, unsupported-edge droplet detachment, world-space droplet redeposition, smoother field blending, and deterministic repeated-impact variation.
 
-          The native UI has also been rebuilt to match the completed Sprite Projection methodology layout and typography more closely.
-
-          This ZIP contains the current Phase 2 executable. Earlier phase executables remain preserved in their own releases.
+          The in-viewport control banner has been removed. This ZIP contains the current Phase 3 executable only.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
