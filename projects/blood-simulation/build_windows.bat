@@ -19,4 +19,5 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo Build complete.
-echo Run run_phase0.bat to open the Phase 0 native harness.
+echo Run run_phase0.bat for the preserved foundation harness.
+echo Run run_phase1.bat for the current representation-comparison lab.
