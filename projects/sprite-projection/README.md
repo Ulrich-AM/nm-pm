@@ -2,7 +2,7 @@
 
 **NM-PM study:** View-Dependent 2D Sprite Projection for 3D Articulated Motion  
 **Canonical path:** `projects/sprite-projection/`  
-**Current internal harness build:** 2.0.0
+**Current internal harness build:** 2.0.1
 
 This study investigates how mathematically three-dimensional orientation can be approximated at runtime using finite sets of two-dimensional raster sprite views, geometric transformation, interpolation, and depth-aware composition.
 
@@ -35,6 +35,7 @@ The active prototype has reached Phase 8 animation-driven simplified-body testin
 - E6 articulated silhouette evaluation across 180 two-link poses;
 - E7 three-link evaluation across 216 root/hinge poses;
 - E8 full-body evaluation across 216 temporal/view poses;
+- Phase 8 sprite-sheet export for all six reusable body banks, including a labeled contact sheet and TXT/JSON manifests;
 - pivot-registered independent per-part directional sprite banks;
 - six reusable body-part banks shared across ten rendered body parts;
 - corrected mathematical-roll to screen-rotation conversion shared by every reconstruction method;
@@ -62,6 +63,27 @@ run_windows.bat
 The default launcher now opens the Phase 8 body-animation lab. The build also preserves `vdspr_phase5.exe`, `vdspr_phase6.exe`, and `vdspr_phase7.exe` as earlier research harnesses.
 
 CMake will use an installed raylib 6.2 when available, otherwise it fetches the pinned raylib 6.2 source. Phase 8 additionally uses Assimp 6.0.5 for FBX animation import; the fetched build is static and FBX-import-only.
+
+## Sprite sheet export
+
+In the Phase 8 body lab, press **EXPORT** in the experiment panel or press `X`.
+
+The exporter writes:
+
+```text
+exports/body_sheets/
+├── torso_sheet.png
+├── head_sheet.png
+├── upper_arm_sheet.png
+├── forearm_sheet.png
+├── thigh_sheet.png
+├── shin_sheet.png
+├── body_contact_sheet.png
+├── manifest.txt
+└── manifest.json
+```
+
+Each unique part sheet is `1024 × 640`, arranged as 8 yaw columns by 5 pitch rows. With six reusable body-part banks, the current maximum authored workload is **240 unique sprites** at 128 × 128 per sprite. Left/right limbs share banks.
 
 ## Primary documentation
 
@@ -111,7 +133,7 @@ The harness can regenerate captures and experiment exports locally. Durable expe
 
 Internal harness versions and NM-PM milestone release versions are separate.
 
-The current harness is build `2.0.0`. Future stable checkpoints use tags such as:
+The current harness is build `2.0.1`. Future stable checkpoints use tags such as:
 
 ```text
 sprite-projection-v0.1.0
