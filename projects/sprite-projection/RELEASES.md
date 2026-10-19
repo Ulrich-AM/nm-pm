@@ -18,6 +18,6 @@ The workflow:
 4. packages the executable with project documentation and the NM-PM AI disclosure;
 5. creates a GitHub Release and attaches the ZIP.
 
-The internal research harness build number may differ from the public milestone tag. The current harness is 1.6.1.
+The internal research harness build number may differ from the public milestone tag. The current harness is 1.7.0 (Phase 5 rigid stress testing).
 
 No public milestone release is created until a release tag is intentionally pushed.
