@@ -43,11 +43,12 @@ button{
 button:hover{background:var(--panel2)}
 #app{height:100vh;display:grid;grid-template-rows:48px 1fr}
 #top{
-  display:grid;grid-template-columns:240px 1fr auto;align-items:center;
+  display:grid;grid-template-columns:minmax(420px,1fr) minmax(240px,420px) auto;align-items:center;
   background:var(--panel);border-bottom:1px solid var(--line);padding:0 18px;gap:18px
 }
-#brand{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.01em;white-space:nowrap}
-#brand small{display:block;font-size:9px;font-weight:400;color:var(--muted);letter-spacing:.13em;text-transform:uppercase;margin-top:1px}
+#brand{font-size:14px;font-weight:400;color:var(--text);letter-spacing:.005em;white-space:nowrap;line-height:1.1}
+#brand .site-title{font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+#brand small{display:block;font-size:9px;font-weight:400;font-style:italic;color:var(--muted);letter-spacing:.05em;margin-top:3px}
 #searchWrap{max-width:420px;justify-self:center;width:100%;position:relative}
 #search{
   width:100%;height:31px;background:var(--panel2);color:var(--text);
@@ -144,7 +145,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <body>
 <div id="app">
   <header id="top">
-    <div id="brand">NM-PM<small>New Methodology, Powered by Machines</small></div>
+    <div id="brand"><span class="site-title">New Methodology, Powered by Machines</span><small>NM-PM</small></div>
     <div id="searchWrap"><input id="search" placeholder="Search sections"></div>
     <div id="topActions">
       <button id="themeBtn">LIGHT</button>
