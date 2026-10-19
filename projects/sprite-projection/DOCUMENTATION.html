@@ -161,6 +161,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <a href="#sp004">SP-004</a>
           <a href="#sp005">SP-005</a>
           <a href="#sp006">SP-006</a>
+          <a href="#sp007">SP-007</a>
         </div>
         <a class="side-label" href="#evidence">Visual Evidence</a>
         <a class="side-label" href="#failures">Failed Approaches</a>
@@ -170,6 +171,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
       <div class="side-section">
         <h3>Project</h3>
         <a class="side-label" href="#implementation">Implementation</a>
+        <a class="side-label" href="#architecture">Architecture</a>
         <a class="side-label" href="#repository">Repository</a>
         <a class="side-label" href="#ai">AI Transparency</a>
         <a class="side-label" href="#limitations">Limitations</a>
@@ -186,8 +188,8 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
           <div class="meta">
             <b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span>
             <b>Study path</b><span><code>projects/sprite-projection/</code></span>
-            <b>Current phase</b><span>Phase 5 rigid stress testing</span>
-            <b>Internal build</b><span>1.7.0</span>
+            <b>Current phase</b><span>Phase 6 articulated multi-sprite testing</span>
+            <b>Internal build</b><span>1.8.0</span>
             <b>Primary artifact</b><span><code>DOCUMENTATION.html</code></span>
           </div>
           <div class="note">This page is the canonical living notebook for the study. The clean project URL <code>projects/sprite-projection/</code> redirects here, while the NM-PM homepage remains the collection index.</div>
@@ -203,7 +205,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
             <div><b>Rebuild</b>Transform or blend sprites</div>
             <div><b>Measure</b>Compare to true projection</div>
           </div>
-          <p>Phase 5 freezes the Phase 4 reconstruction methods and applies them to four new adversarial rigid subjects. A2 targets protrusions, A3 targets thin structure, A4 targets concavity and negative space, and A5 targets self-occlusion. E5 compares all six methods across A1-A5 without retuning the original formulas.</p>
+          <p>Phase 5 remains preserved as a rigid-object checkpoint. Phase 6 now introduces independent part sprites through a deliberately simple two-link hinge rig. The upper and lower links each receive their own 40-view directional bank, both use the same shared reconstruction code as the rigid experiments, and their sprites are pivot-registered to mathematically projected joint positions.</p>
         </section>
 
         <section id="problem">
@@ -246,6 +248,8 @@ ARM  center=(-0.93,-0.18,-0.06) half=(0.27,0.21,0.20)</pre>
             </tbody>
           </table>
           <div class="note">A1 remains the frozen design subject. A2-A5 are not used to retune the existing methods before E5 is measured.</div>
+          <h3>Phase 6 two-link rig</h3>
+          <p>The first articulated subject is intentionally non-anatomical. An upper rectangular link connects to a lower rectangular link at one hinge. The hinge axis is diagonal in local XZ, so bending changes both apparent 2D direction and depth. This makes it useful for testing multi-sprite orientation, pivot registration, and front/back ordering without anatomy introducing additional variables.</p>
         </section>
 
         <section id="bank">
@@ -287,7 +291,7 @@ Roll:  not captured</pre>
             <li>centroid displacement in pixels;</li>
             <li>requested orientation, selected views, and residual angles.</li>
           </ul>
-          <p>E5 extends the same measurements across A1-A5 and reports each method's mean IoU change relative to A1. No universal pass/fail threshold is imposed before measurement. Numerical findings are not written into this notebook until the corresponding native export has actually been executed and reviewed.</p>
+          <p>E5 extends the same measurements across A1-A5 and reports each method's mean IoU change relative to A1. E6 evaluates the combined silhouette of the two-link articulated rig across 180 root/joint poses using all six methods. No universal pass/fail threshold is imposed before measurement. Numerical findings are not written into this notebook until the corresponding native export has actually been executed and reviewed.</p>
         </section>
 
         <section id="experiments">
@@ -298,7 +302,8 @@ Roll:  not captured</pre>
           <div class="experiment" id="sp004"><div class="id">SP-004</div><div class="status">Implemented</div><div class="desc">E3.2 DUAL neighboring-yaw reconstruction.</div></div>
           <div class="experiment" id="sp005"><div class="id">SP-005</div><div class="status">Results pending</div><div class="desc">Phase 4 / E4 yaw x pitch bank, GRID4 interpolation, and screen-space roll evaluation.</div></div>
           <div class="experiment" id="sp006"><div class="id">SP-006</div><div class="status">Results pending</div><div class="desc">Phase 5 / E5 rigid-geometry generalization across A1-A5 using protrusion, thin, concave, and occlusion-heavy stress subjects.</div></div>
-          <p>Durable experiment identifiers remain stable even if implementation phases are later renamed or merged. The complete SP-006 protocol is also preserved in <code>experiments/SP-006.md</code>.</p>
+          <div class="experiment" id="sp007"><div class="id">SP-007</div><div class="status">Results pending</div><div class="desc">Phase 6 / E6 two independently reconstructed, pivot-registered link sprites joined by true 3D hinge kinematics and simple center-depth ordering.</div></div>
+          <p>Durable experiment identifiers remain stable even if implementation phases are later renamed or merged. Full protocols are preserved under <code>experiments/</code>.</p>
         </section>
 
         <section id="evidence">
@@ -345,8 +350,31 @@ Roll:  not captured</pre>
 8. Draw at the projected screen position and depth.
 9. When requested, compare against the reference projection.
 10. For E5, repeat the frozen pipeline across A1-A5.
-11. Export per-orientation metrics and cross-subject summaries for later review.</pre>
-          <p>The native harness targets C++20 and raylib 6.2. Research-specific coordinate math, bank selection, reconstruction logic, and evaluation metrics remain project code rather than raylib 3D functionality.</p>
+11. For SP-007, compute a two-link 3D pose with matrix-composed hinge motion.
+12. Reconstruct each link independently from its own pivot-registered sprite bank.
+13. Sort complete part sprites by 3D center depth.
+14. For E6, compare the composed articulated silhouette against true geometry.</pre>
+          <p>The native project now builds two experiment harnesses. <code>vdspr_phase5</code> preserves the rigid study, while <code>vdspr_phase6</code> runs the articulated lab. Shared pose math and reconstruction algorithms live outside both UI harnesses.</p>
+        </section>
+
+        <section id="architecture">
+          <h2>Architecture</h2>
+          <p>An architecture review was performed before articulation. The Phase 5 harness had grown to roughly 77 KB in one source file, with subject data, sprite reconstruction, capture I/O, experiments, and UI mixed together. A limited refactor extracted the parts that must remain identical across experiments instead of rewriting the whole application.</p>
+          <table>
+            <thead><tr><th>Module</th><th>Responsibility</th></tr></thead>
+            <tbody>
+              <tr><td><code>calibration_math.hpp</code></td><td>Coordinate conventions, YPR rotation, projection, yaw anchors.</td></tr>
+              <tr><td><code>evaluation_metrics.hpp</code></td><td>Silhouette IoU, boundary error, centroid error.</td></tr>
+              <tr><td><code>orientation_grid.hpp</code></td><td>Pitch sampling and interpolation selection.</td></tr>
+              <tr><td><code>subject_catalog.hpp</code></td><td>C0 and A1-A5 rigid subject definitions.</td></tr>
+              <tr><td><code>box_geometry.hpp</code></td><td>Reusable cuboid faces and edges.</td></tr>
+              <tr><td><code>sprite_reconstruction.hpp</code></td><td>Canonical NEAR/STRETCH/SHEAR/AFFINE/DUAL/GRID4 implementation.</td></tr>
+              <tr><td><code>articulation_math.hpp</code></td><td>Matrix composition, arbitrary-axis hinge motion, YPR extraction, two-link kinematics.</td></tr>
+              <tr><td><code>main.cpp</code></td><td>Preserved Phase 5 rigid experiment harness.</td></tr>
+              <tr><td><code>articulation_lab.cpp</code></td><td>Phase 6 multi-sprite articulation harness.</td></tr>
+            </tbody>
+          </table>
+          <p>The detailed review is preserved in <code>ARCHITECTURE.md</code>. UI helper duplication is currently tolerated, but reconstruction and pose mathematics must not be duplicated between experiments.</p>
         </section>
 
         <section id="repository">
@@ -381,8 +409,10 @@ Roll:  not captured</pre>
             <li>The pitch bank currently clamps outside +/-60 degrees.</li>
             <li>GRID4 can ghost when visibility changes strongly between stored views.</li>
             <li>Perspective projection is outside the current experimental baseline.</li>
-            <li>Phase 5 remains intentionally rigid. Joints, pivots, multi-part depth ordering, and articulated sprite composition are deferred to Phase 6.</li>
-            <li>Phase 3, Phase 4, and Phase 5 numerical findings still require native execution and review.</li>
+            <li>SP-007 uses complete-part center Z for ordering. More complicated overlap may require finer depth handling.</li>
+            <li>SP-007 fixes each sprite's top pivot at the capture center, so it does not yet test arbitrary per-view pivot metadata.</li>
+            <li>The first articulation rig has only two links and one hinge. Three-link chains and anatomy remain later work.</li>
+            <li>Phase 3 through Phase 6 numerical findings still require native execution and review.</li>
             <li>No reconstruction method has yet passed the promotion rule.</li>
           </ul>
         </section>
@@ -400,6 +430,8 @@ Roll:  not captured</pre>
               <tr><td>2026-10-18</td><td>REPO-INIT</td><td>Canonical source, CI, release workflow, and living documentation migrated into NM-PM.</td></tr>
               <tr><td>2026-10-18</td><td>DOCS-ROUTE</td><td>Homepage project title linked to a clean study URL and project documentation restyled to match the NM-PM site.</td></tr>
               <tr><td>2026-10-19</td><td>SP-006</td><td>Phase 5 rigid stress set A2-A5 and E5 cross-subject generalization sweep implemented.</td></tr>
+              <tr><td>2026-10-19</td><td>ARCH-001</td><td>Pre-articulation architecture review extracted subject data, cuboid topology, and canonical reconstruction from the rigid harness.</td></tr>
+              <tr><td>2026-10-19</td><td>SP-007</td><td>Separate two-link articulation lab implemented with pivot-registered per-part banks, matrix-composed hinge motion, endpoint trace, depth ordering, and E6.</td></tr>
             </tbody>
           </table>
         </section>
@@ -416,6 +448,7 @@ Roll:  not captured</pre>
               <tr><td>1.6.0</td><td>Yaw x pitch capture grid, GRID4, screen-space roll, and E4.</td></tr>
               <tr><td>1.6.1</td><td>Phase 4 stabilization and NM-PM repository integration.</td></tr>
               <tr><td>1.7.0</td><td>Phase 5 rigid stress subjects A2-A5, lazy capture banks, and E5 generalization evaluation.</td></tr>
+              <tr><td>1.8.0</td><td>Architecture split plus Phase 6 two-link articulated sprite lab and E6 evaluation.</td></tr>
             </tbody>
           </table>
           <p>Public milestone releases use separate tags such as <code>sprite-projection-v0.1.0</code>.</p>
@@ -439,6 +472,7 @@ Roll:  not captured</pre>
       <a href="#evidence">Visual Evidence</a>
       <a href="#failures">Failed Approaches</a>
       <a href="#implementation">Implementation</a>
+      <a href="#architecture">Architecture</a>
       <a href="#repository">Repository</a>
       <a href="#limitations">Limitations</a>
       <a href="#log">Research Log</a>
