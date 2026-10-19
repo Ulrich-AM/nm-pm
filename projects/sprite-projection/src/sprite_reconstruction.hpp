@@ -27,13 +27,14 @@ enum class MethodId {
 
 struct DirectionalTextureBank {
     std::array<Texture2D, kBankCount> tex{};
+    int yawCount = kYawCount;
     bool ready = false;
     bool fromDisk = false;
     std::string directory;
 };
 
-inline int BankIndex(int pitchIndex, int yawIndex) {
-    return pitchIndex * kYawCount + yawIndex;
+inline int BankIndex(int pitchIndex, int yawIndex, int yawCount = kYawCount) {
+    return pitchIndex * yawCount + yawIndex;
 }
 
 inline const char* MethodName(MethodId method) {
@@ -69,9 +70,15 @@ struct TransformParams {
     float ty = 0.0f;
 };
 
-inline TransformParams BaselineTransformParams(MethodId method, double residualYawDeg, double rollDeg) {
+inline TransformParams BaselineTransformParams(
+    MethodId method,
+    double residualYawDeg,
+    double rollDeg,
+    double sectorHalfDeg = kSectorHalf
+) {
     const float delta = static_cast<float>(residualYawDeg);
-    const float t = std::min(1.0f, std::abs(delta) / kSectorHalf);
+    const float sectorHalf = static_cast<float>(std::max(1e-6, sectorHalfDeg));
+    const float t = std::min(1.0f, std::abs(delta) / sectorHalf);
     TransformParams p{};
     // Mathematical +roll is counter-clockwise after our Y-up -> screen-Y-down projection.
     // raylib's positive texture rotation is clockwise in screen coordinates, so invert it.
@@ -86,7 +93,7 @@ inline TransformParams BaselineTransformParams(MethodId method, double residualY
         p.sx = 1.0f - 0.18f * t;
         p.sy = 1.0f + 0.03f * t;
         p.shx = std::clamp(-std::tan(delta * 0.52f * static_cast<float>(kDegToRad)), -0.34f, 0.34f);
-        p.tx = -(delta / kSectorHalf) * 6.0f;
+        p.tx = -(delta / sectorHalf) * 6.0f;
     }
     return p;
 }
@@ -97,11 +104,12 @@ struct DualSelection {
     float t = 0.0f;
 };
 
-inline DualSelection SelectDualYaw(double yawDeg) {
+inline DualSelection SelectDualYaw(double yawDeg, int yawCount = kYawCount) {
+    yawCount=std::clamp(yawCount,1,kYawCount);
     const double yaw = wrap360(yawDeg);
-    const double spacing = 360.0 / kYawCount;
-    const int a = static_cast<int>(std::floor(yaw / spacing)) % kYawCount;
-    const int b = (a + 1) % kYawCount;
+    const double spacing = 360.0 / yawCount;
+    const int a = static_cast<int>(std::floor(yaw / spacing)) % yawCount;
+    const int b = (a + 1) % yawCount;
     const float t = static_cast<float>((yaw - a * spacing) / spacing);
     return {a, b, std::clamp(t, 0.0f, 1.0f)};
 }
@@ -171,13 +179,13 @@ inline void DrawDualBlend(
     Color tint = WHITE
 ) {
     if (!bank.ready) return;
-    const DualSelection d = SelectDualYaw(yawDeg);
+    const DualSelection d = SelectDualYaw(yawDeg,bank.yawCount);
     const unsigned char aAlpha = static_cast<unsigned char>(std::clamp((1.0f-d.t)*255.0f,0.0f,255.0f));
     const unsigned char bAlpha = static_cast<unsigned char>(std::clamp(d.t*255.0f,0.0f,255.0f));
 
     const float screenRoll = static_cast<float>(screenTextureRotationDeg(rollDeg));
-    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.a)],base,screenRoll,{tint.r,tint.g,tint.b,aAlpha});
-    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.b)],base,screenRoll,{tint.r,tint.g,tint.b,bAlpha});
+    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.a,bank.yawCount)],base,screenRoll,{tint.r,tint.g,tint.b,aAlpha});
+    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.b,bank.yawCount)],base,screenRoll,{tint.r,tint.g,tint.b,bAlpha});
 }
 
 inline void DrawGrid4Blend(
@@ -189,7 +197,7 @@ inline void DrawGrid4Blend(
     Color tint = WHITE
 ) {
     if (!bank.ready) return;
-    const DualSelection y = SelectDualYaw(yawDeg);
+    const DualSelection y = SelectDualYaw(yawDeg,bank.yawCount);
     const PitchBlendSelection p = SelectPitchGridBlend(pitchDeg);
 
     const float w00 = (1.0f-y.t)*(1.0f-p.t);
@@ -205,7 +213,7 @@ inline void DrawGrid4Blend(
         if (item.w <= 0.001f) continue;
         const unsigned char alpha = static_cast<unsigned char>(std::clamp(item.w*255.0f,0.0f,255.0f));
         DrawTextureCentered(
-            bank.tex[BankIndex(item.p,item.y)],
+            bank.tex[BankIndex(item.p,item.y,bank.yawCount)],
             base,
             static_cast<float>(screenTextureRotationDeg(rollDeg)),
             {tint.r,tint.g,tint.b,alpha}
