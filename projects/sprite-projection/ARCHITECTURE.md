@@ -1,7 +1,7 @@
 # Sprite Projection Architecture
 
 **NM-PM project:** Sprite Projection  
-**Architecture checkpoint:** Phase 8 / animation-driven simplified body  
+**Architecture checkpoint:** Phase 9 / final reference rig  
 **Date:** 2026-10-19
 
 This file records the architecture review performed after the first public milestone release and before the articulated multi-sprite experiments expanded further.
@@ -37,10 +37,13 @@ src/
 ├── articulated_parts.hpp
 ├── body_animation.hpp
 ├── assimp_fbx_import.hpp
+├── final_body.hpp
+├── final_fbx_import.hpp
 ├── main.cpp
 ├── articulation_lab.cpp
 ├── chain_lab.cpp
-└── body_lab.cpp
+├── body_lab.cpp
+└── final_lab.cpp
 ```
 
 ### calibration_math.hpp
@@ -147,6 +150,22 @@ Owns the Phase 8 FBX input bridge:
 
 The importer does not expose the FBX mesh to the sprite renderer.
 
+### final_body.hpp
+
+Owns the frozen Phase 9 reference-rig representation:
+
+- 21 logical retarget joints;
+- 16 rendered parts;
+- head/neck visual merge;
+- upper/lower body split;
+- hips, hands, and feet;
+- fixed proportions;
+- final-rig animation sampling and tests.
+
+### final_fbx_import.hpp
+
+Owns the Phase 9 FBX bridge. It reuses the lower-level Assimp sampling helpers but maps the richer final joint set. Spine, neck, hand-tip, and toe helpers are optional and receive deterministic fallbacks when absent.
+
 ### main.cpp
 
 Remains the Phase 5 rigid-object experiment harness.
@@ -167,9 +186,15 @@ It uses three independent pivot-registered sprite banks and the shared articulat
 
 ### body_lab.cpp
 
-Owns the Phase 8 animation-driven body experiment.
+Owns the preserved Phase 8 animation-driven body experiment.
 
 It renders ten body parts using six shared directional banks, accepts FBX through drag-and-drop or a conventional startup path, and falls back to a deterministic internal clip when no external asset is present.
+
+### final_lab.cpp
+
+Owns the Phase 9 final reference-rig experiment.
+
+It renders 16 parts from 10 unique shared banks. Eight bank types retain 45-degree yaw sampling, while hand and foot banks use 90-degree yaw sampling. It also owns E9 and the final 360-sprite export/contact-sheet workflow.
 
 ## Bank ownership
 
@@ -195,6 +220,21 @@ SP-009 uses six reusable body-part banks across ten rendered parts:
 - thigh, shared by left and right
 - shin, shared by left and right
 
+SP-010 uses ten reusable final-rig banks across sixteen rendered parts:
+
+- head + neck
+- upper body
+- lower body
+- hips
+- upper arm
+- lower arm
+- hand
+- upper leg
+- lower leg
+- foot
+
+Hand and foot banks use four yaw samples. All other final-rig banks use eight.
+
 Each articulated capture is pivot-registered. The link's top pivot is placed at the exact center of every stored 128 x 128 image. Runtime placement therefore aligns the sprite texture center to the mathematically projected joint position.
 
 This avoids frame-specific pivot tuning.
@@ -215,6 +255,7 @@ The project now uses separate executable harnesses for materially different rese
 - `vdspr_phase6`: two-link articulated multi-sprite composition
 - `vdspr_phase7`: three-link, two-hinge articulated composition
 - `vdspr_phase8`: animation-driven simplified body with optional FBX import
+- `vdspr_phase9`: final 16-part reference rig with mixed-density yaw banks
 
 Shared research algorithms belong in headers under `src/`.
 
@@ -230,7 +271,9 @@ Experiment-specific controls and displays may remain local to their harness.
 6. UI reuse is optional. Research logic reuse is mandatory.
 7. Do not introduce a generalized engine abstraction until at least two experiments require the same abstraction.
 8. External animation formats terminate at an importer boundary; the reconstruction layer consumes only NM-PM body poses.
-9. Imported character proportions do not redefine the research subject. Phase 8 retargets motion onto fixed body proportions.
+9. Imported character proportions do not redefine the research subject. Phase 8 and Phase 9 retarget motion onto fixed body proportions.
+10. Directional bank density is a per-part policy. Small terminal parts may use fewer yaw anchors without changing the reconstruction interface.
+11. Phase 9 freezes the reference-candidate architecture; later paper conclusions should describe measured evidence rather than silently changing the implementation.
 
 ## Remaining technical debt
 
@@ -258,4 +301,6 @@ The first public milestone, `sprite-projection-v0.1.0`, remains the Phase 5 rigi
 
 Phase 7 is preserved by `sprite-projection-v0.3.0`.
 
-Phase 8 adds the animation-source bridge and body harness after that release. The Phase 8 milestone release should package all historical harnesses plus the new body lab, while keeping external FBX files optional and unbundled.
+Phase 8 is preserved by `sprite-projection-v0.4.0` and the sheet-export maintenance build by `sprite-projection-v0.4.1`.
+
+Phase 9 is the final reference-rig milestone and is intended for `sprite-projection-v0.5.0`. It packages all historical harnesses plus the new final-rig executable while keeping external FBX files optional and unbundled.
