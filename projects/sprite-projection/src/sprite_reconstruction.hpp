@@ -73,7 +73,9 @@ inline TransformParams BaselineTransformParams(MethodId method, double residualY
     const float delta = static_cast<float>(residualYawDeg);
     const float t = std::min(1.0f, std::abs(delta) / kSectorHalf);
     TransformParams p{};
-    p.rotDeg = static_cast<float>(rollDeg);
+    // Mathematical +roll is counter-clockwise after our Y-up -> screen-Y-down projection.
+    // raylib's positive texture rotation is clockwise in screen coordinates, so invert it.
+    p.rotDeg = static_cast<float>(-rollDeg);
 
     if (method == MethodId::Stretch) {
         p.sx = 1.0f - 0.28f * t;
@@ -173,8 +175,9 @@ inline void DrawDualBlend(
     const unsigned char aAlpha = static_cast<unsigned char>(std::clamp((1.0f-d.t)*255.0f,0.0f,255.0f));
     const unsigned char bAlpha = static_cast<unsigned char>(std::clamp(d.t*255.0f,0.0f,255.0f));
 
-    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.a)],base,static_cast<float>(rollDeg),{tint.r,tint.g,tint.b,aAlpha});
-    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.b)],base,static_cast<float>(rollDeg),{tint.r,tint.g,tint.b,bAlpha});
+    const float screenRoll = static_cast<float>(-rollDeg);
+    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.a)],base,screenRoll,{tint.r,tint.g,tint.b,aAlpha});
+    DrawTextureCentered(bank.tex[BankIndex(pitchIndex,d.b)],base,screenRoll,{tint.r,tint.g,tint.b,bAlpha});
 }
 
 inline void DrawGrid4Blend(
@@ -204,7 +207,7 @@ inline void DrawGrid4Blend(
         DrawTextureCentered(
             bank.tex[BankIndex(item.p,item.y)],
             base,
-            static_cast<float>(rollDeg),
+            static_cast<float>(-rollDeg),
             {tint.r,tint.g,tint.b,alpha}
         );
     }
