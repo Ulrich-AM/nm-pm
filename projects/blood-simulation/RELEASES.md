@@ -27,3 +27,8 @@ The canonical research history remains on `main` and in `DOCUMENTATION.html`.
 ## Phase 3 milestone
 
 `blood-simulation-v0.4.0` adds gravity-driven surface flow, floor puddling, supported wall-base transfer, unsupported-edge droplet detachment, world-space droplet redeposition, blended field rendering, and deterministic repeated-impact variation.
+
+
+## Phase 4 milestone
+
+`blood-simulation-v0.5.0` replaces broad whole-stain wall flow with sparse drip channels, adds regional source cooldowns, support probing, rounded eight-neighbor puddles, corrected near-floor droplet collision, dynamic connected-surface continuation, and player contact pickup/smearing.
