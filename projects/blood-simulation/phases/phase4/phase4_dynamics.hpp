@@ -185,9 +185,29 @@ inline void retireSource(
     double cooldown
 ) {
     source.alive=false;
-    state.siteCooldown[
-        siteKey(source.surface,source.rootX,source.rootY)
-    ]=cooldown;
+
+    constexpr int radius=4;
+    for(int y=-radius;y<=radius;++y) {
+        for(int x=-radius;x<=radius;++x) {
+            if(x*x+y*y>radius*radius)continue;
+            state.siteCooldown[
+                siteKey(
+                    source.surface,
+                    source.rootX+x,
+                    source.rootY+y
+                )
+            ]=std::max(
+                state.siteCooldown[
+                    siteKey(
+                        source.surface,
+                        source.rootX+x,
+                        source.rootY+y
+                    )
+                ],
+                cooldown
+            );
+        }
+    }
 }
 
 inline bool localPeakAcrossFlow(
