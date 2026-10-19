@@ -267,7 +267,7 @@ bool ExportBankSheet(
             const int idx=vdspr::BankIndex(p,y);
             Image cell=LoadImageFromTexture(bank.tex[idx]);
 
-            ImageDraw(
+            ImageDrawImage(
                 &sheet,
                 cell,
                 Rectangle{0,0,(float)cell.width,(float)cell.height},
@@ -364,7 +364,7 @@ bool ExportBodySpriteSheets() {
             10,
             Color{170,170,170,255}
         );
-        ImageDraw(
+        ImageDrawImage(
             &contact,
             sheet,
             Rectangle{0,0,(float)sheet.width,(float)sheet.height},
