@@ -11,5 +11,6 @@ Detailed experiment discussion remains in `DOCUMENTATION.html`. This index provi
 | SP-005 | Phase 4 / E4 | Implemented, native results pending | Yaw × pitch bank, GRID4, and screen-space roll |
 | SP-006 | Phase 5 / E5 | Implemented, native results pending | Generalization stress test across protrusion, thin, concave, and occlusion-heavy rigid subjects |
 | SP-007 | Phase 6 / E6 | Implemented, native results pending | Two-link pivot-registered multi-sprite articulation and depth ordering |
+| SP-008 | Phase 7 / E7 | Implemented, native results pending | Three-link chain with two hinges, three independent banks, and repeated depth-order transitions |
 
 Failed and superseded experiments remain in the registry rather than being deleted.
