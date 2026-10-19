@@ -50,9 +50,11 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/vdspr_phase5.exe dist/SpriteProjection.exe
+          Copy-Item build/Release/vdspr_phase5.exe dist/SpriteProjection-Rigid.exe
+          Copy-Item build/Release/vdspr_phase6.exe dist/SpriteProjection-Articulation.exe
           Copy-Item README.md dist/README.md
           Copy-Item DOCUMENTATION.html dist/DOCUMENTATION.html
+          Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item ../../AI_DISCLOSURE.md dist/AI_DISCLOSURE.md
           Copy-Item DEPENDENCIES.md dist/DEPENDENCIES.md
           Compress-Archive -Path dist/* -DestinationPath sprite-projection-windows-x64.zip -Force
@@ -64,21 +66,11 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          First public NM-PM milestone release for the Sprite Projection study.
+          NM-PM milestone release for the Sprite Projection study.
 
-          Current research state: Phase 5 rigid geometry stress testing, internal harness build 1.7.0.
+          The package contains both the preserved rigid-object lab and the current articulated multi-sprite lab, together with the living documentation, architecture notes, dependency information, and AI disclosure.
 
-          Highlights:
-          - 40-view yaw x pitch sprite banks
-          - NEAR, STRETCH, SHEAR, AFFINE, DUAL, and GRID4 reconstruction
-          - screen-space roll reconstruction
-          - A1 baseline plus A2 protrusion, A3 thin-structure, A4 concavity, and A5 occlusion stress subjects
-          - E3, E4, and E5 quantitative evaluation paths
-          - silhouette IoU, symmetric boundary error, and centroid displacement metrics
-          - 16-test native validation suite
-          - NM-PM living documentation and AI disclosure included in the package
-
-          The attached Windows ZIP is intended as an easy-to-run research checkpoint rather than a final reference implementation.
+          See DOCUMENTATION.html for the exact experiment state associated with this release.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
@@ -88,5 +80,5 @@ jobs:
           gh release create "$env:RELEASE_TAG" `
             "sprite-projection-windows-x64.zip" `
             --target "${{ github.sha }}" `
-            --title "Sprite Projection v0.1.0 - Phase 5 Rigid Stress" `
+            --title "Sprite Projection $env:RELEASE_TAG" `
             --notes "$notes"
