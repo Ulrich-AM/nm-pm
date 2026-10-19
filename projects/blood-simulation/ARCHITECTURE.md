@@ -1,6 +1,6 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 2  
+**Architecture checkpoint:** Phase 3  
 **Date:** 2026-10-19
 
 ## Coordinate boundary
@@ -13,7 +13,11 @@ Y = front / back
 Z = height
 ```
 
-Persistent blood state lives in surface-local coordinates. Camera yaw, pitch, and projection remain view concerns only.
+Persistent blood state lives in surface-local coordinates.
+
+World droplets live in XYZ space.
+
+The camera remains a replaceable view layer.
 
 ## Native phase structure
 
@@ -21,126 +25,115 @@ Persistent blood state lives in surface-local coordinates. Camera yaw, pitch, an
 phases/
 ├── phase0/   world and planar surface contract
 ├── phase1/   representation comparison
-└── phase2/   sparse persistent field lifecycle
+├── phase2/   sparse persistent field lifecycle
+└── phase3/   gravity flow + world droplets
 ```
 
-Phase 2 reuses `phase0_math.hpp`.
+Phase 3 reuses the Phase 2 field without rewriting earlier phases.
 
-## Procedural deposit
+## Nominal impact variation
 
-An impact event produces a deterministic `Pattern`.
-
-The pattern contains:
-
-- one irregular oriented central ellipse;
-- boundary lobes;
-- thin directional capsules;
-- satellite discs;
-- optional fine mist.
-
-High-level shape is driven by speed, incidence, direction, and volume.
-
-Small-scale irregularity is driven by seed.
-
-## Shared-edge topology
-
-Each planar rectangle exposes four finite edges:
+Repeated impacts may derive deterministic variation from:
 
 ```text
-U0  U1  V0  V1
+base seed
++ impact serial
 ```
 
-Topology construction compares world-space edge segments and links exact matches.
+The event seed changes small-scale morphology and adds bounded perturbation to nominal physical controls.
 
-When a generated sample leaves its source surface:
+Exact deterministic repetition remains available by disabling variation.
 
-1. identify the crossed source edge;
-2. compute distance beyond that edge;
-3. locate the linked neighbor edge;
-4. convert the shared edge point to neighbor-local coordinates;
-5. move the same overflow distance inward from the neighbor edge;
-6. continue recursively if another edge is crossed.
+## Blended field presentation
 
-If no neighbor exists, the sample is discarded.
+Simulation cells remain discrete.
 
-This solves static visual hanging without introducing premature fluid-flow semantics.
+For rendering only, a weighted 3 × 3 neighborhood is sampled.
 
-## Sparse surface field
+This produces a smooth visual perimeter without diffusing the stored field every frame.
 
-Each surface owns an `unordered_map` of 16 × 16 tiles.
+Each rendered cell is drawn once.
 
-A tile is created only when a deposit touches its region.
+Overlap therefore merges through stored amount instead of transparent decal stacking.
 
-Each cell contains:
+## Surface flow
+
+For each active wet cell:
+
+1. project world gravity into the surface tangent plane;
+2. convert the tangent vector into local U/V components;
+3. compute movable blood above adhesion;
+4. transfer a bounded fraction toward neighboring cells;
+5. store local flow velocity in the existing velocity channels.
+
+The solver is intentionally local and first-order.
+
+## Horizontal pooling
+
+When tangential gravity is near zero on an upward-facing surface, amount differences create a small pressure-spread transfer to four local neighbors.
+
+This creates widening floor puddles without a full free-surface solver.
+
+## Supported wall-base transfer
+
+If downward wall flow crosses a linked edge and the neighbor faces upward, material transfers directly into that neighbor field.
+
+This controlled special case handles wall-to-floor accumulation.
+
+General arbitrary connected-surface flow remains Phase 4 work.
+
+## Unsupported-edge detachment
+
+If flow leaves a surface without a supported upward neighbor and the source cell exceeds the detachment threshold, material is removed from the surface field and converted into a world droplet.
+
+## World droplets
+
+A droplet stores:
 
 ```text
-amount
-wetness
-age
-velocityU
-velocityV
-frozen
+position XYZ
+velocity XYZ
+volume
+radius
+seed
+alive
 ```
 
-The velocity channels are intentionally dormant until a later flow phase.
-
-## Lifecycle
-
-Deposition adds amount and refreshes wetness.
-
-Active cells:
+Each simulation step:
 
 ```text
-age += dt
-wetness -= dryingRate * dt * thicknessFactor
+v += gravity * dt
+p_next = p + v * dt
+segment cast p -> p_next
 ```
 
-When wetness reaches the freeze threshold:
+If a surface is hit, a new local impact event is reconstructed and deposited into the persistent field.
 
-```text
-frozen = true
-wetness = 0
-velocity = 0
-```
+## Fixed substep
 
-Frozen cells remain renderable but no longer require lifecycle updates.
+Phase 3 uses a maximum simulation substep of 1/120 s.
 
-## Rendering
+Large display-frame deltas are divided into multiple flow steps.
 
-Blood field cells are drawn as quads in world space, slightly offset along the supporting surface normal.
-
-They are rendered inside the normal 3D depth pass rather than as screen-space overlays.
-
-Therefore blood obeys ordinary occlusion.
-
-## UI
-
-Phase 2 deliberately matches the completed Sprite Projection tool structure:
-
-```text
-left sidebar 286 px
-main experiment panel
-bottom debug/results strip 150 px
-```
-
-Windows builds load Arial when available to avoid the default bitmap-font appearance seen in Phase 1.
+This keeps transfer and detachment stable when time scale is increased.
 
 ## Evidence
 
-BS-003 tests morphology and static shared-edge continuation.
+BS-005 validates surface flow, floor puddling, supported wall-base transfer, and detached droplets.
 
-BS-004 tests sparse allocation, accumulation, drying, freezing, and lifecycle cost.
+BS-006 validates blended field rendering and deterministic repeated-impact variation.
 
-E2 exports field state across a 60-second simulated lifecycle.
+E3 records a 45-second gravity-flow lifecycle.
 
 ## Architecture rules
 
-1. Blood state never depends on screen position.
-2. Camera view remains replaceable.
-3. Static deposit wrapping uses real surface adjacency.
-4. Dynamic cross-surface flow is not faked by the static wrapper.
-5. Untouched surface regions allocate no tiles.
-6. Dry cells stop lifecycle updates.
-7. Earlier phase harnesses stay in source control.
-8. New milestone ZIPs may package only the current executable because prior releases preserve earlier executables.
-9. Irregular static surfaces remain a later generalization.
+1. Blood state remains camera-independent.
+2. Surface flow operates in local coordinates.
+3. World droplets operate in XYZ coordinates.
+4. Rendering blur does not mutate simulation state.
+5. Interior blood is rendered close to opaque.
+6. Repeated impacts may vary without losing deterministic reproducibility.
+7. Unsupported-edge material may detach into world space.
+8. General arbitrary corner transfer remains deferred to Phase 4.
+9. Older phase harnesses remain preserved in source control.
+10. Current releases package only the current phase executable.
