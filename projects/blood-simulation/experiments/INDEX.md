@@ -8,9 +8,11 @@ The Blood Simulation study uses durable identifiers beginning with `BS-`.
 | BS-002 | Phase 1 | Implemented | Compare five static surface-blood representations under identical deterministic impact events |
 | BS-003 | Phase 2 | Implemented | Improve procedural stain morphology and continue static deposits across real shared surface edges |
 | BS-004 | Phase 2 | Implemented | Test sparse persistent field accumulation, wetness, age, drying, and freezing |
-| BS-005 | Phase 3 | Implemented | Test gravity-driven surface flow, floor puddling, supported wall-base transfer, and detached world-space droplets |
+| BS-005 | Phase 3 | Superseded in part | Test broad gravity-driven surface flow, floor puddling, supported wall-base transfer, and detached world-space droplets |
 | BS-006 | Phase 3 | Implemented | Test blended field rendering and deterministic variation across repeated nominally identical impacts |
-| BS-007 | Phase 4 | Implemented | Test sparse drip channels, support probing, intermittent detachment, and rounded puddle spreading |
+| BS-007 | Phase 4 | Implemented | Replace broad wall flow with sparse drip channels, support probing, intermittent detachment, and rounded puddle spreading |
 | BS-008 | Phase 4 | Implemented | Test dynamic connected-surface transfer and player contact pickup/smearing |
+| BS-009 | Phase 5 | Implemented | Test hanging drip-tip maturation between unsupported channel endpoints and world-space droplet release |
+| BS-010 | Phase 5 | Implemented | Test wider radial floor pooling, repeated accumulation behavior, and camera independence under an isometric orthographic view |
 
-Failed and superseded experiments remain in the registry.
+Failed and superseded experiments remain in the registry because they are part of the research result.

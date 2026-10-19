@@ -46,11 +46,11 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 4
+      - name: Package Phase 5
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/blood_phase4.exe dist/BloodSimulation-Phase4.exe
+          Copy-Item build/Release/blood_phase5.exe dist/BloodSimulation-Phase5.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -58,8 +58,8 @@ jobs:
 
           New-Item -ItemType Directory -Force dist/experiments | Out-Null
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
-          Copy-Item experiments/BS-007.md dist/experiments/BS-007.md
-          Copy-Item experiments/BS-008.md dist/experiments/BS-008.md
+          Copy-Item experiments/BS-009.md dist/experiments/BS-009.md
+          Copy-Item experiments/BS-010.md dist/experiments/BS-010.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -73,13 +73,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM milestone release for Blood Simulation Phase 4.
+          NM-PM milestone release for Blood Simulation Phase 5.
 
-          This release replaces broad whole-stain wall flow with sparse drip channels, adds regional source cooldowns, rounded eight-neighbor puddles, partial support probing, corrected near-floor collision, connected dynamic transfer, and player contact pickup/smearing.
+          This release adds hanging drip-tip maturation before unsupported free flight, wider radial floor pooling, and an orthographic isometric default camera used as a presentation stress test.
 
-          The NM-PM documentation scrollbars now follow the active theme and the legacy Blood Simulation LAB navigation entry has been removed.
+          The living technical documentation and native lab presentation were also aligned more closely with the completed Sprite Projection study.
 
-          This ZIP contains the current Phase 4 executable only.
+          This ZIP contains the current Phase 5 executable only.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {

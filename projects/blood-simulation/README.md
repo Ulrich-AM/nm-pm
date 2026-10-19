@@ -2,132 +2,98 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Current phase:** Phase 4 - sparse drip channels, connected transfer, and contact smearing  
-**Current milestone:** `blood-simulation-v0.5.0`
+**Current phase:** Phase 5 - drip maturation and radial floor pooling  
+**Current milestone:** `blood-simulation-v0.6.0`
 
-This study investigates performance-oriented approximations for blood motion and persistent surface deposits in a true-XYZ orthographic side-room environment.
+This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
-Phase 4 corrects the overly broad Phase 3 flow model and adds the first contact-transfer layer.
+The study is application-independent.
 
-## Current native harness
+## Website
 
-```text
-phases/phase4/
-├── main.cpp
-├── phase4_dynamics.hpp
-└── test_phase4.cpp
-```
-
-Earlier phase folders remain preserved in source control.
-
-## Phase 4 changes
-
-- only a small number of wet local peaks become active drip sources;
-- most of the original splat remains stationary;
-- drip sites have spacing limits and regional cooldowns;
-- detached droplets share a global cooldown and hard active-count cap;
-- exact connected edges support dynamic continuation;
-- partial supports use a downward support probe;
-- box-side blood can transfer to the room floor instead of spawning below-floor particles;
-- floor puddles use isotropic eight-neighbor spreading;
-- world-droplet collision accepts near-surface impacts;
-- wet floor blood can be picked up by the player and redeposited as short directional smears.
-
-## Sparse drip channels
-
-Phase 3 allowed almost every wet wall cell to participate in gravity flow.
-
-Phase 4 instead discovers a small number of deterministic drip regions.
-
-A candidate must have:
-
-- enough blood;
-- enough wetness;
-- a local peak across the gravity direction;
-- sufficient spacing from another active source;
-- a deterministic spatial-selection pass;
-- no active regional cooldown.
-
-Each source moves only a limited packet one cell at a time.
-
-The packet leaves a decaying trail, so a few narrow lines can form while the larger splat remains in place.
-
-## Puddles
-
-Upward-facing horizontal surfaces use an eight-neighbor pressure-spread approximation.
-
-Cardinal and diagonal transfers are weighted to reduce the diamond shape produced by the older four-neighbor rule.
-
-The result is intended to settle into rounded puddle footprints without becoming a full fluid solver.
-
-## Support probing
-
-Exact shared-edge topology remains the preferred transfer path.
-
-If a drip reaches an edge without an exact topology match, Phase 4 performs a short downward support probe.
-
-If an upward-facing surface is immediately underneath, the material is moved into that surface field instead of becoming a world droplet.
-
-This fixes partial-contact cases such as a box side ending directly above the room floor.
-
-## Detached droplets
-
-World droplets are now created only from active drip channels that reach truly unsupported edges.
-
-Detachment is constrained by:
-
-- local packet amount;
-- regional source cooldown;
-- global detach cooldown;
-- active droplet cap.
-
-Swept collision accepts very near impacts, preventing droplets that begin close to a floor from tunneling through it.
-
-## Contact transfer
-
-The player can pick up a small amount of wet floor blood.
-
-As movement distance accumulates, carried blood is redeposited as a short weighted smear aligned with the dominant movement direction.
-
-The transfer uses the same persistent field as ordinary impacts and puddles.
-
-## E4 export
+The clean project entry point is:
 
 ```text
-results/phase4/E4_channel_flow.csv
+projects/blood-simulation/
 ```
 
-The controlled sweep records:
+It redirects to the standalone living technical notebook at `DOCUMENTATION.html`.
 
-- wet and frozen cells;
-- active drip sources;
-- active droplets;
-- puddle cells;
-- channel movement;
-- puddle movement;
-- support transfers;
-- detachments;
-- landings.
+## Current research state
 
-## Controls
+The active prototype has reached Phase 5 refinement testing:
 
-- `W/S`: front/back movement
-- `A/D`: left/right movement
-- left click: deposit on a visible surface
-- `Space`: pause/resume simulation
-- `R`: clear blood and droplets
-- `F11`: fullscreen
+- true XYZ ballistic droplets and camera-independent surface state;
+- procedural impact morphology deposited into sparse per-surface fields;
+- accumulation, wetness, age, drying, and frozen persistent stains;
+- sparse selected drip channels rather than whole-stain wall advection;
+- exact shared-edge continuation plus short support probing;
+- player pickup and directional floor smearing;
+- hanging-tip maturation before unsupported drops enter world space;
+- wider radial floor relaxation for more circular pools;
+- an isometric orthographic default camera for this release;
+- fixed simulation substeps of at most 1/120 s;
+- durable experiments BS-001 through BS-010 and E1 through E5 exports.
 
-The sidebar exposes nominal impact properties, repeated-hit variation, drip rate, puddle spread, adhesion, drip density, time scale, yaw, and contact transfer.
+Earlier phase harnesses remain preserved. Phase 5 is the current behavioral checkpoint before surface geometry is generalized.
 
-## Build
+## Build on Windows
+
+Double-click:
 
 ```text
 build_windows.bat
-run_phase4.bat
 ```
 
-## Release mapping
+Then launch:
+
+```text
+run_phase5.bat
+```
+
+The build also preserves Phase 0 through Phase 4 executables for regression testing.
+
+## Phase 5 behavior
+
+Unsupported wall channels no longer read as an instantaneous edge-to-particle conversion. A newly detached packet first becomes a short-lived hanging tip. Its displayed bead grows during a deterministic maturation interval and then releases into the existing world-droplet solver.
+
+Upward-facing fields now use a wider radial pressure stencil instead of only the Phase 4 eight-neighbor puddle pass. Concentrated wet blood spreads toward a rounded footprint, retains a thicker center, merges through the same field, and remains bounded by adhesion and wetness.
+
+The camera defaults to approximately 45 degrees yaw and 35.264 degrees pitch. Camera state does not enter the blood simulation.
+
+## Primary documentation
+
+`DOCUMENTATION.html` is the living technical notebook and records:
+
+- coordinate conventions and current algorithms;
+- experiment definitions and measurements;
+- failed and superseded approaches;
+- limitations and promotion rules;
+- research log and version history;
+- architecture and release conventions.
+
+## Durable experiment IDs
+
+| ID | Phase | Purpose |
+|---|---|---|
+| BS-001 | Phase 0 | World and surface coordinate foundation |
+| BS-002 | Phase 1 | Static representation comparison |
+| BS-003 | Phase 2 | Procedural morphology and static edge continuation |
+| BS-004 | Phase 2 | Sparse persistent field lifecycle |
+| BS-005 | Phase 3 | Broad gravity flow, puddles, and world droplets |
+| BS-006 | Phase 3 | Blended rendering and repeated-impact variation |
+| BS-007 | Phase 4 | Sparse drip channels and stable puddle formation |
+| BS-008 | Phase 4 | Connected transfer and contact smearing |
+| BS-009 | Phase 5 | Hanging drip-tip maturation and delayed detachment |
+| BS-010 | Phase 5 | Radial floor pooling and isometric camera stress test |
+
+See `experiments/INDEX.md`.
+
+## Roadmap
+
+Phase 6 generalizes the surface representation to arbitrary polygonal and irregular static geometry and introduces a small material-response layer. Phase 7 is reserved for scale testing, evidence review, optimization, and a frozen final hybrid reference architecture.
+
+## Releases
 
 ```text
 Phase 0 -> blood-simulation-v0.1.0
@@ -137,12 +103,9 @@ Phase 3 -> blood-simulation-v0.4.0
 Phase 4 -> blood-simulation-v0.5.0
 Phase 5 -> blood-simulation-v0.6.0
 Phase 6 -> blood-simulation-v0.7.0
+Phase 7 -> blood-simulation-v0.8.0
 ```
-
-## Next phase
-
-Phase 5 will generalize the surface representation to arbitrary polygonal and irregular static geometry.
 
 ## AI transparency
 
-This study follows the repository-level `AI_DISCLOSURE.md`.
+This study follows the repository-level `AI_DISCLOSURE.md`. Generative AI substantially assists implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation, and research organization. Human direction defines and evaluates the research.
