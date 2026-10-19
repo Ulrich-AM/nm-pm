@@ -54,6 +54,7 @@ jobs:
           Copy-Item build/Release/vdspr_phase6.exe dist/SpriteProjection-Articulation.exe
           Copy-Item build/Release/vdspr_phase7.exe dist/SpriteProjection-ThreeLink.exe
           Copy-Item build/Release/vdspr_phase8.exe dist/SpriteProjection-BodyAnimation.exe
+          Copy-Item build/Release/vdspr_phase9.exe dist/SpriteProjection-FinalRig.exe
           Copy-Item README.md dist/README.md
           Copy-Item DOCUMENTATION.html dist/DOCUMENTATION.html
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
@@ -71,7 +72,7 @@ jobs:
           $notes = @"
           NM-PM milestone release for the Sprite Projection study.
 
-          The package contains the preserved rigid-object, two-link, and three-link research harnesses plus the current animation-driven body lab, together with the living documentation, architecture notes, dependency information, third-party notices, and AI disclosure.
+          The package contains all preserved Sprite Projection research harnesses plus the Phase 9 final reference-rig executable, together with the living documentation, architecture notes, dependency information, third-party notices, and AI disclosure.
 
           See DOCUMENTATION.html for the exact experiment state associated with this release.
           "@
