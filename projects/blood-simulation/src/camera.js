@@ -7,16 +7,19 @@ import {
   sub
 } from "./math.js";
 
-export class IsoCamera {
+export class SideOrthoCamera {
   constructor({
     target = { x: 0, y: 0, z: 0 },
-    forward = { x: 1, y: 1, z: -1.15 },
+    forward = { x: 0.04, y: 1, z: -0.25 },
     pixelsPerUnit = 52
   } = {}) {
     this.target = { ...target };
     this.forward = normalize(forward);
-    this.right = normalize({ x: 1, y: -1, z: 0 });
+
+    const worldUp = { x: 0, y: 0, z: 1 };
+    this.right = normalize(cross(this.forward, worldUp));
     this.up = normalize(cross(this.right, this.forward));
+
     this.pixelsPerUnit = pixelsPerUnit;
     this.viewportWidth = 1;
     this.viewportHeight = 1;
