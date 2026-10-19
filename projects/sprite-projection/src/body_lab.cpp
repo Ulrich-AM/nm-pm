@@ -249,6 +249,179 @@ void UnloadBodyBanks() {
     vdspr::UnloadDirectionalBank(gBanks.shin);
 }
 
+bool ExportBankSheet(
+    const std::filesystem::path& path,
+    const DirectionalTextureBank& bank
+) {
+    if(!bank.ready) return false;
+
+    constexpr int columns=vdspr::kYawCount;
+    constexpr int rows=vdspr::kPitchCount;
+    constexpr int width=columns*kSpriteSize;
+    constexpr int height=rows*kSpriteSize;
+
+    Image sheet=GenImageColor(width,height,Color{0,0,0,0});
+
+    for(int p=0;p<rows;++p) {
+        for(int y=0;y<columns;++y) {
+            const int idx=vdspr::BankIndex(p,y);
+            Image cell=LoadImageFromTexture(bank.tex[idx]);
+
+            ImageDraw(
+                &sheet,
+                cell,
+                Rectangle{0,0,(float)cell.width,(float)cell.height},
+                Rectangle{
+                    (float)(y*kSpriteSize),
+                    (float)(p*kSpriteSize),
+                    (float)kSpriteSize,
+                    (float)kSpriteSize
+                },
+                WHITE
+            );
+
+            UnloadImage(cell);
+        }
+    }
+
+    const bool ok=ExportImage(sheet,path.string().c_str());
+    UnloadImage(sheet);
+    return ok;
+}
+
+bool ExportBodySpriteSheets() {
+    namespace fs=std::filesystem;
+
+    const fs::path dir=fs::current_path()/"exports"/"body_sheets";
+    std::error_code ec;
+    fs::create_directories(dir,ec);
+    if(ec) {
+        PushLog(std::string("[export] directory error / ")+ec.message());
+        return false;
+    }
+
+    struct Item {
+        const char* slug;
+        const char* label;
+        const DirectionalTextureBank* bank;
+    };
+
+    const std::array<Item,6> items{{
+        {"torso","TORSO",&gBanks.torso},
+        {"head","HEAD",&gBanks.head},
+        {"upper_arm","UPPER ARM",&gBanks.upperArm},
+        {"forearm","FOREARM",&gBanks.forearm},
+        {"thigh","THIGH",&gBanks.thigh},
+        {"shin","SHIN",&gBanks.shin}
+    }};
+
+    for(const auto& item:items) {
+        if(!item.bank->ready) {
+            PushLog(std::string("[export] bank not ready / ")+item.label);
+            return false;
+        }
+    }
+
+    constexpr int sheetWidth=vdspr::kYawCount*kSpriteSize;
+    constexpr int sheetHeight=vdspr::kPitchCount*kSpriteSize;
+    constexpr int labelHeight=34;
+    constexpr int sectionHeight=labelHeight+sheetHeight;
+    constexpr int contactHeight=sectionHeight*(int)items.size();
+
+    Image contact=GenImageColor(
+        sheetWidth,
+        contactHeight,
+        Color{24,24,24,255}
+    );
+
+    int exported=0;
+    for(std::size_t i=0;i<items.size();++i) {
+        const auto& item=items[i];
+        const fs::path sheetPath=dir/(std::string(item.slug)+"_sheet.png");
+
+        if(!ExportBankSheet(sheetPath,*item.bank)) {
+            UnloadImage(contact);
+            PushLog(std::string("[export] failed / ")+sheetPath.filename().string());
+            return false;
+        }
+
+        Image sheet=LoadImage(sheetPath.string().c_str());
+        const int y0=(int)i*sectionHeight;
+
+        ImageDrawText(
+            &contact,
+            item.label,
+            10,
+            y0+8,
+            16,
+            Color{235,235,235,255}
+        );
+        ImageDrawText(
+            &contact,
+            "yaw: 0 45 90 135 180 225 270 315 / pitch rows: -60 -30 0 +30 +60",
+            150,
+            y0+10,
+            10,
+            Color{170,170,170,255}
+        );
+        ImageDraw(
+            &contact,
+            sheet,
+            Rectangle{0,0,(float)sheet.width,(float)sheet.height},
+            Rectangle{0,(float)(y0+labelHeight),(float)sheetWidth,(float)sheetHeight},
+            WHITE
+        );
+
+        UnloadImage(sheet);
+        ++exported;
+    }
+
+    const fs::path contactPath=dir/"body_contact_sheet.png";
+    const bool contactOk=ExportImage(contact,contactPath.string().c_str());
+    UnloadImage(contact);
+    if(!contactOk) {
+        PushLog("[export] contact sheet failed");
+        return false;
+    }
+
+    {
+        std::ofstream manifest(dir/"manifest.txt");
+        manifest<<"Sprite Projection body bank export\n";
+        manifest<<"sprite_size=128x128\n";
+        manifest<<"sheet_size=1024x640\n";
+        manifest<<"yaw_columns=0,45,90,135,180,225,270,315\n";
+        manifest<<"pitch_rows=-60,-30,0,30,60\n";
+        manifest<<"unique_part_banks=6\n";
+        manifest<<"sprites_per_bank=40\n";
+        manifest<<"total_unique_sprites=240\n";
+        manifest<<"rendered_body_parts=10\n";
+        manifest<<"left_right_reuse=true\n";
+        manifest<<"parts=torso,head,upper_arm,forearm,thigh,shin\n";
+        manifest<<"contact_sheet=body_contact_sheet.png\n";
+    }
+
+    {
+        std::ofstream json(dir/"manifest.json");
+        json<<"{\n";
+        json<<"  \"sprite_size\": [128, 128],\n";
+        json<<"  \"sheet_size\": [1024, 640],\n";
+        json<<"  \"yaw_columns\": [0, 45, 90, 135, 180, 225, 270, 315],\n";
+        json<<"  \"pitch_rows\": [-60, -30, 0, 30, 60],\n";
+        json<<"  \"unique_part_banks\": 6,\n";
+        json<<"  \"sprites_per_bank\": 40,\n";
+        json<<"  \"total_unique_sprites\": 240,\n";
+        json<<"  \"rendered_body_parts\": 10,\n";
+        json<<"  \"left_right_reuse\": true,\n";
+        json<<"  \"parts\": [\"torso\", \"head\", \"upper_arm\", \"forearm\", \"thigh\", \"shin\"]\n";
+        json<<"}\n";
+    }
+
+    PushLog("[export] 6 sheets + contact + manifests");
+    PushLog(std::string("[export] ")+dir.string());
+    PushLog("[export] 240 unique sprites total");
+    return exported==(int)items.size();
+}
+
 Vector2 BodyOrigin(Rectangle view,float pelvisFraction=0.48f) {
     return {
         view.x+view.width*0.5f,
@@ -651,8 +824,10 @@ void DrawSidebar(State& state,UIState& ui,Rectangle r) {
 
     g={r.x+8,y,r.width-16,89};Panel(g,C_PANEL2,C_LINE);
     GroupHeader({g.x,g.y,g.width,21},"EXPERIMENT");
-    if(Button({g.x+7,g.y+30,(g.width-18)/2,24},"TEST"))RunTests(state);
-    if(Button({g.x+11+(g.width-18)/2,g.y+30,(g.width-18)/2,24},"E8"))RunE8(state);
+    const float ebw=(g.width-22)/3.0f;
+    if(Button({g.x+5,g.y+30,ebw,24},"TEST"))RunTests(state);
+    if(Button({g.x+7+ebw,g.y+30,ebw,24},"E8"))RunE8(state);
+    if(Button({g.x+9+ebw*2,g.y+30,ebw,24},"EXPORT"))ExportBodySpriteSheets();
     Text("tests "+std::to_string(state.testsPassed)+"/"+std::to_string(state.testsTotal),g.x+8,g.y+62,11,C_MUTED);
     Text(std::string("E8 ")+(state.e8Valid?vdspr::MethodName((MethodId)state.e8Best):"pending"),g.x+112,g.y+62,11,C_MUTED);
 }
@@ -780,6 +955,7 @@ int main() {
         }
         if(IsKeyPressed(KEY_T))RunTests(state);
         if(IsKeyPressed(KEY_E))RunE8(state);
+        if(IsKeyPressed(KEY_X))ExportBodySpriteSheets();
         if(IsKeyPressed(KEY_F11))ToggleFullscreen();
 
         const double duration=vdspr::ClipDurationSeconds(state.clip);
