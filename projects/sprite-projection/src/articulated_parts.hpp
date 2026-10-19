@@ -245,6 +245,7 @@ inline void DrawArticulatedPartSprite(
     int spriteSize,
     Color tint=WHITE
 ) {
+    (void)part; // Reserved for future per-part reconstruction metadata.
     if(!bank.ready) return;
 
     const Vector2 pivot=ProjectArticulatedPoint(pose.pivot,viewOrigin,runtimePpu);
