@@ -1,0 +1,8 @@
+{
+  "name": "nm-pm-blood-simulation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run-tests.mjs"
+  }
+}
