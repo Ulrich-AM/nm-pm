@@ -40,10 +40,9 @@ button{color:var(--text);background:transparent;border:1px solid var(--line);pad
 button:hover{background:var(--panel2)}
 #app{height:100vh;display:grid;grid-template-rows:48px 1fr}
 #top{display:grid;grid-template-columns:240px 1fr auto;align-items:center;background:var(--panel);border-bottom:1px solid var(--line);padding:0 18px;gap:18px}
-#brand{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.01em;white-space:nowrap}
-#brand a{color:var(--text);text-decoration:none}
-#brand a:hover{color:var(--link)}
-#brand small{display:block;font-size:9px;font-weight:400;color:var(--muted);letter-spacing:.13em;text-transform:uppercase;margin-top:1px}
+#brand{font-size:14px;font-weight:400;color:var(--text);letter-spacing:.005em;white-space:nowrap;line-height:1.1}
+#brand .study-title{font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+#brand small{display:block;font-size:9px;font-weight:400;font-style:italic;color:var(--muted);letter-spacing:.05em;margin-top:3px}
 #searchWrap{max-width:420px;justify-self:center;width:100%;position:relative}
 #search{width:100%;height:31px;background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:0 10px}
 #topActions{display:flex;gap:6px;align-items:center}
@@ -123,7 +122,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <body>
 <div id="app">
   <header id="top">
-    <div id="brand"><a href="../../">NM-PM</a><small>Sprite Projection / Living Documentation</small></div>
+    <div id="brand"><span class="study-title">View-Dependent 2D Sprite Projection for 3D Articulated Motion</span><small>NM-PM</small></div>
     <div id="searchWrap"><input id="search" placeholder="Search sections"></div>
     <div id="topActions">
       <button onclick="location.href='../../'">HOME</button>
@@ -471,8 +470,7 @@ Final maximum              = 360 unique sprites</pre>
 
         <section id="ai">
           <h2>AI Transparency</h2>
-          <p>This study follows the repository-wide <code>AI_DISCLOSURE.md</code>. Generative AI substantially assists implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation, and research organization.</p>
-          <p>Human direction defines the research questions, constraints, evaluation criteria, references, visual evidence, testing, rejection of unsuitable approaches, design decisions, and overall study direction.</p>
+          <p>Generative AI was used extensively as a development tool for implementation, debugging, mathematical exploration, and documentation support. The study direction, constraints, testing, visual evidence, and acceptance or rejection of approaches were decided by the human researcher.</p>
         </section>
 
         <section id="limitations">
