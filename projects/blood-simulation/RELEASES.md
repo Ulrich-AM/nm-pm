@@ -17,3 +17,8 @@ Patch versions may correct a phase without changing its research scope.
 Starting with Phase 2, milestone ZIPs do not need to duplicate all older EXEs because the previous GitHub Releases already preserve those checkpoints.
 
 The canonical research history remains on `main` and in `DOCUMENTATION.html`.
+
+
+## Phase 2 patch
+
+`blood-simulation-v0.3.1` corrects box-face normals and blood-quad winding so surface deposits consistently render on the visible side of box geometry. Use this build instead of the initial `v0.3.0` package.
