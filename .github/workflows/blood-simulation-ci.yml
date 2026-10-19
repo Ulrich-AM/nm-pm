@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - "blood-simulation-*"
     paths:
       - "projects/blood-simulation/**"
       - ".github/workflows/blood-simulation-ci.yml"
