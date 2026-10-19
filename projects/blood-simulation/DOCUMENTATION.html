@@ -17,6 +17,12 @@ button,input{font:inherit}button{color:var(--text);background:transparent;border
 pre{background:var(--code);border:1px solid var(--line);padding:12px 14px;font:11px/1.55 Consolas,"Courier New",monospace;overflow:auto}code{font-family:Consolas,"Courier New",monospace;background:var(--code);border:1px solid var(--line);padding:1px 4px}.note{border-left:2px solid var(--line);padding:8px 12px;margin:18px 0;color:var(--muted);font-size:12px;line-height:1.65}.meta{display:grid;grid-template-columns:120px 1fr;gap:6px 12px;font-size:12px;margin:15px 0}.meta b{font-weight:400;color:var(--muted)}
 .flow{border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);margin:16px 0 20px}.flow div{padding:10px 8px;border-right:1px solid var(--line);font-size:10px;color:var(--muted)}.flow div:last-child{border-right:0}.flow b{display:block;font-size:11px;color:var(--text);margin-bottom:3px}
 table{width:100%;border-collapse:collapse;margin:18px 0;font-size:12px}th,td{border:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:top}th{background:var(--panel)}footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
+*{scrollbar-width:thin;scrollbar-color:var(--muted) var(--panel)}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--muted);border:1px solid var(--panel);background-clip:padding-box}
+::-webkit-scrollbar-button{display:none}
+::-webkit-scrollbar-corner{background:var(--panel)}
 @media(max-width:1050px){#layout{grid-template-columns:220px minmax(0,1fr)}#toc{display:none}}
 @media(max-width:720px){body{overflow:auto}#app{height:auto;display:block}#top{position:sticky;top:0;z-index:4;grid-template-columns:1fr auto;padding:8px 10px;height:auto}#brand small,#searchWrap{display:none}#layout{display:block}#sidebar{display:flex;gap:14px;overflow:auto;padding:7px 10px;border-right:0;border-bottom:1px solid var(--line)}#sidebar h3{display:none}.side-section{display:contents}.side-label{white-space:nowrap}#main{overflow:visible}#article{padding:30px 18px 60px}.flow{grid-template-columns:1fr}.flow div{border-right:0;border-bottom:1px solid var(--line)}}
 </style>
