@@ -2,6 +2,7 @@
 #include "evaluation_metrics.hpp"
 #include "orientation_grid.hpp"
 #include "articulation_math.hpp"
+#include "body_animation.hpp"
 #include <iostream>
 
 int main() {
@@ -29,6 +30,13 @@ int main() {
 
     const auto articulation = vdspr::RunArticulationSelfTests();
     for (const auto& r : articulation) {
+        std::cout << (r.pass ? "PASS" : "FAIL") << " / " << r.name << '\n';
+        if (r.pass) ++passed;
+        ++total;
+    }
+
+    const auto body = vdspr::RunBodyAnimationSelfTests();
+    for (const auto& r : body) {
         std::cout << (r.pass ? "PASS" : "FAIL") << " / " << r.name << '\n';
         if (r.pass) ++passed;
         ++total;
