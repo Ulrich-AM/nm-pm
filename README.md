@@ -72,4 +72,4 @@ locomotion-v0.2.0
 blood-simulation-v0.1.0
 ```
 
-The Sprite Projection project includes a tag-driven Windows release workflow. Pushing a matching release tag builds the native application, runs its tests, packages the executable and documentation, and creates the GitHub Release.
+Sprite Projection and Blood Simulation include Windows milestone release workflows. Blood Simulation advances one milestone release line per implementation phase, beginning with `blood-simulation-v0.1.0` for Phase 0. Matching release requests/tags build the native harness, run its tests, package the executable and documentation, and create the GitHub Release.
