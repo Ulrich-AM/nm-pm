@@ -557,39 +557,39 @@ bool ExportFinalSpriteSheets() {
 
     {
         std::ofstream manifest(dir/"manifest.txt");
-        manifest<<"Sprite Projection final rig bank export\\n";
-        manifest<<"sprite_size=128x128\\n";
-        manifest<<"pitch_rows=-60,-30,0,30,60\\n";
-        manifest<<"rendered_body_parts=16\\n";
-        manifest<<"unique_part_banks=10\\n";
-        manifest<<"full_yaw_banks=8\\n";
-        manifest<<"full_yaw_step=45\\n";
-        manifest<<"full_sprites_per_bank=40\\n";
-        manifest<<"sparse_yaw_banks=2\\n";
-        manifest<<"sparse_parts=hand,foot\\n";
-        manifest<<"sparse_yaw_step=90\\n";
-        manifest<<"sparse_sprites_per_bank=20\\n";
-        manifest<<"total_unique_sprites="<<totalSprites<<"\\n";
-        manifest<<"left_right_reuse=true\\n";
-        manifest<<"neck_visual_policy=merged_with_head\\n";
-        manifest<<"contact_sheet=final_rig_contact_sheet.png\\n";
+        manifest<<"Sprite Projection final rig bank export\n";
+        manifest<<"sprite_size=128x128\n";
+        manifest<<"pitch_rows=-60,-30,0,30,60\n";
+        manifest<<"rendered_body_parts=16\n";
+        manifest<<"unique_part_banks=10\n";
+        manifest<<"full_yaw_banks=8\n";
+        manifest<<"full_yaw_step=45\n";
+        manifest<<"full_sprites_per_bank=40\n";
+        manifest<<"sparse_yaw_banks=2\n";
+        manifest<<"sparse_parts=hand,foot\n";
+        manifest<<"sparse_yaw_step=90\n";
+        manifest<<"sparse_sprites_per_bank=20\n";
+        manifest<<"total_unique_sprites="<<totalSprites<<"\n";
+        manifest<<"left_right_reuse=true\n";
+        manifest<<"neck_visual_policy=merged_with_head\n";
+        manifest<<"contact_sheet=final_rig_contact_sheet.png\n";
     }
 
     {
         std::ofstream json(dir/"manifest.json");
-        json<<"{\\n";
-        json<<"  \\"sprite_size\\": [128, 128],\\n";
-        json<<"  \\"pitch_rows\\": [-60, -30, 0, 30, 60],\\n";
-        json<<"  \\"rendered_body_parts\\": 16,\\n";
-        json<<"  \\"unique_part_banks\\": 10,\\n";
-        json<<"  \\"full_yaw_banks\\": 8,\\n";
-        json<<"  \\"full_yaw_step\\": 45,\\n";
-        json<<"  \\"sparse_yaw_banks\\": [\\"hand\\", \\"foot\\"],\\n";
-        json<<"  \\"sparse_yaw_step\\": 90,\\n";
-        json<<"  \\"total_unique_sprites\\": "<<totalSprites<<",\\n";
-        json<<"  \\"left_right_reuse\\": true,\\n";
-        json<<"  \\"neck_visual_policy\\": \\"merged_with_head\\"\\n";
-        json<<"}\\n";
+        json<<"{\n";
+        json<<"  \"sprite_size\": [128, 128],\n";
+        json<<"  \"pitch_rows\": [-60, -30, 0, 30, 60],\n";
+        json<<"  \"rendered_body_parts\": 16,\n";
+        json<<"  \"unique_part_banks\": 10,\n";
+        json<<"  \"full_yaw_banks\": 8,\n";
+        json<<"  \"full_yaw_step\": 45,\n";
+        json<<"  \"sparse_yaw_banks\": [\"hand\", \"foot\"],\n";
+        json<<"  \"sparse_yaw_step\": 90,\n";
+        json<<"  \"total_unique_sprites\": "<<totalSprites<<",\n";
+        json<<"  \"left_right_reuse\": true,\n";
+        json<<"  \"neck_visual_policy\": \"merged_with_head\"\n";
+        json<<"}\n";
     }
 
     PushLog("[export] final rig sheets written");
