@@ -4,7 +4,8 @@
 #include <cmath>
 #include <optional>
 #include <stdexcept>
-#include <string>\n#include <utility>
+#include <string>
+#include <utility>
 
 namespace blood {
 
