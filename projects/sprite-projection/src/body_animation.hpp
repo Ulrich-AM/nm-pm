@@ -163,6 +163,8 @@ inline BodyFrame LerpBodyFrames(const BodyFrame& a,const BodyFrame& b,double t) 
     return out;
 }
 
+inline BodyFrame RetargetBodyDirections(const BodyFrame& raw);
+
 inline double ClipDurationSeconds(const BodyClip& clip) {
     if(clip.frames.size()<2||clip.sampleRate<=0.0) return 0.0;
     return static_cast<double>(clip.frames.size()-1)/clip.sampleRate;
@@ -180,7 +182,12 @@ inline BodyFrame SampleBodyClip(const BodyClip& clip,double timeSeconds) {
         clip.frames.size()-1
     );
     const std::size_t b=std::min<std::size_t>(a+1,clip.frames.size()-1);
-    return LerpBodyFrames(clip.frames[a],clip.frames[b],framePos-static_cast<double>(a));
+    const BodyFrame interpolated=LerpBodyFrames(
+        clip.frames[a],
+        clip.frames[b],
+        framePos-static_cast<double>(a)
+    );
+    return RetargetBodyDirections(interpolated);
 }
 
 inline BodyFrame RetargetBodyDirections(const BodyFrame& raw) {
