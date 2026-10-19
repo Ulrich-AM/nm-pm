@@ -192,7 +192,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
             <b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span>
             <b>Study path</b><span><code>projects/sprite-projection/</code></span>
             <b>Current phase</b><span>Phase 8 animation-driven simplified-body testing</span>
-            <b>Internal build</b><span>2.0.0</span>
+            <b>Internal build</b><span>2.0.1</span>
             <b>Primary artifact</b><span><code>DOCUMENTATION.html</code></span>
           </div>
           <div class="note">This page is the canonical living notebook for the study. The clean project URL <code>projects/sprite-projection/</code> redirects here, while the NM-PM homepage remains the collection index.</div>
@@ -208,7 +208,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
             <div><b>Rebuild</b>Transform or blend sprites</div>
             <div><b>Measure</b>Compare to true projection</div>
           </div>
-          <p>Phase 5 through Phase 7 remain preserved as rigid and mechanical articulation checkpoints. Phase 8 now drives a ten-part simplified body from time-varying animation. The body can use a deterministic internal clip or retarget the first animation from an FBX file through an importer boundary, while the sprite renderer continues to operate only on the resulting NM-PM body poses.</p>
+          <p>Phase 5 through Phase 7 remain preserved as rigid and mechanical articulation checkpoints. Phase 8 now drives a ten-part simplified body from time-varying animation. The body can use a deterministic internal clip or retarget the first animation from an FBX file through an importer boundary, while the sprite renderer continues to operate only on the resulting NM-PM body poses. Build 2.0.1 adds direct sprite-sheet export so the complete six-bank art workload can be inspected outside the application.</p>
         </section>
 
         <section id="problem">
@@ -285,6 +285,8 @@ per-part directional sprites</pre>
 Pitch: -60, -30, 0, +30, +60 degrees
 Roll:  not captured</pre>
           <p>This produces 40 stored 128 x 128 captures for each rigid or unique part-bank subject. Captures are exported as PNG files, then loaded back from disk before being used by the approximation view. In Phase 8, six unique body-part banks produce 240 stored captures while symmetric left/right limbs reuse the same bank.</p>
+          <h3>Phase 8 sheet export</h3>
+          <p>The body lab can export the six loaded banks directly with the <code>EXPORT</code> button or the <code>X</code> hotkey. Each part sheet is 1024 x 640, arranged as eight yaw columns by five pitch rows. The exporter also writes one stacked contact sheet plus TXT and JSON manifests under <code>exports/body_sheets/</code>. The manifest records the current maximum authored workload as 240 unique 128 x 128 sprites.</p>
         </section>
 
         <section id="methods">
@@ -393,7 +395,8 @@ Roll:  not captured</pre>
 20. Normalize the source coordinate basis and retarget joint directions onto fixed NM-PM body proportions.
 21. Build ten segment poses and reconstruct them from six reusable directional banks.
 22. Sort complete body-part sprites by center depth and compose the full body.
-23. For E8, evaluate 216 temporal/view body poses across all six reconstruction methods.</pre>
+23. For E8, evaluate 216 temporal/view body poses across all six reconstruction methods.
+24. When requested, export the six loaded body banks as 8 x 5 sprite sheets, a labeled contact sheet, and machine-readable manifests.</pre>
           <p>The native project now builds four experiment harnesses. <code>vdspr_phase5</code>, <code>vdspr_phase6</code>, and <code>vdspr_phase7</code> preserve earlier checkpoints, while <code>vdspr_phase8</code> runs the animation-driven body study. The FBX importer terminates at the body-pose boundary; reconstruction code does not depend on Assimp scene objects.</p>
         </section>
 
@@ -482,6 +485,7 @@ Roll:  not captured</pre>
               <tr><td>2026-10-19</td><td>SP-FAIL-002</td><td>Phase 6 visual evidence exposed reversed screen-space sprite roll. The shared mathematical-roll to raylib-rotation conversion was corrected and regression-tested.</td></tr>
               <tr><td>2026-10-19</td><td>SP-008</td><td>Phase 7 three-link chain implemented with two hinges, three independent directional banks, shared articulated part helpers, and E7.</td></tr>
               <tr><td>2026-10-19</td><td>SP-009</td><td>Phase 8 simplified body implemented with deterministic motion, Assimp FBX import, fixed-proportion retargeting, six reusable banks across ten parts, and E8.</td></tr>
+              <tr><td>2026-10-19</td><td>MAINT-8A</td><td>Phase 8 body-bank exporter added: six 1024 x 640 sheets, one labeled contact sheet, TXT/JSON manifests, and explicit 240-sprite workload reporting.</td></tr>
             </tbody>
           </table>
         </section>
@@ -501,6 +505,7 @@ Roll:  not captured</pre>
               <tr><td>1.8.0</td><td>Architecture split plus Phase 6 two-link articulated sprite lab and E6 evaluation.</td></tr>
               <tr><td>1.9.0</td><td>Screen-roll sign correction, shared articulated-part helpers, Phase 7 three-link chain, and E7 evaluation.</td></tr>
               <tr><td>2.0.0</td><td>Phase 8 animation-driven simplified body, Assimp 6.0.5 FBX bridge, fixed-proportion retargeting, shared limb banks, and E8.</td></tr>
+              <tr><td>2.0.1</td><td>Minor Phase 8 maintenance update adding direct sprite-sheet/contact-sheet export and workload manifests.</td></tr>
             </tbody>
           </table>
           <p>Public milestone releases use separate tags such as <code>sprite-projection-v0.1.0</code>.</p>
