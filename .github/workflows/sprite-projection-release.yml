@@ -56,11 +56,37 @@ jobs:
           Copy-Item build/Release/vdspr_phase8.exe dist/SpriteProjection-BodyAnimation.exe
           Copy-Item build/Release/vdspr_phase9.exe dist/SpriteProjection-FinalRig.exe
           Copy-Item README.md dist/README.md
-          Copy-Item DOCUMENTATION.html dist/DOCUMENTATION.html
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item ../../AI_DISCLOSURE.md dist/AI_DISCLOSURE.md
           Copy-Item DEPENDENCIES.md dist/DEPENDENCIES.md
           Copy-Item THIRD_PARTY_NOTICES.md dist/THIRD_PARTY_NOTICES.md
+
+          # Preserve the same directory layout used by GitHub Pages so the
+          # bundled documentation behaves the same when opened offline.
+          New-Item -ItemType Directory -Force dist/projects/sprite-projection | Out-Null
+          Copy-Item ../../index.html dist/index.html
+          Copy-Item index.html dist/projects/sprite-projection/index.html
+          Copy-Item DOCUMENTATION.html dist/projects/sprite-projection/DOCUMENTATION.html
+          Copy-Item figures dist/projects/sprite-projection/figures -Recurse -Force
+
+          # Keep the familiar root DOCUMENTATION.html entry point, but route it
+          # into the mirrored Pages tree rather than flattening the real page.
+          @"
+          <!doctype html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=projects/sprite-projection/DOCUMENTATION.html">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>Sprite Projection Documentation</title>
+          <script>location.replace('projects/sprite-projection/DOCUMENTATION.html');</script>
+          </head>
+          <body>
+          <p>Opening <a href="projects/sprite-projection/DOCUMENTATION.html">Sprite Projection documentation</a>...</p>
+          </body>
+          </html>
+          "@ | Set-Content -Encoding UTF8 dist/DOCUMENTATION.html
+
           Compress-Archive -Path dist/* -DestinationPath sprite-projection-windows-x64.zip -Force
 
       - name: Create GitHub Release
@@ -74,7 +100,7 @@ jobs:
 
           The package contains all preserved Sprite Projection research harnesses plus the Phase 9 final reference-rig executable, together with the living documentation, architecture notes, dependency information, third-party notices, and AI disclosure.
 
-          See DOCUMENTATION.html for the exact experiment state associated with this release.
+          Open DOCUMENTATION.html for the offline documentation mirror. The release preserves the same project-path layout used by GitHub Pages, including project figures and navigation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
