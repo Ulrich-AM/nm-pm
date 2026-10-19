@@ -1,0 +1,92 @@
+name: Blood Simulation Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "projects/blood-simulation/RELEASE_REQUEST"
+    tags:
+      - "blood-simulation-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projects/blood-simulation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = (Get-Content RELEASE_REQUEST -Raw).Trim()
+          }
+          if ($tag -notmatch '^blood-simulation-v\d+\.\d+\.\d+$') {
+            throw "Invalid Blood Simulation release tag: $tag"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Run native tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Package Phase 0
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item build/Release/blood_phase0.exe dist/BloodSimulation-Phase0.exe
+          Copy-Item README.md dist/README.md
+          Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
+          Copy-Item RELEASES.md dist/RELEASES.md
+          Copy-Item ../../AI_DISCLOSURE.md dist/AI_DISCLOSURE.md
+
+          New-Item -ItemType Directory -Force dist/experiments | Out-Null
+          Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
+          Copy-Item experiments/BS-001.md dist/experiments/BS-001.md
+
+          New-Item -ItemType Directory -Force dist/site | Out-Null
+          Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
+          Copy-Item lab.html dist/site/lab.html
+          Copy-Item src dist/site/src -Recurse -Force
+
+          Compress-Archive -Path dist/* -DestinationPath blood-simulation-windows-x64.zip -Force
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          $notes = @"
+          NM-PM milestone release for Blood Simulation Phase 0.
+
+          This release establishes the true-XYZ world/surface foundation using an orthographic side-room camera. It includes the native Windows harness, Phase 0 documentation, BS-001 experiment record, and the browser preview.
+
+          The blood surface representation remains intentionally undecided until Phase 1 comparisons.
+          "@
+
+          if (gh release view "$env:RELEASE_TAG" *> $null) {
+            throw "Release $env:RELEASE_TAG already exists."
+          }
+
+          gh release create "$env:RELEASE_TAG" `
+            "blood-simulation-windows-x64.zip" `
+            --target "${{ github.sha }}" `
+            --title "Blood Simulation $env:RELEASE_TAG" `
+            --notes "$notes"
