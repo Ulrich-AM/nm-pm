@@ -2,7 +2,7 @@
 
 **NM-PM study:** View-Dependent 2D Sprite Projection for 3D Articulated Motion  
 **Canonical path:** `projects/sprite-projection/`  
-**Current internal harness build:** 2.0.1
+**Current internal harness build:** 3.0.0
 
 This study investigates how mathematically three-dimensional orientation can be approximated at runtime using finite sets of two-dimensional raster sprite views, geometric transformation, interpolation, and depth-aware composition.
 
@@ -20,13 +20,14 @@ On the NM-PM site this redirects to the standalone living notebook at `DOCUMENTA
 
 ## Current research state
 
-The active prototype has reached Phase 8 animation-driven simplified-body testing:
+The active prototype has reached Phase 9 final reference-rig testing:
 
 - orthographic reference projection implemented independently of raylib 3D rendering;
 - preserved Phase 5 rigid lab with C0 and A1-A5 stress subjects;
 - a preserved Phase 6 two-link articulated lab;
 - a preserved Phase 7 three-link, two-hinge directional sprite chain lab;
-- a Phase 8 simplified-body lab driven by either FBX animation or a deterministic built-in fallback clip;
+- a preserved Phase 8 simplified-body lab driven by either FBX animation or a deterministic built-in fallback clip;
+- a Phase 9 final reference-rig lab with 16 rendered parts, 10 reusable banks, and mixed yaw sampling density;
 - independent 40-image yaw × pitch capture banks for each subject;
 - NEAR, STRETCH, SHEAR, AFFINE, DUAL, and GRID4 reconstruction methods;
 - screen-space roll reconstruction;
@@ -35,16 +36,19 @@ The active prototype has reached Phase 8 animation-driven simplified-body testin
 - E6 articulated silhouette evaluation across 180 two-link poses;
 - E7 three-link evaluation across 216 root/hinge poses;
 - E8 full-body evaluation across 216 temporal/view poses;
+- E9 final-rig evaluation across 216 temporal/view poses;
 - Phase 8 sprite-sheet export for all six reusable body banks, including a labeled contact sheet and TXT/JSON manifests;
 - pivot-registered independent per-part directional sprite banks;
-- six reusable body-part banks shared across ten rendered body parts;
+- six reusable Phase 8 body-part banks shared across ten rendered body parts;
+- ten final-rig bank types shared across sixteen rendered parts;
+- 90-degree yaw sampling for hand and foot banks, with 45-degree yaw sampling retained for larger body parts;
 - corrected mathematical-roll to screen-rotation conversion shared by every reconstruction method;
 - true 3D matrix-composed hinge motion and center-depth part ordering;
 - an expanded shared non-UI validation suite covering body retargeting and part orientation;
 - retained visual evidence and failed approaches;
 - a compact 1360 × 820 default window with high-resolution capture/font resources and black experiment viewports.
 
-Phase 5 through Phase 7 remain available as historical experiment executables. Phase 8 is the first complete simplified-body checkpoint and accepts animated FBX input through the Assimp bridge without making the sprite renderer depend on the FBX mesh.
+Phase 5 through Phase 8 remain available as historical experiment executables. Phase 9 is the frozen reference-candidate architecture: a 16-part final rig, richer FBX retargeting, per-bank yaw density, E9 evaluation, and final sprite-sheet export.
 
 ## Build on Windows
 
@@ -60,13 +64,13 @@ After a successful build:
 run_windows.bat
 ```
 
-The default launcher now opens the Phase 8 body-animation lab. The build also preserves `vdspr_phase5.exe`, `vdspr_phase6.exe`, and `vdspr_phase7.exe` as earlier research harnesses.
+The default launcher now opens the Phase 9 final-rig lab. The build also preserves `vdspr_phase5.exe` through `vdspr_phase8.exe` as earlier research harnesses.
 
 CMake will use an installed raylib 6.2 when available, otherwise it fetches the pinned raylib 6.2 source. Phase 8 additionally uses Assimp 6.0.5 for FBX animation import; the fetched build is static and FBX-import-only.
 
 ## Sprite sheet export
 
-In the Phase 8 body lab, press **EXPORT** in the experiment panel or press `X`.
+Phase 8 retains its 240-sprite exporter. In the Phase 9 final rig, press **EXPORT** or `X` to export the final art workload.
 
 The exporter writes:
 
@@ -83,7 +87,7 @@ exports/body_sheets/
 └── manifest.json
 ```
 
-Each unique part sheet is `1024 × 640`, arranged as 8 yaw columns by 5 pitch rows. With six reusable body-part banks, the current maximum authored workload is **240 unique sprites** at 128 × 128 per sprite. Left/right limbs share banks.
+Phase 9 exports eight full `1024 × 640` sheets using 8 yaw × 5 pitch views and two sparse `512 × 640` hand/foot sheets using 4 yaw × 5 pitch views. With symmetry reuse, the final maximum authored workload is **360 unique sprites** at 128 × 128 per sprite.
 
 ## Primary documentation
 
@@ -112,6 +116,7 @@ Each unique part sheet is `1024 × 640`, arranged as 8 yaw columns by 5 pitch ro
 | SP-007 | Phase 6 / E6 | Two-link pivot-registered articulated sprite composition |
 | SP-008 | Phase 7 / E7 | Three-link directional sprite chain with two hinges |
 | SP-009 | Phase 8 / E8 | Animation-driven simplified body with optional FBX retargeting |
+| SP-010 | Phase 9 / E9 | Final 16-part reference rig with mixed-density sprite banks |
 
 See `experiments/INDEX.md`.
 
@@ -133,7 +138,7 @@ The harness can regenerate captures and experiment exports locally. Durable expe
 
 Internal harness versions and NM-PM milestone release versions are separate.
 
-The current harness is build `2.0.1`. Future stable checkpoints use tags such as:
+The current harness is build `3.0.0`. Future stable checkpoints use tags such as:
 
 ```text
 sprite-projection-v0.1.0
