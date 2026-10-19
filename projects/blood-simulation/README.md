@@ -117,7 +117,7 @@ The deterministic 45-second sweep records:
 - `R`: clear field and droplets
 - `F11`: fullscreen
 
-The sidebar exposes nominal impact properties, base seed, repeated-hit variation, flow rate, puddle spread, adhesion, drying rate, time scale, yaw, pitch, and grid.
+The sidebar exposes nominal impact properties, base seed, repeated-hit variation, flow rate, puddle spread, adhesion, drying rate, time scale, yaw, and grid.
 
 ## Build
 
