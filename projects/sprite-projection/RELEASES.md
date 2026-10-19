@@ -18,6 +18,6 @@ The workflow:
 4. packages the executable with project documentation and the NM-PM AI disclosure;
 5. creates a GitHub Release and attaches the ZIP.
 
-The internal research harness build number may differ from the public milestone tag. The current development harness is 1.8.0 (Phase 6 articulation). The published sprite-projection-v0.1.0 release remains the Phase 5 rigid-stress checkpoint.
+The internal research harness build number may differ from the public milestone tag. The current development harness is 1.9.0 (Phase 7 three-link articulation). Published `sprite-projection-v0.1.0` preserves Phase 5 rigid stress and `sprite-projection-v0.2.0` preserves the Phase 6 two-link milestone.
 
 No public milestone release is created until a release tag is intentionally pushed.
