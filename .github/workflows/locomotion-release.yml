@@ -1,0 +1,104 @@
+name: Locomotion Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "projects/locomotion/RELEASE_REQUEST"
+    tags:
+      - "locomotion-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projects/locomotion
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = (Get-Content RELEASE_REQUEST -Raw).Trim()
+          }
+          if ($tag -notmatch '^locomotion-v\d+\.\d+\.\d+$') {
+            throw "Invalid Locomotion release tag: $tag"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Run native tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Package LO-001
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item build/Release/locomotion_phase0.exe dist/Locomotion-LO001-Anatomy.exe
+          Copy-Item README.md dist/README.md
+          Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
+          Copy-Item RELEASES.md dist/RELEASES.md
+          Copy-Item ../../AI_DISCLOSURE.md dist/AI_DISCLOSURE.md
+
+          New-Item -ItemType Directory -Force dist/experiments | Out-Null
+          Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
+          Copy-Item experiments/LO-001.md dist/experiments/LO-001.md
+
+          New-Item -ItemType Directory -Force dist/projects/locomotion | Out-Null
+          Copy-Item ../../index.html dist/index.html
+          Copy-Item index.html dist/projects/locomotion/index.html
+          Copy-Item DOCUMENTATION.html dist/projects/locomotion/DOCUMENTATION.html
+
+          @"
+          <!doctype html>
+          <html lang="en"><head><meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=projects/locomotion/DOCUMENTATION.html">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>Locomotion Documentation</title>
+          <script>location.replace('projects/locomotion/DOCUMENTATION.html');</script>
+          </head><body><p>Opening <a href="projects/locomotion/DOCUMENTATION.html">Locomotion documentation</a>...</p></body></html>
+          "@ | Set-Content -Encoding UTF8 dist/DOCUMENTATION.html
+
+          Compress-Archive -Path dist/* -DestinationPath locomotion-windows-x64.zip -Force
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          $notes = @"
+          NM-PM first milestone release for Anatomically Constrained Procedural Human Locomotion.
+
+          LO-001 establishes the static foundation used by future gait experiments: a right-handed +X right / +Y forward / +Z up contract, deterministic reference anatomy, nested comfortable and outer joint envelopes, explicit heel/forefoot/toe contact geometry, and native validation tests.
+
+          The grayscale C++ inspection harness follows the existing NM-PM UI family. It intentionally contains no walking controller, IK, balance force, or ragdoll. The milestone freezes definitions before motion begins.
+
+          The ZIP contains the LO-001 executable and living research documentation.
+          "@
+
+          if (gh release view "$env:RELEASE_TAG" *> $null) {
+            throw "Release $env:RELEASE_TAG already exists."
+          }
+
+          gh release create "$env:RELEASE_TAG" `
+            "locomotion-windows-x64.zip" `
+            --target "${{ github.sha }}" `
+            --title "Locomotion $env:RELEASE_TAG" `
+            --notes "$notes"
