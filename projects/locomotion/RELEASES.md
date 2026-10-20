@@ -61,7 +61,7 @@ The third milestone introduces the first pose-changing locomotion method:
 - comfortable and outer joint-envelope diagnostics;
 - unequal-height foot support preset;
 - deliberate high-pelvis and overreach failure tests;
-- fifteen Phase 2 tests in addition to preserved Phase 0 and Phase 1 suites;
+- sixteen Phase 2 tests in addition to preserved Phase 0 and Phase 1 suites;
 - preserved LO-001, LO-002, and LO-003 native harnesses in one release.
 
 The milestone remains static. No gait clock, step trajectory, momentum-driven pelvis movement, or balance force is introduced.
