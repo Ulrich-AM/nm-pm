@@ -2,8 +2,8 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Current phase:** Phase 5 - drip maturation and radial floor pooling  
-**Current milestone:** `blood-simulation-v0.6.2`
+**Current phase:** Phase 6 - visual solidity and surface-response groundwork  
+**Current milestone:** `blood-simulation-v0.7.0`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
@@ -21,24 +21,25 @@ It redirects to the standalone living technical notebook at `DOCUMENTATION.html`
 
 ## Current research state
 
-The active prototype has reached Phase 5 refinement testing:
+The active prototype has reached its first Phase 6 checkpoint:
 
 - true XYZ ballistic droplets and camera-independent surface state;
 - procedural impact morphology deposited into sparse per-surface fields;
 - accumulation, wetness, age, drying, and frozen persistent stains;
-- sparse selected drip channels rather than whole-stain wall advection;
-- exact shared-edge continuation plus short support probing;
-- player pickup and directional floor smearing;
-- hanging-tip maturation before unsupported drops enter world space;
-- dense connected-region outlet selection so only the heaviest gravity-facing parts of a wall stain can start drips;
-- mist/body/dense visual zoning with much darker, more opaque dense cores and more visible drip-scale body material;
-- wider radial floor relaxation for more circular pools, retuned to expand substantially more slowly;
-- drag-to-splash input: drag direction maps into the clicked surface's local U/V direction and drag length controls impact speed;
-- an isometric orthographic default camera for this release;
+- drag-directed impact input with surface-local direction and force;
+- dense connected-region outlet selection, so mist cannot start drips;
+- hanging-tip maturation before unsupported material enters world space;
+- slow radial floor pooling and contact smearing;
+- mass-conserving drip ribbons that widen strong channels instead of leaving hairline streaks;
+- larger hanging tips;
+- raw-cell render gating that removes the pale smoothing halo around deposits;
+- darker and more solid mist/body/dense appearance;
+- a small surface-response scaffold used by ribbon width and render cutoffs;
+- an isometric orthographic default camera;
 - fixed simulation substeps of at most 1/120 s;
-- durable experiments BS-001 through BS-011 and E1 through E5 exports.
+- durable experiments BS-001 through BS-013 and E1 through E6 exports.
 
-Earlier phase harnesses remain preserved. Phase 5 is the current behavioral checkpoint before surface geometry is generalized.
+Earlier phase harnesses remain preserved.
 
 ## Build on Windows
 
@@ -51,29 +52,24 @@ build_windows.bat
 Then launch:
 
 ```text
-run_phase5.bat
+run_phase6.bat
 ```
 
-The build also preserves Phase 0 through Phase 4 executables for regression testing.
+The build also preserves Phase 0 through Phase 5 executables for regression testing.
 
-## Phase 5 behavior
+## Phase 6 behavior
 
-Phase 5.1 lowers the wall-source threshold relative to the frozen Phase 4 behavior, increases channel travel speed, and keeps the source count bounded. Unsupported wall channels no longer read as an instantaneous edge-to-particle conversion. A newly detached packet first becomes a short-lived hanging tip. Its displayed bead grows during a deterministic maturation interval and then releases into the existing world-droplet solver.
+Phase 6 inherits the full Phase 5 solver instead of rewriting it.
 
-Upward-facing fields use a wider radial pressure stencil instead of only the Phase 4 eight-neighbor puddle pass. The v0.6.1 tuning lowers the default pool rate and per-step outflow cap so the pool grows visibly rather than blooming outward almost immediately. Concentrated wet blood spreads toward a rounded footprint, retains a thicker center, merges through the same field, and remains bounded by adhesion and wetness.
+After a Phase 5 channel advances, Phase 6 redistributes a bounded portion of the material in the current channel cell laterally, perpendicular to projected surface gravity. This creates a thicker ribbon while conserving total field amount. Strong channel cells can use a second side ring.
 
-The camera defaults to approximately 45 degrees yaw and 35.264 degrees pitch. Camera state does not enter the blood simulation. In the viewport, press on a visible surface and drag in the desired splash direction. A longer drag produces greater impact speed; a short click retains the old nominal stamp.
+The renderer now checks the real persistent field cell before drawing a smoothed sample. Empty cells can no longer become visible solely because smoothing borrowed blood from a neighboring cell. This removes the pale border while preserving soft transitions inside occupied blood.
+
+The first material-response scaffold distinguishes room walls, box sides, box tops, and default surfaces through simple multipliers. It currently affects ribbon widening and edge cutoff behavior and is intended to be expanded rather than replaced.
 
 ## Primary documentation
 
-`DOCUMENTATION.html` is the living technical notebook and records:
-
-- coordinate conventions and current algorithms;
-- experiment definitions and measurements;
-- failed and superseded approaches;
-- limitations and promotion rules;
-- research log and version history;
-- architecture and release conventions.
+`DOCUMENTATION.html` is the living technical notebook and records current algorithms, experiment evidence, failed approaches, promotion rules, architecture, limitations, and release history.
 
 ## Durable experiment IDs
 
@@ -88,14 +84,18 @@ The camera defaults to approximately 45 degrees yaw and 35.264 degrees pitch. Ca
 | BS-007 | Phase 4 | Sparse drip channels and stable puddle formation |
 | BS-008 | Phase 4 | Connected transfer and contact smearing |
 | BS-009 | Phase 5 | Hanging drip-tip maturation and delayed detachment |
-| BS-010 | Phase 5 | Radial floor pooling and isometric camera stress test |
-| BS-011 | Phase 5 | Dense-region outlet gating and mist/body/dense visual zoning |
+| BS-010 | Phase 5 | Radial floor pooling and isometric camera stress |
+| BS-011 | Phase 5 | Dense-region outlet gating and visual zoning |
+| BS-012 | Phase 6 | Mass-conserving drip ribbon width and larger hanging tips |
+| BS-013 | Phase 6 | Halo suppression and surface-response groundwork |
 
 See `experiments/INDEX.md`.
 
 ## Roadmap
 
-Phase 6 generalizes the surface representation to arbitrary polygonal and irregular static geometry and introduces a small material-response layer. Phase 7 is reserved for scale testing, evidence review, optimization, and a frozen final hybrid reference architecture.
+Phase 6 continues with generalized surface/material work after this visual-solidity checkpoint. Arbitrary polygonal and irregular static surface support remains part of the Phase 6 research scope.
+
+Phase 7 is reserved for scale testing, evidence review, optimization, and a frozen final hybrid reference architecture.
 
 ## Releases
 
@@ -106,17 +106,10 @@ Phase 2 -> blood-simulation-v0.3.x
 Phase 3 -> blood-simulation-v0.4.0
 Phase 4 -> blood-simulation-v0.5.0
 Phase 5 -> blood-simulation-v0.6.x
-Phase 6 -> blood-simulation-v0.7.0
+Phase 6 -> blood-simulation-v0.7.x
 Phase 7 -> blood-simulation-v0.8.0
 ```
 
 ## AI transparency
 
 This study follows the repository-level `AI_DISCLOSURE.md`. Generative AI substantially assists implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation, and research organization. Human direction defines and evaluates the research.
-
-
-## Phase 5.2 dense-region patch
-
-The v0.6.2 patch replaces broad cell-by-cell source competition with connected dense-region outlet selection. Low-density mist can no longer start a drip. A dense connected stain component may nominate only a small number of well-spaced outlets from its gravity-facing lower edge.
-
-Rendering now separates mist, body material, and dense cores. Mist remains faint, body material is more opaque so narrow runs stay visible, and dense cores are darker and nearly opaque.

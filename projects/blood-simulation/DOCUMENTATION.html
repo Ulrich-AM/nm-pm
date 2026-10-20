@@ -136,7 +136,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <aside id="sidebar">
   <div class="side-section"><h3>Blood Simulation</h3><a class="side-label active" href="#overview">Overview</a><a class="side-label" href="#status">Current Status</a><a class="side-label" href="#problem">Research Problem</a></div>
   <div class="side-section"><h3>Foundation</h3><a class="side-label" href="#world">World Model</a><a class="side-label" href="#surface">Surface Contract</a><a class="side-label" href="#representation">Representation</a></div>
-  <div class="side-section"><h3>Dynamics</h3><a class="side-label" href="#phase3">Phase 3</a><a class="side-label" href="#phase4">Phase 4</a><a class="side-label" href="#phase5">Phase 5</a><div class="side-sub"><a href="#tool">Drag Tool</a><a href="#sources">Dense Outlets</a><a href="#zones">Visual Zones</a><a href="#tips">Hanging Tips</a><a href="#radial">Radial Pools</a><a href="#isometric">Isometric View</a><a href="#e5">E5 Sweep</a></div></div>
+  <div class="side-section"><h3>Dynamics</h3><a class="side-label" href="#phase3">Phase 3</a><a class="side-label" href="#phase4">Phase 4</a><a class="side-label" href="#phase5">Phase 5</a><a class="side-label" href="#phase6">Phase 6</a><div class="side-sub"><a href="#tool">Drag Tool</a><a href="#sources">Dense Outlets</a><a href="#zones">Visual Zones</a><a href="#tips">Hanging Tips</a><a href="#radial">Radial Pools</a><a href="#isometric">Isometric View</a><a href="#e5">E5 Sweep</a></div></div>
   <div class="side-section"><h3>Research</h3><a class="side-label" href="#experiments">Experiments</a><a class="side-label" href="#measurements">Measurements</a><a class="side-label" href="#failures">Failed Approaches</a><a class="side-label" href="#promotion">Promotion Rule</a><a class="side-label" href="#roadmap">Roadmap</a></div>
   <div class="side-section"><h3>Project</h3><a class="side-label" href="#implementation">Current Implementation</a><a class="side-label" href="#architecture">Architecture</a><a class="side-label" href="#repository">Repository</a><a class="side-label" href="#limitations">Limitations</a><a class="side-label" href="#log">Research Log</a><a class="side-label" href="#versions">Version History</a></div>
 </aside>
@@ -145,8 +145,8 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <section id="overview">
 <h1>Real-Time Hybrid Blood Simulation for 2.5D Environments</h1>
 <p class="lead">A living technical study of how ballistic droplets, persistent surface deposits, accumulation, dripping, puddling, transfer, smearing, and drying can be approximated efficiently in an orthographic 2.5D presentation backed by a mathematically three-dimensional world.</p>
-<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current phase</b><span>Phase 5 - drip maturation and radial pooling</span><b>Current experiments</b><span>BS-009 / BS-010 / BS-011</span><b>Native artifact</b><span><code>phases/phase5/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.6.2</code></span></div>
-<div class="note">Phase 5 is a behavior-refinement checkpoint. Patch v0.6.2 groups dense blood into connected regions and permits only a few gravity-facing lower-edge outlets, while mist remains non-dripping and dense cores render darker and nearly opaque.</div>
+<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current phase</b><span>Phase 6 - visual solidity and surface response</span><b>Current experiments</b><span>BS-012 / BS-013</span><b>Native artifact</b><span><code>phases/phase6/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.7.0</code></span></div>
+<div class="note">Phase 6 begins with a visual-solidity checkpoint: thicker mass-conserving drip ribbons, larger hanging tips, removal of the pale smoothing halo, and a small surface-response scaffold for later material work.</div>
 </section>
 
 <section id="status"><h2>Current Status</h2><div class="flow"><div><b>Impact</b>Procedural persistent stains</div><div><b>Drip</b>Sparse channels + hanging tips</div><div><b>Pool</b>Wider radial field relaxation</div><div><b>Transfer</b>Edges, support, contact</div><div><b>Camera</b>Isometric orthographic test</div></div><p>Most deposited wall blood remains stationary. Selected wet peaks create sparse channels. Unsupported endpoint packets now pause as visible hanging beads before entering the world-droplet solver. Concentrated blood on upward surfaces redistributes through a wider radial neighborhood, producing a more circular footprint than the older four- and eight-neighbor-only passes.</p></section>
@@ -195,6 +195,14 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="e5"><h3>E5 Controlled Sweep</h3><pre>results/phase5/E5_drip_pooling.csv</pre><p>The 45-second export records wet and frozen cells, active drip sources, hanging tips, active world droplets, puddle cells, channel movement, radial pool movement, support transfers, detachments, and landings.</p></section>
 
+<section id="phase6"><h2>Phase 6 - Visual Solidity and Surface Response</h2><p>Phase 6 wraps the Phase 5 solver rather than replacing it. After channel transport, existing channel mass is redistributed sideways into a tapered ribbon. Rendering now requires real raw-cell occupancy before a smoothed sample may be drawn, eliminating the pale border caused by smoothing into empty neighboring cells.</p></section>
+
+<section id="ribbons"><h3>Mass-Conserving Drip Ribbons</h3><p>Projected gravity defines channel travel. A perpendicular surface-local direction defines ribbon width. Ordinary channel cells spread one cell to each side; stronger cells may use a second side ring with lower weight. The center loses exactly the amount added to the side cells.</p></section>
+
+<section id="halo"><h3>Halo Suppression</h3><p>A visible render cell must now contain actual persistent blood and also pass the smoothed visibility threshold. This keeps smoothing inside the blood shape while preventing empty cells around a dense stain from becoming pale translucent borders.</p></section>
+
+<section id="surface-response"><h3>Surface Response</h3><p>The first Phase 6 material scaffold assigns simple response multipliers by surface kind. Room walls use the baseline. Box sides widen less and use a stricter raw render cutoff. Box tops use an intermediate response. Later Phase 6 work can extend this same interface with roughness, absorption and other coefficients.</p></section>
+
 <section id="experiments"><h2>Experiments</h2>
 <div class="experiment"><div class="id">BS-001</div><div class="status">Implemented</div><div class="desc">World and surface coordinate foundation.</div></div>
 <div class="experiment"><div class="id">BS-002</div><div class="status">Implemented</div><div class="desc">Static representation comparison.</div></div>
@@ -205,6 +213,8 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <div class="experiment"><div class="id">BS-009</div><div class="status">Implemented</div><div class="desc">Hanging endpoint maturation before world-space release.</div></div>
 <div class="experiment"><div class="id">BS-010</div><div class="status">Implemented</div><div class="desc">Radial floor pooling and isometric camera stress.</div></div>
 <div class="experiment"><div class="id">BS-011</div><div class="status">Implemented</div><div class="desc">Dense connected-region outlet gating, mist rejection, source spacing, lower-edge preference, and zone-aware opacity.</div></div>
+<div class="experiment"><div class="id">BS-012</div><div class="status">Implemented</div><div class="desc">Mass-conserving drip-ribbon widening, strong-source second-ring width, and larger hanging tips.</div></div>
+<div class="experiment"><div class="id">BS-013</div><div class="status">Implemented</div><div class="desc">Raw-cell halo suppression, real-cell visibility, solid opacity, and initial surface-response differentiation.</div></div>
 </section>
 
 <section id="measurements"><h2>Measurements</h2><p>The v0.6.2 regression suite verifies that mist produces no source, one dense connected component produces no more than two spaced outlets, selected outlets lie on the lower gravity-facing edge, and dense opacity remains greater than body opacity which remains greater than mist opacity. The earlier downward-motion regression remains in place. The study combines numeric and visual evidence. Current automated checks cover source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial spread symmetry, diagonal occupancy, and material conservation.</p></section>
@@ -213,7 +223,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="promotion"><h2>Promotion Rule</h2><p>A new blood behavior is not treated as part of the eventual reference architecture simply because it looks better in one scene. Promotion requires deterministic behavior, a preserved baseline, automated conservation or geometry checks where applicable, human visual review, documented failure conditions, and no dependence on camera-space state.</p></section>
 
-<section id="roadmap"><h2>Roadmap</h2><ol><li><b>Phase 5:</b> refine dripping and radial pooling, current;</li><li><b>Phase 6:</b> arbitrary polygonal and irregular static surfaces plus small material-response coefficients;</li><li><b>Phase 7:</b> scale testing, evidence review, optimization, and frozen final hybrid reference architecture.</li></ol></section>
+<section id="roadmap"><h2>Roadmap</h2><ol><li><b>Phase 6, current:</b> visual solidity and surface-response groundwork, followed by generalized irregular static geometry;</li><li><b>Phase 7:</b> scale testing, evidence review, optimization, and frozen final hybrid reference architecture.</li></ol></section>
 
 <section id="implementation"><h2>Current Implementation</h2><pre>1. Convert a surface hit into local impact parameters.
 2. Generate deterministic procedural stain morphology.
@@ -235,10 +245,11 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 ├── phase2/
 ├── phase3/
 ├── phase4/
-└── phase5/
+├── phase5/
+└── phase6/
     ├── main.cpp
-    ├── phase5_dynamics.hpp
-    └── test_phase5.cpp</pre><p>Phase 5 reuses Phase 4 channel transport, topology, support probing, contact transfer, and world-droplet collision, but now owns source discovery through dense connected-region outlet selection. The Phase 5 layer adds hanging-tip staging, radial horizontal redistribution, drag-directed impacts, and zone-aware rendering.</p></section>
+    ├── phase6_dynamics.hpp
+    └── test_phase6.cpp</pre><p>Phase 6 inherits the Phase 5 solver and adds a narrow post-transport ribbon redistribution layer, occupied-cell halo suppression, larger tip presentation, and an initial surface-response interface.</p></section>
 
 <section id="repository"><h2>Repository</h2><pre>nm-pm/
 └── projects/
@@ -267,6 +278,8 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>2026-10-20</td><td>BS-010</td><td>Wider radial floor redistribution and isometric orthographic camera stress added.</td></tr>
 <tr><td>2026-10-20</td><td>Phase 5 patch</td><td>Added surface-aware drag input, reduced source thresholds, verified downward wall motion, and slowed pool expansion and drying.</td></tr>
 <tr><td>2026-10-20</td><td>BS-011</td><td>Replaced broad source competition with dense connected-region outlet gating; mist was excluded from source creation and core/drip opacity was strengthened.</td></tr>
+<tr><td>2026-10-20</td><td>BS-012</td><td>Added mass-conserving lateral ribbon widening and larger hanging-tip presentation.</td></tr>
+<tr><td>2026-10-20</td><td>BS-013</td><td>Prevented smoothing from rendering empty neighboring cells and introduced the first surface-response multipliers.</td></tr>
 </tbody></table></section>
 
 <section id="versions"><h2>Version History</h2><table><thead><tr><th>Milestone</th><th>Change</th></tr></thead><tbody>
@@ -278,6 +291,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>v0.6.0</td><td>Hanging drip maturation, radial pooling, isometric camera checkpoint, and documentation/UI alignment.</td></tr>
 <tr><td>v0.6.1</td><td>Drag-directed impact tool, lower Phase 5 source thresholds, faster visible channel travel, slower pooling, and slower drying.</td></tr>
 <tr><td>v0.6.2</td><td>Dense-region outlet gating, mist rejection, source spacing, lower-edge selection, darker dense cores, and more opaque drip-scale material.</td></tr>
+<tr><td>v0.7.0</td><td>Phase 6 visual-solidity checkpoint: thicker mass-conserving ribbons, larger tips, halo suppression, and surface-response groundwork.</td></tr>
 </tbody></table></section>
 
 <footer>NM-PM / Blood Simulation / living technical documentation</footer>

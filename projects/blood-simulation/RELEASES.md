@@ -15,7 +15,7 @@ GitHub Releases are milestone checkpoints, not the experiment history. The canon
 | Phase 5 | `blood-simulation-v0.6.0` | Hanging drip maturation, radial floor pooling and isometric camera stress |
 | Phase 5 patch | `blood-simulation-v0.6.1` | Drag-directed splashes, reliable downward source discovery, slower pooling and slower drying |
 | Phase 5 patch | `blood-simulation-v0.6.2` | Dense-region outlet gating, mist rejection, source spacing and stronger core/drip opacity |
-| Phase 6 | `blood-simulation-v0.7.0` | Planned irregular static surfaces and material response |
+| Phase 6 | `blood-simulation-v0.7.0` | Drip ribbons, halo suppression and surface-response groundwork |
 | Phase 7 | `blood-simulation-v0.8.0` | Planned scale testing and final hybrid reference architecture |
 
 Patch versions may correct a phase without changing its research scope.
@@ -55,3 +55,18 @@ The release also brings the living documentation structure and native lab presen
 - dense cores render darker and nearly opaque;
 - hanging tips are darkened to match their parent regions;
 - BS-011 adds regression checks for mist rejection, lower-edge selection, spacing, source limits, and opacity ordering.
+
+
+## Phase 6 milestone v0.7.0
+
+`blood-simulation-v0.7.0` begins Phase 6 with a visual-solidity and surface-response checkpoint:
+
+- active drip channels widen into mass-conserving surface-local ribbons;
+- strong channels can use a second lateral ring;
+- hanging tips render 1.34 times larger without changing physical packet volume;
+- smoothed rendering can no longer make empty raw cells visible;
+- mist, body and dense zones use darker, more solid opacity curves;
+- room walls and box surfaces receive distinct initial response multipliers;
+- BS-012 and BS-013 add regression coverage for ribbon conservation, halo rejection, tip scale and surface-response differences.
+
+Arbitrary polygonal and irregular static geometry remains a later Phase 6 continuation.

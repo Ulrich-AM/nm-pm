@@ -46,11 +46,11 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 5
+      - name: Package Phase 6
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/blood_phase5.exe dist/BloodSimulation-Phase5.exe
+          Copy-Item build/Release/blood_phase6.exe dist/BloodSimulation-Phase6.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -58,9 +58,8 @@ jobs:
 
           New-Item -ItemType Directory -Force dist/experiments | Out-Null
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
-          Copy-Item experiments/BS-009.md dist/experiments/BS-009.md
-          Copy-Item experiments/BS-010.md dist/experiments/BS-010.md
-          Copy-Item experiments/BS-011.md dist/experiments/BS-011.md
+          Copy-Item experiments/BS-012.md dist/experiments/BS-012.md
+          Copy-Item experiments/BS-013.md dist/experiments/BS-013.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -74,11 +73,11 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM patch release for Blood Simulation Phase 5.
+          NM-PM milestone release for Blood Simulation Phase 6.
 
-          This patch replaces broad per-cell drip-source competition with dense connected-region outlet selection. Only a few gravity-facing lower-edge outlets may emerge from each dense region, while mist remains non-dripping.
+          This release adds mass-conserving drip ribbons, larger hanging tips, occupied-cell halo suppression, darker solid rendering, and the first surface-response multipliers.
 
-          Dense cores and drip-scale body material now render more opaquely, and hanging tips are darker. Phase 4 remains preserved unchanged. The ZIP contains the patched Phase 5 executable and updated research documentation.
+          Phase 5 remains preserved unchanged. The ZIP contains the current Phase 6 executable and updated research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {

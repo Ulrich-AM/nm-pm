@@ -19,5 +19,5 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo Build complete.
-echo Run run_phase5.bat for the current drip-maturation and radial-pooling lab.
+echo Run run_phase6.bat for the current visual-solidity and surface-response lab.
 echo Older phase launchers remain available for regression testing.
