@@ -1,14 +1,14 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-002 / Phase 1 mass + support analysis  
+**Current checkpoint:** LO-003 / Phase 2 static standing solver  
 **Status:** Active
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
 The current implementation intentionally does **not** walk yet.
 
-LO-001 establishes the coordinate, anatomy, joint-range, and foot-contact contract. LO-002 adds a measurement-only body mass, COM, support-polygon, and XCoM layer on top of it.
+LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 is the first pose-solving phase: explicit static pelvis and foot targets are solved with deterministic analytic two-link legs.
 
 ## Implemented foundation
 
@@ -33,6 +33,17 @@ LO-002 additionally defines:
 - signed static support margins;
 - COM velocity and XCoM diagnostics.
 
+LO-003 additionally defines:
+
+- explicit pelvis and ankle targets;
+- a shared feasible pelvis-height interval;
+- analytic two-link leg solving;
+- deterministic body-forward knee selection;
+- fixed segment-length preservation;
+- reach margins and unreachable-target clamping;
+- approximate hip, knee, and ankle angle diagnostics;
+- neutral, low, wide, split, raised-foot, high-pelvis, and overreach stress presets.
+
 The coordinate convention remains:
 
 ```text
@@ -51,7 +62,7 @@ Run:
 build_windows.bat
 ```
 
-The script configures CMake, builds the Release configuration, runs CTest, and launches the Phase 0 harness.
+The script configures CMake, builds the Release configuration, runs CTest, and launches the current Phase 2 harness.
 
 Manual equivalent:
 
@@ -68,6 +79,8 @@ locomotion_phase0.exe
 locomotion_phase0_tests.exe
 locomotion_phase1.exe
 locomotion_phase1_tests.exe
+locomotion_phase2.exe
+locomotion_phase2_tests.exe
 ```
 
 ## Y Bot policy
