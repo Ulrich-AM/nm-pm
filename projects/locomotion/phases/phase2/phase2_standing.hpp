@@ -348,7 +348,7 @@ inline StandingSolution solveStanding(
 
 inline StandingTargets lowPreset(const ReferenceBody& reference){
     auto t=neutralTargets(reference);
-    t.pelvis.z=0.82;
+    t.pelvis.z=0.97;
     return t;
 }
 
