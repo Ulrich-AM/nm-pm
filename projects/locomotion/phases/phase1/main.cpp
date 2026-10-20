@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 using locomotion::JointId;
@@ -44,6 +45,9 @@ const Color C_XCOM{245,245,245,255};
 
 Font gFont{};
 bool gOwnFont=false;
+RenderTexture2D gView{};
+int gViewW=0;
+int gViewH=0;
 
 struct State {
     int view=0;
@@ -371,22 +375,22 @@ void DrawMainView(const ReferenceBody& body,State& state,const Analysis& analysi
     Rectangle bodyRect{r.x+10,r.y+40,r.width-20,r.height-50};
     const int rw=std::max(420,(int)bodyRect.width);
     const int rh=std::max(320,(int)bodyRect.height);
-    static RenderTexture2D view{};
-    static int rtW=0,rtH=0;
-    if(!view.id||rw!=rtW||rh!=rtH){
-        if(view.id)UnloadRenderTexture(view);
-        rtW=rw;rtH=rh;view=LoadRenderTexture(rtW,rtH);
+    if(!gView.id||rw!=gViewW||rh!=gViewH){
+        if(gView.id)UnloadRenderTexture(gView);
+        gViewW=rw;
+        gViewH=rh;
+        gView=LoadRenderTexture(gViewW,gViewH);
     }
 
     const Camera3D camera=MakeCamera(state.view);
-    BeginTextureMode(view);
+    BeginTextureMode(gView);
     ClearBackground(C_VIEW_BG);
     BeginMode3D(camera);
     DrawAnalysis3D(body,state,analysis);
     EndMode3D();
     EndTextureMode();
 
-    DrawTexturePro(view.texture,{0,0,(float)view.texture.width,-(float)view.texture.height},bodyRect,{0,0},0,WHITE);
+    DrawTexturePro(gView.texture,{0,0,(float)gView.texture.width,-(float)gView.texture.height},bodyRect,{0,0},0,WHITE);
     DrawRectangleLinesEx(bodyRect,1,Color{72,70,72,255});
 
     // Labels use the visible rectangle dimensions, so they remain attached
@@ -438,6 +442,7 @@ int main(){
         EndDrawing();
     }
 
+    if(gView.id)UnloadRenderTexture(gView);
     if(gOwnFont)UnloadFont(gFont);
     CloseWindow();
     return 0;
