@@ -46,11 +46,12 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package LO-001
+      - name: Package LO-002
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/Release/locomotion_phase0.exe dist/Locomotion-LO001-Anatomy.exe
+          Copy-Item build/Release/locomotion_phase1.exe dist/Locomotion-LO002-MassSupport.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -59,6 +60,7 @@ jobs:
           New-Item -ItemType Directory -Force dist/experiments | Out-Null
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
           Copy-Item experiments/LO-001.md dist/experiments/LO-001.md
+          Copy-Item experiments/LO-002.md dist/experiments/LO-002.md
 
           New-Item -ItemType Directory -Force dist/projects/locomotion | Out-Null
           Copy-Item ../../index.html dist/index.html
@@ -84,13 +86,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM first milestone release for Anatomically Constrained Procedural Human Locomotion.
+          NM-PM second milestone release for Anatomically Constrained Procedural Human Locomotion.
 
-          LO-001 establishes the static foundation used by future gait experiments: a right-handed +X right / +Y forward / +Z up contract, deterministic reference anatomy, nested comfortable and outer joint envelopes, explicit heel/forefoot/toe contact geometry, and native validation tests.
+          LO-002 preserves the LO-001 anatomical contract and adds a fourteen-segment mass model, segment and whole-body COM, support polygons, signed support margins, COM velocity presets, and a velocity-aware XCoM diagnostic.
 
-          The grayscale C++ inspection harness follows the existing NM-PM UI family. It intentionally contains no walking controller, IK, balance force, or ragdoll. The milestone freezes definitions before motion begins.
+          This milestone remains measurement-only. It applies no balancing force and does not move the body to improve stability. Both LO-001 and LO-002 native harnesses are packaged.
 
-          The ZIP contains the LO-001 executable and living research documentation.
+          The native UI now uses the same Windows Arial loading path as the other NM-PM studies, and the living documentation uses the same compact custom scrollbar styling.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
