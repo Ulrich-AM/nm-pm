@@ -1285,6 +1285,17 @@ bool runE8(
             stressHit
         );
 
+        blood8::seedImpactRivulet(
+            fields,
+            surfaces,
+            wall,
+            u,
+            v,
+            stressHit,
+            dynamics,
+            settings
+        );
+
         blood8::seedImpactStreaks(
             fields,
             surfaces,
@@ -1781,7 +1792,7 @@ void DrawDebug(
             topology,
             state.e8Status
         );
-        PushLog("[E7] "+state.e8Status);
+        PushLog("[E8] "+state.e8Status);
     }
 
     Text(
@@ -1858,7 +1869,7 @@ void DrawMainView(
     );
 
     Text(
-        "DRAG AIM / SPARSE STREAKS + RUNNER DRIPS",
+        "DRAG AIM / SHORT STREAKS + LONG RIVULETS",
         header.x+header.width-194,
         header.y+5,
         10,
