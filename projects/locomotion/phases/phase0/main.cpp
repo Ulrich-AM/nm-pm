@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <utility>
 
 using locomotion::JointId;
 using locomotion::ReferenceBody;
