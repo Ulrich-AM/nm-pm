@@ -39,6 +39,7 @@ const Color C_GROUND{128,128,130,255};
 const Color C_CONTACT{52,52,54,170};
 
 Font gFont{};
+bool gOwnFont=false;
 
 struct UIState {
     int view=0;
@@ -306,7 +307,18 @@ int main(){
     SetConfigFlags(FLAG_VSYNC_HINT|FLAG_MSAA_4X_HINT);
     InitWindow(kWindowW,kWindowH,"NM-PM Locomotion - LO-001 Anatomy Foundation");
     SetTargetFPS(120);
-    gFont=GetFontDefault();
+
+#if defined(_WIN32)
+    const char* candidates[]={"C:/Windows/Fonts/arial.ttf","C:/Windows/Fonts/Arial.ttf"};
+    for(const char* path:candidates){
+        if(FileExists(path)){
+            gFont=LoadFontEx(path,72,nullptr,0);
+            if(gFont.texture.id){gOwnFont=true;break;}
+        }
+    }
+#endif
+    if(!gOwnFont)gFont=GetFontDefault();
+    else SetTextureFilter(gFont.texture,TEXTURE_FILTER_BILINEAR);
 
     const ReferenceBody body=locomotion::makeReferenceBody();
     UIState ui{};
@@ -334,6 +346,7 @@ int main(){
     }
 
     UnloadRenderTexture(view);
+    if(gOwnFont)UnloadFont(gFont);
     CloseWindow();
     return 0;
 }
