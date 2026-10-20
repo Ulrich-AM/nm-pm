@@ -145,7 +145,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <section id="overview">
 <h1>Real-Time Hybrid Blood Simulation for 2.5D Environments</h1>
 <p class="lead">A completed technical study of how ballistic droplets, persistent surface deposits, accumulation, dripping, puddling, transfer, smearing, and drying can be approximated efficiently in an orthographic 2.5D presentation backed by a mathematically three-dimensional world.</p>
-<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Status</b><span>Completed reference study</span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Final phase</b><span>Phase 7 - sparse impact streaks and reference freeze</span><b>Final experiments</b><span>BS-016 / BS-017</span><b>Native artifact</b><span><code>phases/phase7/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.8.0</code></span></div>
+<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Status</b><span>Completed reference study</span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Final phase</b><span>Phase 7 - sparse impact streaks and reference freeze</span><b>Final experiments</b><span>BS-016 / BS-017</span><b>Native artifact</b><span><code>phases/phase7/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.8.1</code></span></div>
 <div class="note">Phase 7 closes the study with zero-to-two short gravity streaks from fresh wall impacts and an E7 scale sweep. The method is frozen for static planar surface patches; later geometry or material work should be treated as a new extension study rather than an unfinished phase.</div>
 </section>
 
@@ -209,7 +209,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="phase7"><h2>Phase 7 - Final Hybrid Reference</h2><p>Phase 7 does not replace the Phase 6 runner. It adds a second, smaller drip behavior for fresh splatters and then freezes the architecture. A qualifying wall impact may nominate zero, one, or two short streaks from nearby wet body-or-dense cells.</p></section>
 
-<section id="streaks"><h3>Sparse Impact Drip Streaks</h3><p>Each streak gathers a small bounded reservoir while leaving at least 86 percent of each contributing cell or the body threshold. It then advances one field cell at a time under projected world gravity. Most steps remain straight. At sparse deterministic intervals, the streak may shift one perpendicular cell to create a mild wiggle. The trail remains one cell wide and terminates as a small surface bead.</p><p>Impact streaks never become airborne. The Phase 6 full runner remains the distinct path for a bead that reaches a surface edge, hangs, and becomes a world-space droplet.</p></section>
+<section id="streaks"><h3>Sparse Impact Drip Streaks</h3><p>Each streak gathers a bounded reservoir while leaving at least 82 percent of each contributing cell or the body threshold. It advances under projected world gravity. In the v0.8.1 readability patch, a normal step writes a mass-conserving three-cell ribbon with most material in the center and enough real side-cell mass to remain visible through the raw-cell cutoff. Strong streaks may briefly use a wider source-proximal profile. Most travel remains straight, with sparse deterministic one-cell lateral wiggle.</p><p>Impact streaks never become airborne. The Phase 6 full runner remains the distinct path for a bead that reaches a surface edge, hangs, and becomes a world-space droplet.</p></section>
 
 <section id="e7"><h3>E7 Final Scale Sweep</h3><pre>results/phase7/E7_final_reference.csv</pre><p>The final export begins with sixteen deterministic impacts and simulates 45 seconds. It records wet and frozen cells, allocated sparse tiles, estimated field bytes, total attached amount, full runners, short streaks, hanging tips, airborne droplets, puddle cells, runner and streak movement, maintenance passes, detachments, and landings.</p></section>
 
@@ -230,6 +230,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <div class="experiment"><div class="id">BS-015</div><div class="status">Implemented</div><div class="desc">Direct occupied-cell rendering, 32-cell/unit field, and reduced pool/drying/statistics pass rates.</div></div>
 <div class="experiment"><div class="id">BS-016</div><div class="status">Implemented</div><div class="desc">Zero-to-two short impact streaks, bounded local reservoirs, downward travel, deterministic wiggle, and transient caps.</div></div>
 <div class="experiment"><div class="id">BS-017</div><div class="status">Implemented</div><div class="desc">Final sixteen-impact E7 scale sweep and frozen hybrid reference architecture.</div></div>
+<div class="experiment"><div class="id">BS-018</div><div class="status">Implemented</div><div class="desc">Final readability patch for short streaks: higher nomination probability, larger reservoir, wider persistent trail, darker head, and side-cell conservation checks.</div></div>
 </section>
 
 <section id="measurements"><h2>Measurements</h2><p>The final native suite covers source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial pool symmetry, opacity ordering, runner conservation, maintenance-rate bounds, short-streak conservation, deterministic streak origins and lengths, downward streak travel, transient caps, and finite state through a ten-second fixed-step run. E7 adds a multi-impact field and transient-state scale record.</p></section>
@@ -244,7 +245,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 2. Generate deterministic procedural stain morphology.
 3. Merge the deposit into sparse surface-field tiles.
 4. Optionally seed zero to two short impact streak reservoirs.
-5. Advance short streaks under projected gravity and deposit one-cell trails.
+5. Advance short streaks under projected gravity and deposit mass-conserving three-cell trails.
 6. Discover dense gravity-facing full-runner outlet candidates.
 7. Convert one unseeded dense outlet into one larger bounded runner.
 8. Advance the runner under projected gravity and deposit a narrow trail.
@@ -302,6 +303,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>2026-10-20</td><td>BS-015</td><td>Removed expanded per-frame render candidate hashing, reduced Phase 6 field resolution, and throttled slow field-maintenance passes.</td></tr>
 <tr><td>2026-10-20</td><td>BS-016</td><td>Added zero-to-two bounded short impact streaks with deterministic gravity travel and occasional one-cell wiggle.</td></tr>
 <tr><td>2026-10-20</td><td>BS-017</td><td>Ran the final scale/reference sweep and froze the Blood Simulation architecture at Phase 7.</td></tr>
+<tr><td>2026-10-20</td><td>BS-018</td><td>Strengthened short-streak readability with more frequent nomination, larger bounded reservoirs, three-cell trail ribbons, and a larger darker moving head.</td></tr>
 </tbody></table></section>
 
 <section id="versions"><h2>Version History</h2><table><thead><tr><th>Milestone</th><th>Change</th></tr></thead><tbody>
@@ -316,6 +318,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>v0.7.0</td><td>Phase 6 visual-solidity checkpoint: thicker mass-conserving ribbons, larger tips, halo suppression, and surface-response groundwork.</td></tr>
 <tr><td>v0.7.1</td><td>Single-reservoir runner drips, one-shot region seeding, direct occupied-cell rendering, 32-cell/unit Phase 6 field, and lower-frequency pool/drying maintenance.</td></tr>
 <tr><td>v0.8.0</td><td>Final Phase 7 reference: sparse impact streaks, bounded transient state, E7 scale sweep, and architecture freeze.</td></tr>
+<tr><td>v0.8.1</td><td>Reference readability patch: thicker, darker and more frequent short impact streaks while preserving the frozen architecture.</td></tr>
 </tbody></table></section>
 
 <footer>NM-PM / Blood Simulation / completed technical reference</footer>

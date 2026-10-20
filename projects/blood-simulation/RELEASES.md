@@ -18,6 +18,7 @@ GitHub Releases are milestone checkpoints, not the experiment history. The canon
 | Phase 6 | `blood-simulation-v0.7.0` | Drip ribbons, halo suppression and surface-response groundwork |
 | Phase 6 patch | `blood-simulation-v0.7.1` | Single-reservoir drips and active-field performance pass |
 | Phase 7 | `blood-simulation-v0.8.0` | Sparse impact streaks, final scale sweep and frozen hybrid reference architecture |
+| Phase 7 patch | `blood-simulation-v0.8.1` | Thicker, darker and more frequent short streaks with wider persistent trails |
 
 Patch versions may correct a phase without changing its research scope.
 
@@ -110,3 +111,23 @@ The final phase adds a second wall-drip behavior and freezes the reference archi
 - Phase 7 becomes the packaged executable while all prior phase harnesses remain preserved.
 
 The method is frozen as complete for static planar surface patches in a true-XYZ environment with orthographic 2.5D presentation. Arbitrary/deforming meshes, full free-surface fluids, aerodynamic breakup and a generalized material/contact model remain documented extension points rather than requirements of this completed study.
+
+
+## Phase 7 reference patch v0.8.1
+
+`blood-simulation-v0.8.1` keeps the Phase 7 architecture frozen but corrects the visual readability of short wall streaks:
+
+- first-streak nomination probability increases from 0.68 to 0.88;
+- second-streak probability increases from 0.28 to 0.46;
+- eligible impact volume begins at 0.40 instead of 0.50;
+- streak target reservoir increases from 0.105 to 0.190;
+- streak gather radius increases from two to three field cells;
+- source cells retain at least 82 percent of their amount or the body threshold;
+- normal streak steps deposit a mass-conserving three-cell ribbon;
+- stronger streaks may briefly use a five-cell profile near the source;
+- per-step trail mass increases enough that normal side cells sit above the raw render cutoff;
+- the moving streak head is larger, darker, and nearly opaque;
+- the existing cap of two streaks per impact remains unchanged;
+- BS-018 adds side-cell visibility and conservation checks.
+
+The patch changes presentation strength and local reservoir tuning only. The distinction between short attached streaks and the rarer floor-reaching full runner remains unchanged.

@@ -830,10 +830,10 @@ void drawImpactStreakHeads(
             );
 
         const double radius=
-            0.014
-            +0.008*std::sqrt(
+            0.021
+            +0.012*std::sqrt(
                 std::clamp(
-                    streak.reservoir/0.105,
+                    streak.reservoir/0.190,
                     0.0,
                     1.0
                 )
@@ -842,7 +842,7 @@ void drawImpactStreakHeads(
         DrawSphere(
             rv(p),
             float(radius),
-            Color{73,2,7,250}
+            Color{64,1,6,254}
         );
     }
 }

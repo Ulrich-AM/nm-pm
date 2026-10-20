@@ -4,7 +4,7 @@
 **Canonical path:** `projects/blood-simulation/`  
 **Status:** Completed reference study  
 **Final phase:** Phase 7 - sparse impact streaks, scale sweep, and architecture freeze  
-**Final milestone:** `blood-simulation-v0.8.0`
+**Final milestone:** `blood-simulation-v0.8.1`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
@@ -31,7 +31,7 @@ The completed method combines:
 - dense connected-region outlet selection, excluding mist from full drip sources;
 - one bounded reservoir runner for the rarer floor-reaching drip path;
 - hanging-tip maturation before unsupported material enters world space;
-- zero to two short impact streaks that remain attached to a wall, descend under projected gravity, and may wiggle by one field cell;
+- zero to two short impact streaks that remain attached to a wall, descend under projected gravity, may wiggle by one field cell, and render as a visibly thicker three-cell trail;
 - slow radial floor pooling;
 - contact pickup and directional smearing;
 - raw-cell render gating that prevents a pale smoothing halo;
@@ -42,7 +42,7 @@ The completed method combines:
 - direct occupied-cell rendering without expanded per-frame candidate hashing;
 - a final field resolution of 32 cells per world unit;
 - bounded transient runner, streak, hanging-tip, and droplet state;
-- durable experiments BS-001 through BS-017 and E1 through E7 exports.
+- durable experiments BS-001 through BS-018 and E1 through E7 exports.
 
 Earlier phase harnesses remain preserved and buildable.
 
@@ -68,7 +68,7 @@ The completed method intentionally uses two separate wall-drip behaviors.
 
 ### Impact streak
 
-A fresh qualifying wall splatter may create zero, one, or two short streaks. Each streak borrows a small bounded reservoir from the dense impact body, leaves most of that body stationary, advances downward as a one-cell line, and occasionally takes one deterministic lateral step for a mild wiggle.
+A fresh qualifying wall splatter may create zero, one, or two short streaks. The v0.8.1 readability patch makes them easier to see: each streak borrows a larger bounded reservoir, advances downward as a three-cell mass-conserving ribbon, and occasionally takes one deterministic lateral step for a mild wiggle. Strong streaks may briefly widen farther near their source.
 
 Impact streaks remain attached to the surface and terminate as a small endpoint bead.
 
@@ -110,6 +110,7 @@ Rendering walks occupied sparse field cells directly.
 | BS-015 | Phase 6 | Direct occupied-cell rendering and lower-frequency field maintenance |
 | BS-016 | Phase 7 | Sparse one-to-two impact streaks with deterministic wiggle |
 | BS-017 | Phase 7 | Final scale sweep and frozen hybrid reference architecture |
+| BS-018 | Phase 7 patch | Thick streak readability: higher spawn rate, larger reservoir, wider trail, darker head |
 
 See `experiments/INDEX.md`.
 
@@ -135,7 +136,7 @@ Phase 3 -> blood-simulation-v0.4.0
 Phase 4 -> blood-simulation-v0.5.0
 Phase 5 -> blood-simulation-v0.6.x
 Phase 6 -> blood-simulation-v0.7.x
-Phase 7 -> blood-simulation-v0.8.0
+Phase 7 -> blood-simulation-v0.8.x
 ```
 
 ## AI transparency

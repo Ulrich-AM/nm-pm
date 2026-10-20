@@ -1,6 +1,6 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 7 final reference, v0.8.0  
+**Architecture checkpoint:** Phase 7 final reference patch, v0.8.1  
 **Date:** 2026-10-20  
 **Status:** Frozen reference architecture
 
@@ -71,14 +71,14 @@ A streak:
 
 - starts from a wet body-or-dense cell near the impact;
 - borrows only a small bounded reservoir;
-- leaves at least 86 percent of each contributing cell or the body threshold;
+- leaves at least 82 percent of each contributing cell or the body threshold;
 - follows projected surface gravity;
-- deposits one field cell at a time;
+- deposits a mass-conserving three-cell ribbon in the normal case, with occasional wider source-proximal streaks;
 - occasionally takes one deterministic perpendicular cell step;
 - remains attached to the surface;
 - ends as a small terminal bead.
 
-This path provides thin straight gravity lines without turning the parent stain into a flowing sheet.
+This path provides visibly thick gravity runs without turning the parent stain into a flowing sheet. The v0.8.1 patch increases nomination probability, reservoir size, active-head size, and trail width while preserving the same two-streak per-impact cap.
 
 ### Full reservoir runner
 
@@ -166,6 +166,8 @@ BS-015 validates direct occupied-cell rendering and reduced maintenance rates.
 BS-016 validates one-to-two deterministic short streaks, local reservoir accounting, downward movement, wiggle determinism, and active-streak bounds.
 
 BS-017 freezes the architecture and records the E7 scale sweep.
+
+BS-018 validates the final streak-readability patch: higher nomination probability, larger bounded reservoirs, three-cell trail deposition, side-cell visibility, and material conservation.
 
 E7 begins with sixteen deterministic impacts and records a 45-second reference run including wet/frozen cells, sparse tiles, estimated field bytes, total attached amount, runners, streaks, hanging tips, airborne droplets, puddle cells, maintenance passes, detachments, and landings.
 

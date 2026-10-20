@@ -79,6 +79,43 @@ int main() {
     int passed=0;
 
     {
+        const auto surfaces=makeWall();
+        FieldSet fields=blood2::makeFieldSet(surfaces.size(),32.0);
+
+        blood7::Settings settings;
+        blood7::StreakDrip streak;
+        streak.surface=0;
+        streak.gx=30;
+        streak.gy=30;
+        streak.seed=991;
+        streak.reservoir=0.19;
+        streak.wetness=1.0;
+
+        const double before=blood2::fieldStats(fields).totalAmount;
+
+        const double deposited=blood7::depositStreakRibbon(
+            fields,
+            surfaces,
+            streak,
+            settings,
+            0,
+            -1,
+            0.012
+        );
+
+        const double after=blood2::fieldStats(fields).totalAmount;
+
+        assert(deposited>0.011);
+        assert(std::abs((after-before)-deposited)<0.0005);
+        assert(blood4::amountAt(fields.surfaces[0],30,30)>0.003);
+        assert(blood4::amountAt(fields.surfaces[0],29,30)>0.0015);
+        assert(blood4::amountAt(fields.surfaces[0],31,30)>0.0015);
+
+        ++passed;
+    }
+
+
+    {
         blood7::Settings settings;
         const std::uint32_t seed=
             streakSeed(settings);

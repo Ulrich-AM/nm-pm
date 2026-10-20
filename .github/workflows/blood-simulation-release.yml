@@ -64,6 +64,7 @@ jobs:
           Copy-Item experiments/BS-015.md dist/experiments/BS-015.md
           Copy-Item experiments/BS-016.md dist/experiments/BS-016.md
           Copy-Item experiments/BS-017.md dist/experiments/BS-017.md
+          Copy-Item experiments/BS-018.md dist/experiments/BS-018.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -77,17 +78,15 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM final milestone release for Blood Simulation Phase 7.
+          NM-PM final-reference patch for Blood Simulation Phase 7.
 
-          This release closes the Real-Time Hybrid Blood Simulation for 2.5D Environments study.
+          This patch keeps the frozen Phase 7 architecture and strengthens short wall-streak readability.
 
-          A qualifying fresh wall impact may now create zero, one, or two short surface-local drip streaks. Each streak uses a bounded reservoir from the impact body, follows projected gravity as a narrow line, and may take an occasional deterministic one-cell lateral wiggle. These short streaks remain attached to the surface.
+          Short streaks now nominate more often, gather a larger bounded reservoir, and deposit a mass-conserving three-cell trail in the normal case. Strong streaks may briefly widen farther near the source. The moving streak head is also larger, darker, and nearly opaque.
 
-          The Phase 6 reservoir runner remains the separate, rarer floor-reaching drip path that can mature into a hanging tip and world-space droplet.
+          The two-streak per-impact cap remains unchanged, and the rarer Phase 6 reservoir runner remains the separate floor-reaching drip path.
 
-          E7 performs the final sixteen-impact, 45-second scale/reference sweep. BS-016 documents sparse impact streaks and BS-017 freezes the validated architecture and limitations.
-
-          All previous phase harnesses remain preserved. The ZIP contains the final Phase 7 executable and completed research documentation.
+          BS-018 documents the readability correction and conservation checks. The ZIP contains the patched Phase 7 executable and completed research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {

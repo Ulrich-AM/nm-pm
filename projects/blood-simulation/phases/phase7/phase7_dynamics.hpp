@@ -19,19 +19,19 @@ using blood2::SurfaceTopology;
 using blood3::WorldDroplet;
 
 struct Settings : blood6::Settings {
-    double streakChance{0.68};
-    double secondStreakChance{0.28};
-    double streakTargetReservoir{0.105};
-    double streakMinimumReservoir{0.032};
-    double streakCellDeposit{0.0032};
-    double streakTerminalReserve{0.014};
+    double streakChance{0.88};
+    double secondStreakChance{0.46};
+    double streakTargetReservoir{0.190};
+    double streakMinimumReservoir{0.045};
+    double streakCellDeposit{0.0095};
+    double streakTerminalReserve{0.022};
     double streakCellsPerSecond{24.0};
-    double streakKeepFraction{0.86};
-    int streakGatherRadius{2};
+    double streakKeepFraction{0.82};
+    int streakGatherRadius{3};
     int streakSearchRadius{5};
-    int streakMinLength{13};
-    int streakMaxLength{30};
-    int maxActiveStreaks{12};
+    int streakMinLength{16};
+    int streakMaxLength{36};
+    int maxActiveStreaks{10};
     int maxStreaksPerImpact{2};
 };
 
@@ -44,7 +44,7 @@ struct StreakDrip {
     double accumulator{};
     double speedCellsPerSecond{24.0};
     double reservoir{};
-    double depositPerCell{0.0032};
+    double depositPerCell{0.0095};
     double wetness{1.0};
     double age{};
     int steps{};
@@ -80,11 +80,11 @@ inline int streakCountForImpact(
     double volume,
     const Settings& settings
 ) {
-    if(volume<0.50)return 0;
+    if(volume<0.40)return 0;
 
     const double strength=
         std::clamp(
-            (volume-0.45)/1.35,
+            (volume-0.36)/1.20,
             0.0,
             1.0
         );
@@ -92,9 +92,9 @@ inline int streakCountForImpact(
     const double firstChance=
         std::clamp(
             settings.streakChance
-            *(0.68+0.44*strength),
+            *(0.78+0.34*strength),
             0.0,
-            0.92
+            0.97
         );
 
     if(
@@ -109,9 +109,9 @@ inline int streakCountForImpact(
     const double secondChance=
         std::clamp(
             settings.secondStreakChance
-            *strength,
+            *(0.45+0.55*strength),
             0.0,
-            0.48
+            0.62
         );
 
     if(
@@ -617,6 +617,140 @@ inline void finishStreak(
     streak.alive=false;
 }
 
+inline double depositStreakRibbon(
+    FieldSet& fields,
+    const std::vector<PlanarSurface>& surfaces,
+    StreakDrip& streak,
+    const Settings& settings,
+    int dx,
+    int dy,
+    double amount
+) {
+    if(
+        amount<=1e-9
+        ||streak.surface<0
+        ||streak.surface>=int(surfaces.size())
+    )return 0.0;
+
+    auto& field=
+        fields.surfaces[
+            std::size_t(streak.surface)
+        ];
+
+    const auto& surface=
+        surfaces[
+            std::size_t(streak.surface)
+        ];
+
+    const int px=-dy;
+    const int py=dx;
+
+    const bool heavy=
+        streak.reservoir
+            >=settings.streakTargetReservoir*0.72
+        &&hash01(
+            streak.seed,
+            0x881u,
+            0x44u
+        )<0.34;
+
+    struct Part {
+        int gx{};
+        int gy{};
+        double weight{};
+    };
+
+    std::vector<Part> parts;
+    parts.reserve(5);
+
+    if(heavy) {
+        parts.push_back({
+            streak.gx,
+            streak.gy,
+            0.50
+        });
+
+        for(int sign:{-1,1}) {
+            parts.push_back({
+                streak.gx+px*sign,
+                streak.gy+py*sign,
+                0.19
+            });
+
+            parts.push_back({
+                streak.gx+px*sign*2,
+                streak.gy+py*sign*2,
+                0.06
+            });
+        }
+    } else {
+        parts.push_back({
+            streak.gx,
+            streak.gy,
+            0.56
+        });
+
+        for(int sign:{-1,1}) {
+            parts.push_back({
+                streak.gx+px*sign,
+                streak.gy+py*sign,
+                0.22
+            });
+        }
+    }
+
+    double validWeight=0.0;
+
+    for(const auto& part:parts) {
+        if(
+            cellInside(
+                field,
+                surface,
+                part.gx,
+                part.gy
+            )
+        ) {
+            validWeight+=part.weight;
+        }
+    }
+
+    if(validWeight<=1e-9)return 0.0;
+
+    double deposited=0.0;
+
+    for(const auto& part:parts) {
+        if(
+            !cellInside(
+                field,
+                surface,
+                part.gx,
+                part.gy
+            )
+        )continue;
+
+        const double share=
+            amount
+            *part.weight
+            /validWeight;
+
+        if(share<=1e-9)continue;
+
+        blood4::addAmount(
+            fields,
+            streak.surface,
+            part.gx,
+            part.gy,
+            share,
+            streak.wetness,
+            streak.age
+        );
+
+        deposited+=share;
+    }
+
+    return deposited;
+}
+
 inline double updateStreaks(
     FieldSet& fields,
     const std::vector<PlanarSurface>& surfaces,
@@ -756,19 +890,28 @@ inline double updateStreaks(
                 );
 
             if(amount>1e-9) {
-                blood4::addAmount(
-                    fields,
-                    streak.surface,
-                    streak.gx,
-                    streak.gy,
-                    amount,
-                    streak.wetness,
-                    streak.age
-                );
+                const double deposited=
+                    depositStreakRibbon(
+                        fields,
+                        surfaces,
+                        streak,
+                        settings,
+                        dx,
+                        dy,
+                        amount
+                    );
 
-                streak.reservoir-=amount;
-                moved+=amount;
-                ++state.streakCellsDeposited;
+                streak.reservoir=
+                    std::max(
+                        0.0,
+                        streak.reservoir-deposited
+                    );
+
+                moved+=deposited;
+
+                if(deposited>1e-9) {
+                    ++state.streakCellsDeposited;
+                }
             }
 
             if(
