@@ -1,12 +1,14 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-001 / Phase 0 anatomy foundation  
+**Architecture checkpoint:** LO-002 / Phase 1 mass + support analysis  
 **Date:** 2026-10-20  
-**Status:** Active study, static foundation implemented
+**Status:** Active study, measurement layer implemented
 
 ## Current boundary
 
-LO-001 does not implement locomotion control.
+LO-002 still does not implement locomotion control.
+
+Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state on top of that contract without altering the pose.
 
 It freezes the first contract that later phases are allowed to build on:
 
@@ -139,6 +141,36 @@ The UI follows the existing NM-PM native style:
 - compact diagnostics at the bottom;
 - no decorative dashboard cards or gradients.
 
+## Phase 1 measurement layer
+
+LO-002 adds a second pure-math module:
+
+```text
+reference body
+     |
+     +-- 14 segment definitions
+     |      |
+     |      +-- relative mass
+     |      +-- longitudinal COM ratio
+     |
+     +-- whole-body COM
+     |
+active foot contacts
+     |
+     +-- convex support polygon
+     +-- support class
+     +-- signed static margin
+
+COM velocity + COM height
+     |
+     +-- XCoM diagnostic
+     +-- signed velocity-aware margin
+```
+
+The 14-segment mass distribution uses the arithmetic mean of de Leva's female and male adjusted Zatsiorsky-Seluyanov tables. Their anatomical landmark definitions do not map one-to-one onto the simplified LO-001 mannequin, so Phase 1 adapts the published longitudinal ratios to the nearest simplified segment lines and records that as an approximation.
+
+No result from this layer applies a force, moves the pelvis, edits a foot target, or changes the pose.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
@@ -200,17 +232,16 @@ This is a research decomposition, not yet an implementation hierarchy.
 
 ## Next research boundary
 
-LO-002 should add measurement, not balancing.
+LO-003 should be the first pose-solving experiment.
 
 Expected additions:
 
-- body-segment mass model;
-- segment centers of mass;
-- whole-body COM;
-- foot contact patches;
-- support polygon;
-- single and double support classification;
-- COM velocity;
-- optional extrapolated-COM diagnostic.
+- explicit foot targets;
+- analytic two-link leg solving;
+- pelvis-height feasibility;
+- knee-direction control;
+- reach margin;
+- joint-limit-aware standing poses;
+- unequal foot-height tests.
 
-Nothing in LO-002 should drag the pelvis toward stability.
+LO-003 may change the pose to satisfy explicit geometric targets, but support analysis must remain a measurement layer. It must not silently translate the body merely because a COM or XCoM margin is negative.
