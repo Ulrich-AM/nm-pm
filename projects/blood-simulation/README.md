@@ -3,7 +3,7 @@
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
 **Current phase:** Phase 6 - visual solidity and surface-response groundwork  
-**Current milestone:** `blood-simulation-v0.7.0`
+**Current milestone:** `blood-simulation-v0.7.1`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
@@ -21,7 +21,7 @@ It redirects to the standalone living technical notebook at `DOCUMENTATION.html`
 
 ## Current research state
 
-The active prototype has reached its first Phase 6 checkpoint:
+The active prototype has reached the Phase 6.1 drip and performance checkpoint:
 
 - true XYZ ballistic droplets and camera-independent surface state;
 - procedural impact morphology deposited into sparse per-surface fields;
@@ -30,14 +30,18 @@ The active prototype has reached its first Phase 6 checkpoint:
 - dense connected-region outlet selection, so mist cannot start drips;
 - hanging-tip maturation before unsupported material enters world space;
 - slow radial floor pooling and contact smearing;
-- mass-conserving drip ribbons that widen strong channels instead of leaving hairline streaks;
+- one seeded reservoir runner per dense region instead of broad ribbon motion;
+- a localized runner bead that descends toward the floor, leaves a small trail, and finishes as one hanging/falling drop;
+- permanent per-session source-region seeding so the same stain does not continuously emit new runners;
 - larger hanging tips;
 - raw-cell render gating that removes the pale smoothing halo around deposits;
 - darker and more solid mist/body/dense appearance;
-- a small surface-response scaffold used by ribbon width and render cutoffs;
+- a small surface-response scaffold used by runner speed and render cutoffs;
 - an isometric orthographic default camera;
-- fixed simulation substeps of at most 1/120 s;
-- durable experiments BS-001 through BS-013 and E1 through E6 exports.
+- fixed 1/120 s movement substeps with pool, drying, and statistics work decoupled to lower rates;
+- direct occupied-cell rendering with no per-frame 3x3 candidate hash set;
+- a Phase 6 field resolution of 32 cells per world unit, while prior phase checkpoints remain unchanged;
+- durable experiments BS-001 through BS-015 and E1 through E6 exports.
 
 Earlier phase harnesses remain preserved.
 
@@ -61,11 +65,13 @@ The build also preserves Phase 0 through Phase 5 executables for regression test
 
 Phase 6 inherits the full Phase 5 solver instead of rewriting it.
 
-After a Phase 5 channel advances, Phase 6 redistributes a bounded portion of the material in the current channel cell laterally, perpendicular to projected surface gravity. This creates a thicker ribbon while conserving total field amount. Strong channel cells can use a second side ring.
+Phase 6.1 supersedes the active ribbon pass with a sparse single-reservoir runner. A dense component may nominate one outlet. That outlet gathers only a bounded fraction of nearby material, then one runner descends along projected gravity, leaves a narrow residue, and converts its remaining reserve into the existing hanging-tip and world-droplet path. The parent stain remains substantially stationary.
 
 The renderer now checks the real persistent field cell before drawing a smoothed sample. Empty cells can no longer become visible solely because smoothing borrowed blood from a neighboring cell. This removes the pale border while preserving soft transitions inside occupied blood.
 
-The first material-response scaffold distinguishes room walls, box sides, box tops, and default surfaces through simple multipliers. It currently affects ribbon widening and edge cutoff behavior and is intended to be expanded rather than replaced.
+The first material-response scaffold distinguishes room walls, box sides, box tops, and default surfaces through simple multipliers. It currently affects runner speed and edge cutoff behavior and is intended to be expanded rather than replaced.
+
+Performance work is now part of the same Phase 6 checkpoint. Rendering iterates occupied sparse cells directly instead of building an expanded candidate hash set. Pool relaxation runs at 30 Hz, drying at 20 Hz, and puddle statistics at 4 Hz while moving blood and world droplets retain the 120 Hz fixed substep.
 
 ## Primary documentation
 
@@ -86,8 +92,10 @@ The first material-response scaffold distinguishes room walls, box sides, box to
 | BS-009 | Phase 5 | Hanging drip-tip maturation and delayed detachment |
 | BS-010 | Phase 5 | Radial floor pooling and isometric camera stress |
 | BS-011 | Phase 5 | Dense-region outlet gating and visual zoning |
-| BS-012 | Phase 6 | Mass-conserving drip ribbon width and larger hanging tips |
+| BS-012 | Phase 6 | Mass-conserving drip ribbon width and larger hanging tips, superseded in part by BS-014 |
 | BS-013 | Phase 6 | Halo suppression and surface-response groundwork |
+| BS-014 | Phase 6 | Single-reservoir runner dripping and terminal drop behavior |
+| BS-015 | Phase 6 | Direct occupied-cell rendering and lower-frequency field maintenance |
 
 See `experiments/INDEX.md`.
 

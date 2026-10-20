@@ -1,6 +1,6 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 6, v0.7.0  
+**Architecture checkpoint:** Phase 6.1, v0.7.1  
 **Date:** 2026-10-20
 
 ## Coordinate boundary
@@ -25,7 +25,7 @@ phases/
 ├── phase3/   broad gravity flow + world droplets
 ├── phase4/   sparse channels + transfer
 ├── phase5/   dense outlets + hanging tips + radial pooling
-└── phase6/   visual solidity + surface-response groundwork
+└── phase6/   sparse runner drips + optimized surface-field maintenance
 ```
 
 Each phase remains buildable as a preserved research checkpoint.
@@ -39,29 +39,31 @@ XYZ WorldDroplet    <->  surface-local sparse field
 
 Phase 6 does not alter this boundary.
 
-## Phase 6 ribbon layer
+## Phase 6.1 single-reservoir runner
 
-Phase 5 remains responsible for source discovery and channel transport.
+The v0.7.0 lateral ribbon pass is preserved by its release but is no longer the active Phase 6 behavior.
 
-After Phase 5 advances a source, Phase 6 examines the amount at that source's current cell. Projected gravity is converted into the surface U/V basis. The perpendicular local vector defines the ribbon direction.
-
-A bounded material budget is removed from the center cell and deposited into lateral cells.
+Phase 5 remains responsible for dense connected-region outlet selection. Phase 6.1 converts an accepted outlet into one `RunnerDrip`.
 
 ```text
-      side ring
-         ↓
-   ▒  █  ▒
-      ↑
-   channel center
+dense region
+    ↓
+one selected outlet
+    ↓
+bounded local reservoir
+    ↓
+one gravity runner
+    ↓
+small persistent trail
+    ↓
+hanging tip
+    ↓
+WorldDroplet
 ```
 
-Strong cells may use a second ring:
+The runner gathers material only from a small neighborhood and leaves each contributing cell with most of its original amount. The same local region is marked as seeded for the rest of the current simulation session, preventing a dense stain from emitting a continuous curtain of drips.
 
-```text
-  ░  ▒  █  ▒  ░
-```
-
-The side weights taper outward. No new material is created.
+Runner travel remains surface-local and follows projected world gravity. The trail budget is computed from reservoir size and estimated cells remaining to the gravity-facing edge so enough material survives to form the terminal drop.
 
 ## Hanging-tip scale
 
@@ -97,36 +99,50 @@ The goal is to avoid a pale watercolor fringe while retaining small actual spray
 
 `SurfaceResponse` currently contains:
 
-- `ribbonMultiplier`;
+- `runnerSpeedMultiplier`;
 - `edgeCutoffMultiplier`.
 
-Room walls use the baseline response. Box sides reduce ribbon widening and require slightly stronger raw occupancy before rendering. Box tops use an intermediate response.
+Room walls use the baseline response. Box sides reduce runner speed and require slightly stronger raw occupancy before rendering. Box tops use an intermediate response.
 
 This is intentionally small. Later Phase 6 work can extend the same interface with roughness, absorption, drying, and pooling coefficients.
 
-## Fixed substep
+## Fixed substep and maintenance rates
 
-The simulation remains bounded to a maximum 1/120 s step. Phase 6 ribbon redistribution is applied once after each Phase 5 update.
+Runner motion, hanging-tip maturation, contact behavior, and world droplets remain bounded to a maximum 1/120 s step.
+
+Processes that do not require that temporal resolution use accumulated-time maintenance passes:
+
+- radial pool relaxation: 30 Hz;
+- drying and freezing: 20 Hz;
+- puddle-cell statistics: 4 Hz.
+
+The dense source scan interval is 0.30 s.
 
 ## Evidence
 
-BS-012 checks lateral ribbon creation, second-ring width, larger tip presentation, and mass conservation.
+BS-012 records the v0.7.0 ribbon experiment and is superseded in part by BS-014.
 
 BS-013 checks halo rejection, real-cell visibility, opacity ordering, and distinct surface-response profiles.
 
-E6 records the 45-second Phase 6 lifecycle including channel movement, ribbon redistribution, puddle movement, transfers, detachments, and landings.
+BS-014 checks runner capture, local conservation, one-shot region seeding, downward motion, trail conservation, and terminal hanging-tip formation.
+
+BS-015 checks the reduced maintenance rates and direct occupied-cell rendering architecture.
+
+E6 records the 45-second Phase 6 lifecycle including runner movement, active runner count, maintenance pass counts, puddle movement, detachments, and landings.
 
 ## Architecture rules
 
 1. Most deposited wall blood remains stationary.
 2. Only dense connected regions may nominate drip outlets.
 3. Mist cannot start a drip source.
-4. Phase 5 owns primary channel transport.
-5. Phase 6 may redistribute existing channel mass laterally but may not create new mass.
-6. Empty raw field cells cannot render solely because smoothing sees a neighbor.
-7. Hanging-tip visual scale does not change physical packet volume.
-8. Surface response is derived from simulation surfaces, never camera state.
-9. Upward surfaces retain conservative radial redistribution.
-10. World droplets retain swept XYZ collision.
-11. Earlier phase harnesses remain preserved.
-12. Every checkpoint updates code, tests, experiment records, documentation, and release metadata together.
+4. One dense region may seed one local runner in the current simulation session.
+5. Runner material is gathered from a bounded neighborhood instead of moving the full stain.
+6. Runner trail deposition reduces the runner reservoir.
+7. Empty raw field cells cannot render solely because smoothing sees a neighbor.
+8. Moving droplets and runners retain the 120 Hz fixed substep.
+9. Slow field maintenance may run at lower accumulated-time rates.
+10. Surface response is derived from simulation surfaces, never camera state.
+11. Upward surfaces retain conservative radial redistribution.
+12. World droplets retain swept XYZ collision.
+13. Earlier phase harnesses remain preserved.
+14. Every checkpoint updates code, tests, experiment records, documentation, and release metadata together.

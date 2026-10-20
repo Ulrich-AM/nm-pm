@@ -18,7 +18,6 @@
 #include <optional>
 #include <sstream>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 using blood::PlanarSurface;
@@ -115,7 +114,7 @@ struct State {
     double lastPuddleMoved=0.0;
     double simTime=0.0;
 
-    std::string e5Status="not run";
+    std::string e6Status="not run";
 };
 
 Vector3 rv(Vec3 v) {
@@ -522,12 +521,6 @@ void drawPlayer(Vec3 p) {
     );
 }
 
-std::uint64_t coordKey(int gx,int gy) {
-    return
-        (std::uint64_t(std::uint32_t(gx))<<32)
-        |std::uint32_t(gy);
-}
-
 Color bloodColor(
     const blood3::RenderSample& sample,
     double rawAmount,
@@ -596,26 +589,18 @@ void drawFieldSmooth(
         const double cell=1.0/field.cellsPerUnit;
         const double half=cell*0.505;
 
-        const int maxX=std::max(
-            0,
-            int(std::ceil(
-                surface.sizeU*field.cellsPerUnit
-            ))-1
-        );
-        const int maxY=std::max(
-            0,
-            int(std::ceil(
-                surface.sizeV*field.cellsPerUnit
-            ))-1
-        );
-
-        std::unordered_set<std::uint64_t> candidates;
+        const double rawCutoff=
+            settings.haloRawCutoff
+            *blood6::surfaceResponse(surface)
+                .edgeCutoffMultiplier;
 
         for(const auto& entry:field.tiles) {
             const std::int64_t key=entry.first;
             const int tx=int(key>>32);
             const int ty=int(
-                std::int32_t(std::uint32_t(key))
+                std::int32_t(
+                    std::uint32_t(key)
+                )
             );
 
             for(int ly=0;ly<blood2::kTileSize;++ly) {
@@ -626,97 +611,96 @@ void drawFieldSmooth(
                                 ly*blood2::kTileSize+lx
                             )
                         ];
-                    if(cellData.amount<=0.002f)continue;
+
+                    const double rawAmount=
+                        double(cellData.amount);
+
+                    if(rawAmount<rawCutoff)continue;
 
                     const int gx=
                         tx*blood2::kTileSize+lx;
+
                     const int gy=
                         ty*blood2::kTileSize+ly;
 
-                    for(int oy=-1;oy<=1;++oy) {
-                        for(int ox=-1;ox<=1;++ox) {
-                            const int x=gx+ox;
-                            const int y=gy+oy;
+                    const double u=
+                        (gx+0.5)
+                        /field.cellsPerUnit;
 
-                            if(
-                                x<0||y<0
-                                ||x>maxX||y>maxY
-                            )continue;
+                    const double v=
+                        (gy+0.5)
+                        /field.cellsPerUnit;
 
-                            candidates.insert(coordKey(x,y));
-                        }
-                    }
+                    if(
+                        !blood2::inside(
+                            surface,
+                            u,
+                            v
+                        )
+                    )continue;
+
+                    const auto sample=
+                        blood3::smoothSample(
+                            field,
+                            gx,
+                            gy,
+                            0.62
+                        );
+
+                    if(
+                        !blood6::shouldRenderCell(
+                            rawAmount,
+                            sample.amount,
+                            surface,
+                            settings
+                        )
+                    )continue;
+
+                    const std::array<Vec3,4> world{{
+                        surface.localToWorld(
+                            u-half,
+                            v-half,
+                            0.021
+                        ),
+                        surface.localToWorld(
+                            u+half,
+                            v-half,
+                            0.021
+                        ),
+                        surface.localToWorld(
+                            u+half,
+                            v+half,
+                            0.021
+                        ),
+                        surface.localToWorld(
+                            u-half,
+                            v+half,
+                            0.021
+                        )
+                    }};
+
+                    const Color color=
+                        bloodColor(
+                            sample,
+                            rawAmount,
+                            settings
+                        );
+
+                    DrawTriangle3D(
+                        rv(world[0]),
+                        rv(world[1]),
+                        rv(world[2]),
+                        color
+                    );
+
+                    DrawTriangle3D(
+                        rv(world[0]),
+                        rv(world[2]),
+                        rv(world[3]),
+                        color
+                    );
                 }
             }
-        }
-
-        for(const std::uint64_t key:candidates) {
-            const int gx=int(std::uint32_t(key>>32));
-            const int gy=int(std::uint32_t(key));
-
-            const auto sample=blood3::smoothSample(
-                field,
-                gx,
-                gy,
-                0.72
-            );
-
-            const double rawAmount=
-                blood4::amountAt(
-                    field,
-                    gx,
-                    gy
-                );
-
-            if(
-                !blood6::shouldRenderCell(
-                    rawAmount,
-                    sample.amount,
-                    surface,
-                    settings
-                )
-            )continue;
-
-            const double u=(gx+0.5)/field.cellsPerUnit;
-            const double v=(gy+0.5)/field.cellsPerUnit;
-
-            const std::array<Vec3,4> world{{
-                surface.localToWorld(
-                    u-half,
-                    v-half,
-                    0.021
-                ),
-                surface.localToWorld(
-                    u+half,
-                    v-half,
-                    0.021
-                ),
-                surface.localToWorld(
-                    u+half,
-                    v+half,
-                    0.021
-                ),
-                surface.localToWorld(
-                    u-half,
-                    v+half,
-                    0.021
-                )
-            }};
-
-            const Color color=bloodColor(sample,rawAmount,settings);
-
-            DrawTriangle3D(
-                rv(world[0]),
-                rv(world[1]),
-                rv(world[2]),
-                color
-            );
-            DrawTriangle3D(
-                rv(world[0]),
-                rv(world[2]),
-                rv(world[3]),
-                color
-            );
         }
     }
 }
@@ -728,6 +712,82 @@ void drawDroplets(const std::vector<WorldDroplet>& droplets) {
             float(d.radius),
             Color{105,5,14,245}
         );
+    }
+}
+
+void drawRunnerDrips(
+    const blood6::State& dynamics,
+    const FieldSet& fields,
+    const std::vector<PlanarSurface>& surfaces
+) {
+    for(const auto& runner:dynamics.runners) {
+        if(
+            !runner.alive
+            ||runner.surface<0
+            ||runner.surface>=int(surfaces.size())
+        )continue;
+
+        const auto& field=
+            fields.surfaces[
+                std::size_t(runner.surface)
+            ];
+
+        const auto& surface=
+            surfaces[
+                std::size_t(runner.surface)
+            ];
+
+        const double u=
+            (runner.gx+0.5)
+            /field.cellsPerUnit;
+
+        const double v=
+            (runner.gy+0.5)
+            /field.cellsPerUnit;
+
+        const Vec3 position=
+            surface.localToWorld(
+                u,
+                v,
+                0.034
+            );
+
+        const double radius=
+            0.026
+            +0.020*std::sqrt(
+                std::clamp(
+                    runner.reservoir/0.62,
+                    0.0,
+                    1.0
+                )
+            );
+
+        DrawSphere(
+            rv(position),
+            float(radius),
+            Color{76,2,8,252}
+        );
+
+        const Vec3 gravity{0,0,-9.81};
+        const Vec3 tangent=
+            blood::surfaceGravity(
+                gravity,
+                surface.normal
+            );
+
+        if(blood::length(tangent)>1e-8) {
+            const Vec3 down=
+                blood::normalize(tangent);
+
+            DrawCylinderEx(
+                rv(position-down*0.030),
+                rv(position+down*0.018),
+                float(radius*0.68),
+                float(radius*0.94),
+                8,
+                Color{70,2,7,248}
+            );
+        }
     }
 }
 
@@ -848,15 +908,18 @@ ImpactParams nominalImpact(const State& state) {
 
 Settings flowSettings(const State& state) {
     Settings s;
-    s.dripRate=state.flowRate*2.0;
+    s.dripRate=state.flowRate;
     s.puddleRate=state.puddleSpread;
     s.adhesion=state.adhesion;
-    s.sourceDensity=state.sourceDensity;
-    s.tipHangTime=state.tipHangTime;
+    s.sourceDensity=std::min(0.14,state.sourceDensity);
+    s.tipHangTime=std::min(0.34,state.tipHangTime);
     s.radialPoolRate=state.puddleSpread;
-    s.sourceScanInterval=0.18;
-    s.sourceSiteCooldown=1.20;
-    s.maxSourcesPerSurface=6;
+    s.sourceScanInterval=0.30;
+    s.sourceSiteCooldown=2.0;
+    s.maxSourcesPerDenseComponent=1;
+    s.maxSourcesPerSurface=2;
+    s.runnerCellsPerSecond=
+        24.0+state.flowRate*10.0;
     s.dryRate=state.dryRate;
     s.contactTransfer=state.contactTransfer;
     return s;
@@ -930,7 +993,7 @@ int findSurface(
 }
 
 void clearAll(State& state,std::size_t surfaceCount) {
-    state.fields=blood2::makeFieldSet(surfaceCount,42.0);
+    state.fields=blood2::makeFieldSet(surfaceCount,32.0);
     state.droplets.clear();
     state.dynamics=blood6::State{};
 
@@ -978,7 +1041,7 @@ bool runE6(
 
     FieldSet fields=blood2::makeFieldSet(
         surfaces.size(),
-        42.0
+        32.0
     );
     std::vector<WorldDroplet> droplets;
     blood6::State dynamics;
@@ -1020,7 +1083,7 @@ bool runE6(
     );
 
     std::ofstream csv(
-        dir/"E6_visual_solidity.csv"
+        dir/"E6_single_runner.csv"
     );
     if(!csv) {
         status="file open error";
@@ -1030,25 +1093,27 @@ bool runE6(
     csv
         <<"time_sec,wet_cells,frozen_cells,"
         <<"drip_sources,hanging_tips,droplets,puddle_cells,"
-        <<"channel_moved,ribbon_moved,puddle_moved,"
+        <<"runner_moved,runners_active,pool_passes,dry_passes,puddle_moved,"
         <<"support_transfers,detached,landed\n";
 
     Settings settings;
     settings.dripRate=2.70;
     settings.puddleRate=0.22;
     settings.adhesion=0.14;
-    settings.sourceDensity=0.16;
+    settings.sourceDensity=0.10;
     settings.dryRate=0.008;
     settings.radialPoolRate=0.22;
-    settings.sourceScanInterval=0.18;
-    settings.sourceSiteCooldown=1.20;
-    settings.maxSourcesPerSurface=4;
+    settings.sourceScanInterval=0.30;
+    settings.sourceSiteCooldown=2.0;
+    settings.maxSourcesPerDenseComponent=1;
+    settings.maxSourcesPerSurface=2;
     settings.contactTransfer=false;
 
     constexpr double step=1.0/120.0;
     double t=0.0;
-    double channelMoved=0.0;
-    double ribbonMoved=0.0;
+    double runnerMoved=0.0;
+    int poolPasses=0;
+    int dryPasses=0;
     double puddleMoved=0.0;
     int supportTransfers=0;
     int detached=0;
@@ -1062,7 +1127,7 @@ bool runE6(
                 <<t<<','
                 <<fsStats.wetCells<<','
                 <<fsStats.frozenCells<<','
-                <<dynamics.sources.size()<<','
+                <<dynamics.runners.size()<<','
                 <<dynamics.hanging.size()<<','
                 <<droplets.size()<<','
                 <<blood3::countPuddleCells(
@@ -1070,16 +1135,19 @@ bool runE6(
                     surfaces,
                     0.14
                 )<<','
-                <<channelMoved<<','
-                <<ribbonMoved<<','
+                <<runnerMoved<<','
+                <<dynamics.runners.size()<<','
+                <<poolPasses<<','
+                <<dryPasses<<','
                 <<puddleMoved<<','
                 <<supportTransfers<<','
                 <<detached<<','
                 <<landed
                 <<'\n';
 
-            channelMoved=0.0;
-            ribbonMoved=0.0;
+            runnerMoved=0.0;
+            poolPasses=0;
+            dryPasses=0;
             puddleMoved=0.0;
             supportTransfers=0;
         }
@@ -1095,23 +1163,18 @@ bool runE6(
             settings
         );
 
-        channelMoved+=flow.channelMoved;
-        ribbonMoved+=flow.ribbonMoved;
+        runnerMoved+=flow.runnerMoved;
+        poolPasses+=flow.poolPasses;
+        dryPasses+=flow.dryPasses;
         puddleMoved+=flow.puddleMoved;
         supportTransfers+=flow.supportTransfers;
         detached+=flow.dropletsSpawned;
         landed+=flow.dropletsLanded;
 
-        blood2::updateFields(
-            fields,
-            step,
-            settings.dryRate
-        );
-
         t+=step;
     }
 
-    status="E6 exported / 45 sec visual solidity + surface response";
+    status="E6 exported / 45 sec single-runner + optimization sweep";
     return true;
 }
 void DrawSidebar(
@@ -1126,12 +1189,12 @@ void DrawSidebar(
 
     GroupHeader(
         {r.x,y,r.width,23},
-        "PHASE 6 / VISUAL SOLIDITY + SURFACE RESPONSE"
+        "PHASE 6 / SINGLE DRIPS + OPTIMIZATION"
     );
     y+=30;
 
     Text(
-        "BS-012 drip ribbon width + continuity",
+        "BS-014 single-reservoir runner drips",
         r.x+9,
         y,
         10,
@@ -1140,7 +1203,7 @@ void DrawSidebar(
     y+=15;
 
     Text(
-        "BS-013 halo suppression + material response",
+        "BS-015 active-field optimization",
         r.x+9,
         y,
         10,
@@ -1259,7 +1322,7 @@ void DrawSidebar(
 
     Slider(
         {r.x+9,y,r.width-18,21},
-        "outlet density",
+        "drip rarity",
         state.sourceDensity,
         0.03,
         0.40,
@@ -1511,13 +1574,13 @@ void DrawDebug(
         runE6(
             surfaces,
             topology,
-            state.e5Status
+            state.e6Status
         );
-        PushLog("[E5] "+state.e5Status);
+        PushLog("[E6] "+state.e6Status);
     }
 
     Text(
-        state.e5Status,
+        state.e6Status,
         actionX+8,
         r.y+64,
         9,
@@ -1582,7 +1645,7 @@ void DrawMainView(
     DrawRectangleLinesEx(header,1,C_LINE);
 
     Text(
-        "PHASE 6 / THICKER RIBBONS + HALO SUPPRESSION",
+        "PHASE 6 / SINGLE RUNNER DRIPS + FAST FIELD",
         header.x+8,
         header.y+5,
         11,
@@ -1590,7 +1653,7 @@ void DrawMainView(
     );
 
     Text(
-        "DRAG AIM / THICK RIBBON DRIPS",
+        "DRAG AIM / SINGLE RUNNER DRIPS",
         header.x+header.width-194,
         header.y+5,
         10,
@@ -1758,19 +1821,19 @@ int main() {
     State state;
     state.fields=blood2::makeFieldSet(
         surfaces.size(),
-        42.0
+        32.0
     );
 
     UIState ui;
 
     PushLog("[boot] Phase 6 visual solidity + surface response");
-    PushLog("[flow] hanging tips / radial floor relaxation");
+    PushLog("[flow] one seeded runner / small trail / terminal drop");
     PushLog("[camera] isometric checkpoint / simulation unchanged");
     PushLog("[tool] drag splash direction + force enabled");
     PushLog("[patch] slower pools / slower drying / easier drip sources");
-    PushLog("[phase6] thick ribbon redistribution / raw-cell edge gating");
-    PushLog("[BS-012] mass-conserving drip ribbons / larger tips");
-    PushLog("[BS-013] occupied-cell halo suppression / material scaffold");
+    PushLog("[phase6] single-reservoir runner drips / sparse source seeding");
+    PushLog("[BS-014] one runner per dense region / terminal floor drop");
+    PushLog("[BS-015] direct-cell rendering / throttled pool + dry passes");
 
     int rtW=900;
     int rtH=620;
@@ -1880,19 +1943,13 @@ int main() {
                     );
 
                 state.lastMoved+=
-                    flow.channelMoved;
+                    flow.runnerMoved;
                 state.lastPuddleMoved+=
                     flow.puddleMoved;
                 state.totalDetached+=
                     flow.dropletsSpawned;
                 state.totalLanded+=
                     flow.dropletsLanded;
-
-                blood2::updateFields(
-                    state.fields,
-                    dt,
-                    settings.dryRate
-                );
 
                 state.simTime+=dt;
                 remaining-=dt;
@@ -2078,6 +2135,7 @@ int main() {
             renderSettings
         );
         drawDroplets(state.droplets);
+        drawRunnerDrips(state.dynamics,state.fields,surfaces);
         drawHangingDrops(state.dynamics.hanging,renderSettings);
         drawPlayer(state.player);
         EndMode3D();

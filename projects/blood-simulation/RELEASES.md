@@ -16,6 +16,7 @@ GitHub Releases are milestone checkpoints, not the experiment history. The canon
 | Phase 5 patch | `blood-simulation-v0.6.1` | Drag-directed splashes, reliable downward source discovery, slower pooling and slower drying |
 | Phase 5 patch | `blood-simulation-v0.6.2` | Dense-region outlet gating, mist rejection, source spacing and stronger core/drip opacity |
 | Phase 6 | `blood-simulation-v0.7.0` | Drip ribbons, halo suppression and surface-response groundwork |
+| Phase 6 patch | `blood-simulation-v0.7.1` | Single-reservoir drips and active-field performance pass |
 | Phase 7 | `blood-simulation-v0.8.0` | Planned scale testing and final hybrid reference architecture |
 
 Patch versions may correct a phase without changing its research scope.
@@ -70,3 +71,22 @@ The release also brings the living documentation structure and native lab presen
 - BS-012 and BS-013 add regression coverage for ribbon conservation, halo rejection, tip scale and surface-response differences.
 
 Arbitrary polygonal and irregular static geometry remains a later Phase 6 continuation.
+
+
+## Phase 6 patch v0.7.1
+
+`blood-simulation-v0.7.1` replaces the active v0.7.0 ribbon motion with a sparser drip model and reduces long-session field cost:
+
+- each dense connected region may seed one reservoir runner;
+- a runner gathers only a bounded fraction of nearby blood and leaves most of the parent stain stationary;
+- one moving bead advances under projected gravity and leaves a small center-weighted trail;
+- the same local region is marked as seeded so it does not repeatedly emit runners;
+- the remaining reservoir becomes one hanging/falling terminal drop;
+- Phase 6 field resolution changes from 42 to 32 cells per world unit;
+- rendering walks occupied sparse cells directly and removes the per-frame expanded candidate hash set;
+- radial pooling is evaluated at 30 Hz;
+- drying/freezing maintenance is evaluated at 20 Hz;
+- puddle statistics are evaluated at 4 Hz;
+- BS-014 and BS-015 document the behavior and performance changes.
+
+The v0.7.0 release remains the preserved ribbon checkpoint.

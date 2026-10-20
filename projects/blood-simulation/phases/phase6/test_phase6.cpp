@@ -28,6 +28,31 @@ static std::vector<PlanarSurface> makeWall() {
     return s;
 }
 
+static void seedDensePatch(
+    FieldSet& fields,
+    int cx,
+    int cy
+) {
+    for(int y=cy-2;y<=cy+2;++y) {
+        for(int x=cx-2;x<=cx+2;++x) {
+            auto& c=
+                fields.surfaces[0]
+                    .cellAt(x,y);
+
+            c.amount=
+                float(
+                    0.36
+                    +(x==cx&&y==cy
+                        ?0.18
+                        :0.0)
+                );
+
+            c.wetness=1.0f;
+            c.age=0.0f;
+        }
+    }
+}
+
 int main() {
     int passed=0;
 
@@ -40,88 +65,180 @@ int main() {
                 20.0
             );
 
-        auto& center=
-            fields.surfaces[0]
-                .cellAt(20,20);
-
-        center.amount=0.90f;
-        center.wetness=1.0f;
+        seedDensePatch(fields,20,30);
 
         blood6::State state;
+        blood6::Settings settings;
 
         blood4::DripSource source;
         source.surface=0;
         source.gx=20;
-        source.gy=20;
+        source.gy=30;
         source.rootX=20;
-        source.rootY=20;
+        source.rootY=30;
+        source.seed=77;
         state.sources.push_back(source);
-
-        blood6::Settings settings;
-        settings.ribbonFraction=0.36;
-        settings.maxRibbonHalfWidth=2;
 
         const double before=
             blood2::fieldStats(
                 fields
             ).totalAmount;
 
-        const double moved=
-            blood6::widenDripRibbons(
+        const int spawned=
+            blood6::captureDiscoveredRunners(
                 fields,
                 surfaces,
                 state,
                 settings
             );
 
-        const double after=
+        assert(spawned==1);
+        assert(state.sources.empty());
+        assert(state.runners.size()==1);
+
+        const double afterField=
             blood2::fieldStats(
                 fields
             ).totalAmount;
 
-        const double movedAgain=
-            blood6::widenDripRibbons(
+        assert(
+            std::abs(
+                before
+                -afterField
+                -state.runners[0].reservoir
+            )<0.001
+        );
+
+        assert(
+            blood6::seededNear(
+                state,
+                0,
+                20,
+                30
+            )
+        );
+
+        state.sources.push_back(source);
+
+        const int spawnedAgain=
+            blood6::captureDiscoveredRunners(
                 fields,
                 surfaces,
                 state,
                 settings
             );
 
-        assert(moved>0.05);
-        assert(movedAgain==0.0);
-        assert(std::abs(before-after)<0.0005);
+        assert(spawnedAgain==0);
+        assert(state.runners.size()==1);
+
+        const int oldY=
+            state.runners[0].gy;
+
+        const double conservedBefore=
+            blood2::fieldStats(
+                fields
+            ).totalAmount
+            +state.runners[0].reservoir;
+
+        const double moved=
+            blood6::updateRunnerDrips(
+                fields,
+                surfaces,
+                state,
+                0.25,
+                settings
+            );
+
+        assert(moved>0.0);
+        assert(state.runners.size()==1);
+        assert(state.runners[0].gy<oldY);
+
+        const double conservedAfter=
+            blood2::fieldStats(
+                fields
+            ).totalAmount
+            +state.runners[0].reservoir;
 
         assert(
-            blood4::amountAt(
-                fields.surfaces[0],
-                19,
-                20
-            )>0.01
+            std::abs(
+                conservedBefore
+                -conservedAfter
+            )<0.001
         );
 
-        assert(
-            blood4::amountAt(
-                fields.surfaces[0],
-                21,
-                20
-            )>0.01
-        );
+        bool trailFound=false;
 
-        assert(
-            blood4::amountAt(
-                fields.surfaces[0],
-                18,
-                20
-            )>0.001
-        );
+        for(int y=state.runners[0].gy;
+            y<oldY;
+            ++y
+        ) {
+            if(
+                blood4::amountAt(
+                    fields.surfaces[0],
+                    20,
+                    y
+                )>0.001
+            ) {
+                trailFound=true;
+                break;
+            }
+        }
 
-        assert(
-            blood4::amountAt(
-                fields.surfaces[0],
-                22,
-                20
-            )>0.001
-        );
+        assert(trailFound);
+
+        for(int i=0;
+            i<80&&!state.runners.empty();
+            ++i
+        ) {
+            blood6::updateRunnerDrips(
+                fields,
+                surfaces,
+                state,
+                0.25,
+                settings
+            );
+        }
+
+        assert(state.runners.empty());
+        assert(!state.hanging.empty());
+
+        ++passed;
+    }
+
+    {
+        const auto surfaces=makeWall();
+        const auto topology=
+            blood2::buildTopology(surfaces);
+
+        FieldSet fields=
+            blood2::makeFieldSet(
+                surfaces.size(),
+                20.0
+            );
+
+        std::vector<blood3::WorldDroplet> droplets;
+        blood6::State state;
+        blood6::Settings settings;
+
+        settings.contactTransfer=false;
+
+        for(int i=0;i<120;++i) {
+            blood6::update(
+                fields,
+                surfaces,
+                topology,
+                droplets,
+                {0,0,0},
+                state,
+                1.0/120.0,
+                settings
+            );
+        }
+
+        assert(state.poolPassCount>=28);
+        assert(state.poolPassCount<=31);
+        assert(state.dryPassCount>=19);
+        assert(state.dryPassCount<=21);
 
         ++passed;
     }
@@ -141,7 +258,7 @@ int main() {
 
         assert(
             !blood6::shouldRenderCell(
-                0.002,
+                0.001,
                 0.15,
                 surfaces[0],
                 settings
@@ -150,7 +267,7 @@ int main() {
 
         assert(
             blood6::shouldRenderCell(
-                0.012,
+                0.006,
                 0.018,
                 surfaces[0],
                 settings
@@ -236,8 +353,8 @@ int main() {
             );
 
         assert(
-            boxResponse.ribbonMultiplier
-            <wallResponse.ribbonMultiplier
+            boxResponse.runnerSpeedMultiplier
+            <wallResponse.runnerSpeedMultiplier
         );
 
         assert(
@@ -250,7 +367,7 @@ int main() {
 
     std::cout
         <<passed
-        <<" Phase 6 visual-solidity tests passed.\n";
+        <<" Phase 6 single-runner and optimization tests passed.\n";
 
     return 0;
 }

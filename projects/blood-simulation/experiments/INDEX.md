@@ -15,7 +15,9 @@ The Blood Simulation study uses durable identifiers beginning with `BS-`.
 | BS-009 | Phase 5 | Implemented | Test hanging drip-tip maturation between unsupported channel endpoints and world-space droplet release |
 | BS-010 | Phase 5 | Implemented | Test wider radial floor pooling, repeated accumulation behavior, and camera independence under an isometric orthographic view |
 | BS-011 | Phase 5 | Implemented | Test dense connected-region outlet selection, mist rejection, outlet spacing, lower-edge preference, and zone-aware opacity ordering |
-| BS-012 | Phase 6 | Implemented | Test mass-conserving lateral drip-ribbon widening, strong-source second-ring width, and larger hanging-tip presentation |
+| BS-012 | Phase 6 | Superseded in part | Test v0.7.0 lateral drip-ribbon widening and larger hanging-tip presentation; active ribbon motion is superseded by BS-014 |
 | BS-013 | Phase 6 | Implemented | Test raw-cell halo suppression, real-cell visibility, solid opacity ordering, and surface-response differentiation |
+| BS-014 | Phase 6 | Implemented | Test a single seeded reservoir runner, local conservation, downward travel, narrow trail deposition, and terminal hanging-tip formation |
+| BS-015 | Phase 6 | Implemented | Test direct occupied-cell rendering architecture, reduced Phase 6 field resolution, and lower-frequency pool/drying maintenance |
 
 Failed and superseded experiments remain in the registry because they are part of the research result.

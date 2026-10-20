@@ -60,6 +60,8 @@ jobs:
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
           Copy-Item experiments/BS-012.md dist/experiments/BS-012.md
           Copy-Item experiments/BS-013.md dist/experiments/BS-013.md
+          Copy-Item experiments/BS-014.md dist/experiments/BS-014.md
+          Copy-Item experiments/BS-015.md dist/experiments/BS-015.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -73,11 +75,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM milestone release for Blood Simulation Phase 6.
+          NM-PM patch release for Blood Simulation Phase 6.
 
-          This release adds mass-conserving drip ribbons, larger hanging tips, occupied-cell halo suppression, darker solid rendering, and the first surface-response multipliers.
+          This release replaces active ribbon motion with one seeded reservoir runner per dense region. One localized bead travels under projected gravity, leaves a small trail, and finishes as a hanging/falling drop while most of the parent stain remains stationary.
 
-          Phase 5 remains preserved unchanged. The ZIP contains the current Phase 6 executable and updated research documentation.
+          The patch also removes expanded per-frame render candidate hashing, reduces the Phase 6 field to 32 cells per world unit, and runs pool, drying, and puddle-stat maintenance at lower accumulated-time rates.
+
+          Phase 5 and the v0.7.0 ribbon checkpoint remain preserved. The ZIP contains the current Phase 6 executable and updated research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
