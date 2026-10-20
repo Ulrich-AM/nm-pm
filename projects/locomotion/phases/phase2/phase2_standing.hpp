@@ -206,7 +206,6 @@ inline LegSolve solveLeg(
     LegSolve out{};
     out.pelvisHeightClamped=pelvisClamped;
     out.hip=pelvis+hipOffset(reference,side);
-    out.ankle=ankleTarget;
 
     const double upper=segmentLength(reference,hipId(side),kneeId(side));
     const double lower=segmentLength(reference,kneeId(side),ankleId(side));
@@ -221,7 +220,7 @@ inline LegSolve solveLeg(
         :145.0;
     out.minOuterReach=kneeMinReach(upper,lower,outerKneeMax);
 
-    const Vec3 delta=out.ankle-out.hip;
+    const Vec3 delta=ankleTarget-out.hip;
     out.targetDistance=locomotion::length(delta);
     out.extensionMargin=out.maxReach-out.targetDistance;
     out.geometricReach=
@@ -235,6 +234,7 @@ inline LegSolve solveLeg(
     );
     Vec3 axis=locomotion::normalize(delta);
     if(locomotion::length(axis)<1e-8)axis={0,0,-1};
+    out.ankle=out.hip+axis*distance;
 
     const double along=
         (upper*upper-lower*lower+distance*distance)
@@ -378,9 +378,16 @@ inline StandingTargets tooHighPreset(const ReferenceBody& reference){
     return t;
 }
 
+inline StandingTargets overreachPreset(const ReferenceBody& reference){
+    auto t=neutralTargets(reference);
+    t.left.ankle.x=-1.05;
+    t.right.ankle.x=1.05;
+    return t;
+}
+
 struct SelfTestResult { const char* name; bool pass; };
 
-inline std::array<SelfTestResult,13> runSelfTests(){
+inline std::array<SelfTestResult,15> runSelfTests(){
     const ReferenceBody reference=locomotion::makeReferenceBody();
     const auto neutral=solveStanding(reference,neutralTargets(reference));
     const auto low=solveStanding(reference,lowPreset(reference));
@@ -388,6 +395,7 @@ inline std::array<SelfTestResult,13> runSelfTests(){
     const auto split=solveStanding(reference,splitPreset(reference));
     const auto raised=solveStanding(reference,raisedLeftPreset(reference));
     const auto high=solveStanding(reference,tooHighPreset(reference));
+    const auto overreach=solveStanding(reference,overreachPreset(reference));
 
     const Vec3 neutralLeftKnee=reference.joint[locomotion::jointIndex(JointId::LeftKnee)];
     const double raisedSurface=
@@ -406,7 +414,11 @@ inline std::array<SelfTestResult,13> runSelfTests(){
         {"split pose preserves exact ankle targets",locomotion::near(split.left.ankle,split.requested.left.ankle,1e-8)&&locomotion::near(split.right.ankle,split.requested.right.ankle,1e-8)},
         {"raised foot lands on requested surface",std::abs(raisedSurface-0.18)<1e-8},
         {"raised foot solution remains reachable",raised.left.geometricReach&&raised.right.geometricReach},
-        {"too-high pelvis clamps to shared feasible maximum",high.pelvisHeightClamped&&high.solvedTargets.pelvis.z<high.requested.pelvis.z}
+        {"too-high pelvis clamps to shared feasible maximum",high.pelvisHeightClamped&&high.solvedTargets.pelvis.z<high.requested.pelvis.z},
+        {"overreach preset reports infeasible shared pelvis",!overreach.sharedPelvisFeasible&&!overreach.left.geometricReach&&!overreach.right.geometricReach},
+        {"overreach fallback preserves solved bone lengths",
+            std::abs(segmentLength(overreach.body,JointId::LeftHip,JointId::LeftKnee)-segmentLength(reference,JointId::LeftHip,JointId::LeftKnee))<1e-7
+            &&std::abs(segmentLength(overreach.body,JointId::LeftKnee,JointId::LeftAnkle)-segmentLength(reference,JointId::LeftKnee,JointId::LeftAnkle))<1e-7}
     }};
 }
 
