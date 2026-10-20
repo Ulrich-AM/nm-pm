@@ -380,7 +380,7 @@ inline StandingTargets tooHighPreset(const ReferenceBody& reference){
 
 struct SelfTestResult { const char* name; bool pass; };
 
-inline std::array<SelfTestResult,12> runSelfTests(){
+inline std::array<SelfTestResult,13> runSelfTests(){
     const ReferenceBody reference=locomotion::makeReferenceBody();
     const auto neutral=solveStanding(reference,neutralTargets(reference));
     const auto low=solveStanding(reference,lowPreset(reference));
@@ -399,6 +399,7 @@ inline std::array<SelfTestResult,12> runSelfTests(){
         {"neutral left knee preserved",locomotion::near(neutral.left.knee,neutralLeftKnee,1e-7)},
         {"neutral legs satisfy outer limits",neutral.left.withinOuterLimits&&neutral.right.withinOuterLimits},
         {"low pose bends both knees",low.left.angles.kneeFlexionDeg>20.0&&low.right.angles.kneeFlexionDeg>20.0},
+        {"low knees choose forward branch",low.left.knee.y>low.left.ankle.y&&low.right.knee.y>low.right.ankle.y},
         {"low pose stays inside outer limits",low.left.withinOuterLimits&&low.right.withinOuterLimits},
         {"wide pose remains mirror symmetric",locomotion::near(locomotion::mirrorAcrossSagittal(wide.left.knee),wide.right.knee,1e-7)},
         {"wide pose is geometrically reachable",wide.left.geometricReach&&wide.right.geometricReach},
