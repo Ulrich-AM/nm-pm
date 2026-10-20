@@ -73,4 +73,4 @@ locomotion-v0.2.0
 blood-simulation-v0.1.0
 ```
 
-Sprite Projection and Blood Simulation include Windows milestone release workflows. Blood Simulation is frozen at `blood-simulation-v0.8.1` as its final Phase 7 reference, including the final streak-readability patch. Matching release requests/tags build the native harness, run its tests, package the executable and documentation, and create the GitHub Release.
+Sprite Projection and Blood Simulation include Windows milestone release workflows. Blood Simulation preserves `blood-simulation-v0.8.1` as its frozen Phase 7 reference and extends it with `blood-simulation-v0.9.0`, which adds immediate dense-impact gravity rivulets through the existing full-runner pipeline. Matching release requests/tags build the native harness, run its tests, package the executable and documentation, and create the GitHub Release.

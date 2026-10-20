@@ -46,11 +46,11 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 7
+      - name: Package Phase 8
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/blood_phase7.exe dist/BloodSimulation-Phase7.exe
+          Copy-Item build/Release/blood_phase8.exe dist/BloodSimulation-Phase8.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -65,6 +65,7 @@ jobs:
           Copy-Item experiments/BS-016.md dist/experiments/BS-016.md
           Copy-Item experiments/BS-017.md dist/experiments/BS-017.md
           Copy-Item experiments/BS-018.md dist/experiments/BS-018.md
+          Copy-Item experiments/BS-019.md dist/experiments/BS-019.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -78,15 +79,15 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM final-reference patch for Blood Simulation Phase 7.
+          NM-PM Phase 8 extension for Blood Simulation.
 
-          This patch keeps the frozen Phase 7 architecture and strengthens short wall-streak readability.
+          This milestone preserves the frozen Phase 7 reference and adds impact-fed gravity rivulets.
 
-          Short streaks now nominate more often, gather a larger bounded reservoir, and deposit a mass-conserving three-cell trail in the normal case. Strong streaks may briefly widen farther near the source. The moving streak head is also larger, darker, and nearly opaque.
+          Qualifying fresh dense wall impacts may immediately nominate the existing full reservoir runner instead of waiting for the periodic dense-source scan. The runner remains mass-bounded, follows projected world gravity, leaves a narrow persistent trail, matures into the existing hanging-tip stage at the surface edge, and then enters the existing XYZ droplet solver.
 
-          The two-streak per-impact cap remains unchanged, and the rarer Phase 6 reservoir runner remains the separate floor-reaching drip path.
+          Mist, body-only material, frozen cells, already-seeded neighborhoods and nearby active runners remain ineligible. Phase 7 short impact streaks are preserved and may coexist with the long rivulet.
 
-          BS-018 documents the readability correction and conservation checks. The ZIP contains the patched Phase 7 executable and completed research documentation.
+          BS-019 documents the extension. The ZIP contains the Phase 8 executable and updated research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {

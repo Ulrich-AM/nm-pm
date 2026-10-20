@@ -1,8 +1,8 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 7 final reference patch, v0.8.1  
+**Architecture checkpoint:** Phase 7 frozen reference + Phase 8 rivulet extension, v0.9.0  
 **Date:** 2026-10-20  
-**Status:** Frozen reference architecture
+**Status:** Phase 7 reference frozen; Phase 8 bounded extension implemented
 
 ## Coordinate boundary
 
@@ -27,7 +27,8 @@ phases/
 ├── phase4/   sparse channels + transfer
 ├── phase5/   dense outlets + hanging tips + radial pooling
 ├── phase6/   single-reservoir runners + optimized field maintenance
-└── phase7/   sparse impact streaks + final scale/reference freeze
+├── phase7/   sparse impact streaks + final scale/reference freeze
+└── phase8/   immediate dense-impact promotion into long gravity rivulets
 ```
 
 Each phase remains buildable as a preserved research checkpoint.
@@ -65,7 +66,7 @@ Impact morphology does not depend on camera angle.
 
 ### Short impact streak
 
-Phase 7 may nominate zero, one, or two short streaks immediately after a qualifying wall impact.
+Phase 7 may nominate zero, one, or two short streaks immediately after a qualifying wall impact. This behavior remains preserved in Phase 8.
 
 A streak:
 
@@ -82,7 +83,7 @@ This path provides visibly thick gravity runs without turning the parent stain i
 
 ### Full reservoir runner
 
-The Phase 6 runner remains the larger and rarer drip mechanism.
+The Phase 6 runner remains the larger drip mechanism. Phase 8 adds an immediate impact-fed nomination path while retaining the existing periodic dense-region discovery.
 
 ```text
 dense connected region
@@ -100,7 +101,13 @@ hanging tip
 WorldDroplet
 ```
 
-A six-cell source neighborhood is marked after runner creation so one dense stain does not continuously emit runners.
+A six-cell source neighborhood is marked after runner creation so one dense stain does not continuously emit runners. Phase 8 uses the same marking for immediate rivulets, preventing the immediate and periodic paths from duplicating one another.
+
+## Phase 8 impact-fed rivulet extension
+
+A sufficiently large fresh wall impact may immediately nominate one dense wet cell near the impact into the existing full-runner pipeline. Candidate selection remains surface-local, prefers the gravity-facing side of the new stain, rejects mist/body-only material, rejects frozen or insufficiently wet cells, and excludes already-seeded or nearby active-runner neighborhoods.
+
+No new movement solver is introduced. After nomination, Phase 8 uses the existing bounded runner reservoir, distance-to-edge trail budget, projected-gravity movement, hanging-tip maturation, XYZ free flight, swept collision, and persistent redeposition. The Phase 3 broad-advection failure remains superseded.
 
 ## Floor pooling
 
@@ -169,6 +176,8 @@ BS-017 freezes the architecture and records the E7 scale sweep.
 
 BS-018 validates the final streak-readability patch: higher nomination probability, larger bounded reservoirs, three-cell trail deposition, side-cell visibility, and material conservation.
 
+BS-019 validates immediate dense-impact promotion into the existing long-runner path while retaining mist rejection, conservation, downward movement, terminal hanging/drop behavior, and the Phase 7 short-streak baseline.
+
 E7 begins with sixteen deterministic impacts and records a 45-second reference run including wet/frozen cells, sparse tiles, estimated field bytes, total attached amount, runners, streaks, hanging tips, airborne droplets, puddle cells, maintenance passes, detachments, and landings.
 
 ## Final architecture rules
@@ -177,7 +186,7 @@ E7 begins with sixteen deterministic impacts and records a 45-second reference r
 2. World-space particles exist only while material is genuinely airborne.
 3. Most deposited wall blood remains stationary.
 4. Mist cannot nominate a full runner source.
-5. One dense region may seed one local full runner per simulation session.
+5. One dense region may seed one local full runner per simulation session, whether nominated immediately by Phase 8 or discovered by the periodic dense-source scan.
 6. Short impact streaks use bounded reservoirs and remain surface-local.
 7. No drip path may create unaccounted material.
 8. Empty raw field cells cannot render solely because smoothing sees a neighbor.
@@ -190,6 +199,7 @@ E7 begins with sixteen deterministic impacts and records a 45-second reference r
 15. Earlier phase harnesses remain preserved.
 16. Failed and superseded experiments remain documented.
 17. Code, tests, experiment records, documentation, and release metadata advance together.
+18. Phase 8 may accelerate full-runner nomination from a fresh dense impact, but does not restore field-wide wall advection.
 
 ## Frozen scope
 

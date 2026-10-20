@@ -2,13 +2,13 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Status:** Completed reference study  
-**Final phase:** Phase 7 - sparse impact streaks, scale sweep, and architecture freeze  
-**Final milestone:** `blood-simulation-v0.8.1`
+**Status:** Completed reference study with Phase 8 extension  
+**Current extension:** Phase 8 - impact-fed gravity rivulets  
+**Current milestone:** `blood-simulation-v0.9.0`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
-The study is application-independent. The final checkpoint freezes the reference architecture for reuse in later NM-PM work rather than extending it into a general fluid solver.
+The study is application-independent. Phase 7 remains the frozen reference architecture. Phase 8 is a bounded extension that makes the existing full-runner path available immediately to qualifying fresh dense wall impacts without reopening broad field flow.
 
 ## Website
 
@@ -29,7 +29,8 @@ The completed method combines:
 - accumulation, wetness, age, drying, and frozen persistent stains;
 - drag-directed impact input with surface-local direction and force;
 - dense connected-region outlet selection, excluding mist from full drip sources;
-- one bounded reservoir runner for the rarer floor-reaching drip path;
+- one bounded reservoir runner for the long floor- or support-reaching drip path;
+- Phase 8 immediate dense-impact nomination into that existing runner path, while periodic dense-source discovery remains as a fallback;
 - hanging-tip maturation before unsupported material enters world space;
 - zero to two short impact streaks that remain attached to a wall, descend under projected gravity, may wiggle by one field cell, and render as a visibly thicker three-cell trail;
 - slow radial floor pooling;
@@ -42,7 +43,7 @@ The completed method combines:
 - direct occupied-cell rendering without expanded per-frame candidate hashing;
 - a final field resolution of 32 cells per world unit;
 - bounded transient runner, streak, hanging-tip, and droplet state;
-- durable experiments BS-001 through BS-018 and E1 through E7 exports.
+- durable experiments BS-001 through BS-019, E1 through E8 exports, and the preserved Phase 7 reference.
 
 Earlier phase harnesses remain preserved and buildable.
 
@@ -57,10 +58,10 @@ build_windows.bat
 Then launch:
 
 ```text
-run_phase7.bat
+run_phase8.bat
 ```
 
-The build preserves Phase 0 through Phase 6 executables for regression testing.
+The build preserves Phase 0 through Phase 7 executables for regression testing.
 
 ## Final drip behavior
 
@@ -74,7 +75,7 @@ Impact streaks remain attached to the surface and terminate as a small endpoint 
 
 ### Full runner drip
 
-The rarer Phase 6 runner begins from a dense gravity-facing outlet. It carries a larger bounded reservoir farther toward the surface edge, leaves a narrow trail, matures into a hanging tip, and may become a world-space droplet that lands on the floor.
+The full runner begins from a dense gravity-facing outlet. Phase 8 may nominate this runner immediately from a qualifying fresh impact instead of waiting for the periodic source scan. It carries a bounded reservoir toward the surface edge, leaves a narrow trail, matures into a hanging tip, and may become a world-space droplet. Swept XYZ collision makes that droplet land on the first valid lower surface rather than assuming the room floor.
 
 This separation keeps most wall blood static while preserving both small running streaks and occasional floor-reaching drops.
 
@@ -111,12 +112,13 @@ Rendering walks occupied sparse field cells directly.
 | BS-016 | Phase 7 | Sparse one-to-two impact streaks with deterministic wiggle |
 | BS-017 | Phase 7 | Final scale sweep and frozen hybrid reference architecture |
 | BS-018 | Phase 7 patch | Thick streak readability: higher spawn rate, larger reservoir, wider trail, darker head |
+| BS-019 | Phase 8 extension | Immediate dense-impact promotion into long gravity rivulets using the existing full-runner pipeline |
 
 See `experiments/INDEX.md`.
 
 ## Completion boundary
 
-The method is frozen as complete for the scope tested here: static planar surface patches in a true-XYZ world with an orthographic 2.5D presentation.
+The Phase 7 reference remains frozen for static planar surface patches in a true-XYZ world with an orthographic 2.5D presentation. Phase 8 extends only source nomination for long rivulets and preserves the same representation boundary and validated geometry scope.
 
 The following remain documented extension points rather than requirements of this completed study:
 
@@ -137,6 +139,7 @@ Phase 4 -> blood-simulation-v0.5.0
 Phase 5 -> blood-simulation-v0.6.x
 Phase 6 -> blood-simulation-v0.7.x
 Phase 7 -> blood-simulation-v0.8.x
+Phase 8 -> blood-simulation-v0.9.0
 ```
 
 ## AI transparency
