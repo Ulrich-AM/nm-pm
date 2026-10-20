@@ -46,11 +46,11 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package Phase 6
+      - name: Package Phase 7
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/Release/blood_phase6.exe dist/BloodSimulation-Phase6.exe
+          Copy-Item build/Release/blood_phase7.exe dist/BloodSimulation-Phase7.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -62,6 +62,8 @@ jobs:
           Copy-Item experiments/BS-013.md dist/experiments/BS-013.md
           Copy-Item experiments/BS-014.md dist/experiments/BS-014.md
           Copy-Item experiments/BS-015.md dist/experiments/BS-015.md
+          Copy-Item experiments/BS-016.md dist/experiments/BS-016.md
+          Copy-Item experiments/BS-017.md dist/experiments/BS-017.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -75,13 +77,17 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM patch release for Blood Simulation Phase 6.
+          NM-PM final milestone release for Blood Simulation Phase 7.
 
-          This release replaces active ribbon motion with one seeded reservoir runner per dense region. One localized bead travels under projected gravity, leaves a small trail, and finishes as a hanging/falling drop while most of the parent stain remains stationary.
+          This release closes the Real-Time Hybrid Blood Simulation for 2.5D Environments study.
 
-          The patch also removes expanded per-frame render candidate hashing, reduces the Phase 6 field to 32 cells per world unit, and runs pool, drying, and puddle-stat maintenance at lower accumulated-time rates.
+          A qualifying fresh wall impact may now create zero, one, or two short surface-local drip streaks. Each streak uses a bounded reservoir from the impact body, follows projected gravity as a narrow line, and may take an occasional deterministic one-cell lateral wiggle. These short streaks remain attached to the surface.
 
-          Phase 5 and the v0.7.0 ribbon checkpoint remain preserved. The ZIP contains the current Phase 6 executable and updated research documentation.
+          The Phase 6 reservoir runner remains the separate, rarer floor-reaching drip path that can mature into a hanging tip and world-space droplet.
+
+          E7 performs the final sixteen-impact, 45-second scale/reference sweep. BS-016 documents sparse impact streaks and BS-017 freezes the validated architecture and limitations.
+
+          All previous phase harnesses remain preserved. The ZIP contains the final Phase 7 executable and completed research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {

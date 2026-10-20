@@ -2,12 +2,13 @@
 
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
-**Current phase:** Phase 6 - visual solidity and surface-response groundwork  
-**Current milestone:** `blood-simulation-v0.7.1`
+**Status:** Completed reference study  
+**Final phase:** Phase 7 - sparse impact streaks, scale sweep, and architecture freeze  
+**Final milestone:** `blood-simulation-v0.8.0`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
-The study is application-independent.
+The study is application-independent. The final checkpoint freezes the reference architecture for reuse in later NM-PM work rather than extending it into a general fluid solver.
 
 ## Website
 
@@ -17,33 +18,33 @@ The clean project entry point is:
 projects/blood-simulation/
 ```
 
-It redirects to the standalone living technical notebook at `DOCUMENTATION.html`.
+It redirects to the standalone technical notebook at `DOCUMENTATION.html`.
 
-## Current research state
+## Final reference state
 
-The active prototype has reached the Phase 6.1 drip and performance checkpoint:
+The completed method combines:
 
-- true XYZ ballistic droplets and camera-independent surface state;
+- true XYZ ballistic droplets and camera-independent attached blood state;
 - procedural impact morphology deposited into sparse per-surface fields;
 - accumulation, wetness, age, drying, and frozen persistent stains;
 - drag-directed impact input with surface-local direction and force;
-- dense connected-region outlet selection, so mist cannot start drips;
+- dense connected-region outlet selection, excluding mist from full drip sources;
+- one bounded reservoir runner for the rarer floor-reaching drip path;
 - hanging-tip maturation before unsupported material enters world space;
-- slow radial floor pooling and contact smearing;
-- one seeded reservoir runner per dense region instead of broad ribbon motion;
-- a localized runner bead that descends toward the floor, leaves a small trail, and finishes as one hanging/falling drop;
-- permanent per-session source-region seeding so the same stain does not continuously emit new runners;
-- larger hanging tips;
-- raw-cell render gating that removes the pale smoothing halo around deposits;
-- darker and more solid mist/body/dense appearance;
-- a small surface-response scaffold used by runner speed and render cutoffs;
+- zero to two short impact streaks that remain attached to a wall, descend under projected gravity, and may wiggle by one field cell;
+- slow radial floor pooling;
+- contact pickup and directional smearing;
+- raw-cell render gating that prevents a pale smoothing halo;
+- darker mist/body/dense visual zoning;
 - an isometric orthographic default camera;
-- fixed 1/120 s movement substeps with pool, drying, and statistics work decoupled to lower rates;
-- direct occupied-cell rendering with no per-frame 3x3 candidate hash set;
-- a Phase 6 field resolution of 32 cells per world unit, while prior phase checkpoints remain unchanged;
-- durable experiments BS-001 through BS-015 and E1 through E6 exports.
+- fixed 1/120 s movement substeps;
+- pool relaxation at 30 Hz, drying/freezing at 20 Hz, and puddle statistics at 4 Hz;
+- direct occupied-cell rendering without expanded per-frame candidate hashing;
+- a final field resolution of 32 cells per world unit;
+- bounded transient runner, streak, hanging-tip, and droplet state;
+- durable experiments BS-001 through BS-017 and E1 through E7 exports.
 
-Earlier phase harnesses remain preserved.
+Earlier phase harnesses remain preserved and buildable.
 
 ## Build on Windows
 
@@ -56,26 +57,37 @@ build_windows.bat
 Then launch:
 
 ```text
-run_phase6.bat
+run_phase7.bat
 ```
 
-The build also preserves Phase 0 through Phase 5 executables for regression testing.
+The build preserves Phase 0 through Phase 6 executables for regression testing.
 
-## Phase 6 behavior
+## Final drip behavior
 
-Phase 6 inherits the full Phase 5 solver instead of rewriting it.
+The completed method intentionally uses two separate wall-drip behaviors.
 
-Phase 6.1 supersedes the active ribbon pass with a sparse single-reservoir runner. A dense component may nominate one outlet. That outlet gathers only a bounded fraction of nearby material, then one runner descends along projected gravity, leaves a narrow residue, and converts its remaining reserve into the existing hanging-tip and world-droplet path. The parent stain remains substantially stationary.
+### Impact streak
 
-The renderer now checks the real persistent field cell before drawing a smoothed sample. Empty cells can no longer become visible solely because smoothing borrowed blood from a neighboring cell. This removes the pale border while preserving soft transitions inside occupied blood.
+A fresh qualifying wall splatter may create zero, one, or two short streaks. Each streak borrows a small bounded reservoir from the dense impact body, leaves most of that body stationary, advances downward as a one-cell line, and occasionally takes one deterministic lateral step for a mild wiggle.
 
-The first material-response scaffold distinguishes room walls, box sides, box tops, and default surfaces through simple multipliers. It currently affects runner speed and edge cutoff behavior and is intended to be expanded rather than replaced.
+Impact streaks remain attached to the surface and terminate as a small endpoint bead.
 
-Performance work is now part of the same Phase 6 checkpoint. Rendering iterates occupied sparse cells directly instead of building an expanded candidate hash set. Pool relaxation runs at 30 Hz, drying at 20 Hz, and puddle statistics at 4 Hz while moving blood and world droplets retain the 120 Hz fixed substep.
+### Full runner drip
 
-## Primary documentation
+The rarer Phase 6 runner begins from a dense gravity-facing outlet. It carries a larger bounded reservoir farther toward the surface edge, leaves a narrow trail, matures into a hanging tip, and may become a world-space droplet that lands on the floor.
 
-`DOCUMENTATION.html` is the living technical notebook and records current algorithms, experiment evidence, failed approaches, promotion rules, architecture, limitations, and release history.
+This separation keeps most wall blood static while preserving both small running streaks and occasional floor-reaching drops.
+
+## Performance boundary
+
+Movement that needs temporal precision remains on the fixed 120 Hz accumulator. Slower field processes use accumulated-time maintenance rates:
+
+- radial pooling: 30 Hz;
+- drying and freezing: 20 Hz;
+- puddle-cell statistics: 4 Hz;
+- dense source scan: every 0.30 s.
+
+Rendering walks occupied sparse field cells directly.
 
 ## Durable experiment IDs
 
@@ -92,18 +104,26 @@ Performance work is now part of the same Phase 6 checkpoint. Rendering iterates 
 | BS-009 | Phase 5 | Hanging drip-tip maturation and delayed detachment |
 | BS-010 | Phase 5 | Radial floor pooling and isometric camera stress |
 | BS-011 | Phase 5 | Dense-region outlet gating and visual zoning |
-| BS-012 | Phase 6 | Mass-conserving drip ribbon width and larger hanging tips, superseded in part by BS-014 |
+| BS-012 | Phase 6 | Ribbon-width experiment, superseded in part by BS-014 |
 | BS-013 | Phase 6 | Halo suppression and surface-response groundwork |
 | BS-014 | Phase 6 | Single-reservoir runner dripping and terminal drop behavior |
 | BS-015 | Phase 6 | Direct occupied-cell rendering and lower-frequency field maintenance |
+| BS-016 | Phase 7 | Sparse one-to-two impact streaks with deterministic wiggle |
+| BS-017 | Phase 7 | Final scale sweep and frozen hybrid reference architecture |
 
 See `experiments/INDEX.md`.
 
-## Roadmap
+## Completion boundary
 
-Phase 6 continues with generalized surface/material work after this visual-solidity checkpoint. Arbitrary polygonal and irregular static surface support remains part of the Phase 6 research scope.
+The method is frozen as complete for the scope tested here: static planar surface patches in a true-XYZ world with an orthographic 2.5D presentation.
 
-Phase 7 is reserved for scale testing, evidence review, optimization, and a frozen final hybrid reference architecture.
+The following remain documented extension points rather than requirements of this completed study:
+
+- arbitrary polygonal or deforming blood-bearing meshes;
+- a free-surface fluid solver for puddles;
+- aerodynamic droplet breakup;
+- a generalized roughness, porosity, and absorption material model;
+- full rigid-body contact manifolds for transfer.
 
 ## Releases
 
@@ -120,4 +140,4 @@ Phase 7 -> blood-simulation-v0.8.0
 
 ## AI transparency
 
-This study follows the repository-level `AI_DISCLOSURE.md`. Generative AI substantially assists implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation, and research organization. Human direction defines and evaluates the research.
+This study follows the repository-level `AI_DISCLOSURE.md`. Generative AI substantially assisted implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation, and research organization. Human direction defined and evaluated the research.

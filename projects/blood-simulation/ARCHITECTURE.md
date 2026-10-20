@@ -1,7 +1,8 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 6.1, v0.7.1  
-**Date:** 2026-10-20
+**Architecture checkpoint:** Phase 7 final reference, v0.8.0  
+**Date:** 2026-10-20  
+**Status:** Frozen reference architecture
 
 ## Coordinate boundary
 
@@ -13,7 +14,7 @@ Y = front / back
 Z = height
 ```
 
-Persistent blood state lives in surface-local coordinates. Ballistic droplets live in XYZ space. Camera state remains presentation-only.
+Persistent attached blood state lives in surface-local coordinates. Ballistic droplets live in XYZ world space. Camera state remains presentation-only.
 
 ## Native phase structure
 
@@ -25,7 +26,8 @@ phases/
 ├── phase3/   broad gravity flow + world droplets
 ├── phase4/   sparse channels + transfer
 ├── phase5/   dense outlets + hanging tips + radial pooling
-└── phase6/   sparse runner drips + optimized surface-field maintenance
+├── phase6/   single-reservoir runners + optimized field maintenance
+└── phase7/   sparse impact streaks + final scale/reference freeze
 ```
 
 Each phase remains buildable as a preserved research checkpoint.
@@ -37,45 +39,84 @@ free flight              attached material
 XYZ WorldDroplet    <->  surface-local sparse field
 ```
 
-Phase 6 does not alter this boundary.
+This boundary is the main result of the study.
 
-## Phase 6.1 single-reservoir runner
+Blood is fully three-dimensional only while it needs to travel through the world. Once attached, it is represented as persistent material on a real 3D surface using a sparse 2D local field.
 
-The v0.7.0 lateral ribbon pass is preserved by its release but is no longer the active Phase 6 behavior.
-
-Phase 5 remains responsible for dense connected-region outlet selection. Phase 6.1 converts an accepted outlet into one `RunnerDrip`.
+## Impact pipeline
 
 ```text
-dense region
-    ↓
-one selected outlet
-    ↓
+world/surface hit
+      ↓
+local impact parameters
+      ↓
+deterministic procedural morphology
+      ↓
+sparse persistent field
+      ↓
+wetness / age / drying
+      ↓
+optional local gravity behaviors
+```
+
+Impact morphology does not depend on camera angle.
+
+## Two wall-drip paths
+
+### Short impact streak
+
+Phase 7 may nominate zero, one, or two short streaks immediately after a qualifying wall impact.
+
+A streak:
+
+- starts from a wet body-or-dense cell near the impact;
+- borrows only a small bounded reservoir;
+- leaves at least 86 percent of each contributing cell or the body threshold;
+- follows projected surface gravity;
+- deposits one field cell at a time;
+- occasionally takes one deterministic perpendicular cell step;
+- remains attached to the surface;
+- ends as a small terminal bead.
+
+This path provides thin straight gravity lines without turning the parent stain into a flowing sheet.
+
+### Full reservoir runner
+
+The Phase 6 runner remains the larger and rarer drip mechanism.
+
+```text
+dense connected region
+        ↓
+one gravity-facing outlet
+        ↓
 bounded local reservoir
-    ↓
-one gravity runner
-    ↓
-small persistent trail
-    ↓
+        ↓
+surface runner
+        ↓
+narrow trail
+        ↓
 hanging tip
-    ↓
+        ↓
 WorldDroplet
 ```
 
-The runner gathers material only from a small neighborhood and leaves each contributing cell with most of its original amount. The same local region is marked as seeded for the rest of the current simulation session, preventing a dense stain from emitting a continuous curtain of drips.
+A six-cell source neighborhood is marked after runner creation so one dense stain does not continuously emit runners.
 
-Runner travel remains surface-local and follows projected world gravity. The trail budget is computed from reservoir size and estimated cells remaining to the gravity-facing edge so enough material survives to form the terminal drop.
+## Floor pooling
 
-## Hanging-tip scale
+Concentrated blood on upward-facing surfaces uses radial pressure relaxation rather than a fluid height solver.
 
-Phase 6 multiplies the Phase 5 displayed hanging-tip radius by 1.34. The underlying packet volume and eventual world droplet remain unchanged.
+The approximation is intentionally conservative and low-frequency. It is designed to produce rounded spreading without the diamond bias of the early four-neighbor implementation.
 
-This is a presentation refinement rather than a mass increase.
+## Contact transfer
 
-## Halo suppression
+The method supports bounded pickup from wet floor cells and directional redeposition during player motion.
 
-Phase 5 used a smoothed field sample for rendering. Neighbor candidate cells could receive nonzero smoothed amount even when the raw persistent cell was empty.
+This remains a simplified surface-contact model rather than a general rigid-body contact manifold.
 
-Phase 6 requires both raw occupancy and smoothed visibility:
+## Visual field
+
+Rendering requires actual raw field occupancy before a smoothed sample can become visible.
 
 ```text
 raw amount >= raw cutoff
@@ -83,66 +124,81 @@ AND
 smoothed amount >= smooth cutoff
 ```
 
-Smoothing therefore changes the appearance of existing blood but cannot make an empty neighboring cell visible.
+This keeps smoothing inside existing blood and prevents the pale halo that appeared when neighboring empty cells inherited smoothed density.
 
-## Solid opacity
+The final lab uses 32 field cells per world unit.
 
-Phase 6 keeps the Phase 5 mist/body/dense classification but raises the visual solidity of all three zones.
+## Maintenance rates
 
-- mist remains the lightest zone but is darker and less transparent;
-- body material becomes strongly opaque;
-- dense material is nearly opaque.
+The movement accumulator remains bounded to 1/120 s.
 
-The goal is to avoid a pale watercolor fringe while retaining small actual spray cells.
-
-## Surface-response scaffold
-
-`SurfaceResponse` currently contains:
-
-- `runnerSpeedMultiplier`;
-- `edgeCutoffMultiplier`.
-
-Room walls use the baseline response. Box sides reduce runner speed and require slightly stronger raw occupancy before rendering. Box tops use an intermediate response.
-
-This is intentionally small. Later Phase 6 work can extend the same interface with roughness, absorption, drying, and pooling coefficients.
-
-## Fixed substep and maintenance rates
-
-Runner motion, hanging-tip maturation, contact behavior, and world droplets remain bounded to a maximum 1/120 s step.
-
-Processes that do not require that temporal resolution use accumulated-time maintenance passes:
+Processes that do not require 120 Hz temporal resolution run at accumulated-time maintenance rates:
 
 - radial pool relaxation: 30 Hz;
 - drying and freezing: 20 Hz;
-- puddle-cell statistics: 4 Hz.
+- puddle-cell statistics: 4 Hz;
+- dense runner-source scan: 0.30 s interval.
 
-The dense source scan interval is 0.30 s.
+Short streak and runner movement remains on the fixed movement step.
+
+## Transient bounds
+
+The final architecture uses explicit transient caps.
+
+- short impact streaks: maximum 12 active;
+- streaks nominated by one impact: maximum 2;
+- full runners: bounded by dense-region and per-surface source limits;
+- hanging tips: inherited bounded Phase 5 pool;
+- world droplets: inherited bounded Phase 4/5 pool.
+
+Persistent stains are not discarded solely for performance. Their sparse tiles remain the durable state.
 
 ## Evidence
 
-BS-012 records the v0.7.0 ribbon experiment and is superseded in part by BS-014.
+BS-012 records the superseded v0.7.0 ribbon experiment.
 
-BS-013 checks halo rejection, real-cell visibility, opacity ordering, and distinct surface-response profiles.
+BS-013 validates halo suppression and early surface-response differentiation.
 
-BS-014 checks runner capture, local conservation, one-shot region seeding, downward motion, trail conservation, and terminal hanging-tip formation.
+BS-014 validates runner capture, material accounting, downward movement, and terminal hanging-tip formation.
 
-BS-015 checks the reduced maintenance rates and direct occupied-cell rendering architecture.
+BS-015 validates direct occupied-cell rendering and reduced maintenance rates.
 
-E6 records the 45-second Phase 6 lifecycle including runner movement, active runner count, maintenance pass counts, puddle movement, detachments, and landings.
+BS-016 validates one-to-two deterministic short streaks, local reservoir accounting, downward movement, wiggle determinism, and active-streak bounds.
 
-## Architecture rules
+BS-017 freezes the architecture and records the E7 scale sweep.
 
-1. Most deposited wall blood remains stationary.
-2. Only dense connected regions may nominate drip outlets.
-3. Mist cannot start a drip source.
-4. One dense region may seed one local runner in the current simulation session.
-5. Runner material is gathered from a bounded neighborhood instead of moving the full stain.
-6. Runner trail deposition reduces the runner reservoir.
-7. Empty raw field cells cannot render solely because smoothing sees a neighbor.
-8. Moving droplets and runners retain the 120 Hz fixed substep.
-9. Slow field maintenance may run at lower accumulated-time rates.
-10. Surface response is derived from simulation surfaces, never camera state.
-11. Upward surfaces retain conservative radial redistribution.
-12. World droplets retain swept XYZ collision.
-13. Earlier phase harnesses remain preserved.
-14. Every checkpoint updates code, tests, experiment records, documentation, and release metadata together.
+E7 begins with sixteen deterministic impacts and records a 45-second reference run including wet/frozen cells, sparse tiles, estimated field bytes, total attached amount, runners, streaks, hanging tips, airborne droplets, puddle cells, maintenance passes, detachments, and landings.
+
+## Final architecture rules
+
+1. Persistent blood state is surface-local and camera-independent.
+2. World-space particles exist only while material is genuinely airborne.
+3. Most deposited wall blood remains stationary.
+4. Mist cannot nominate a full runner source.
+5. One dense region may seed one local full runner per simulation session.
+6. Short impact streaks use bounded reservoirs and remain surface-local.
+7. No drip path may create unaccounted material.
+8. Empty raw field cells cannot render solely because smoothing sees a neighbor.
+9. Runners, short streaks, hanging tips, contact motion, and world droplets use the fixed movement step.
+10. Slow field maintenance may run at lower accumulated-time rates.
+11. Surface response is derived from simulation surfaces, never camera state.
+12. Upward surfaces use conservative radial redistribution.
+13. World droplets use swept XYZ collision.
+14. Transient state has explicit caps.
+15. Earlier phase harnesses remain preserved.
+16. Failed and superseded experiments remain documented.
+17. Code, tests, experiment records, documentation, and release metadata advance together.
+
+## Frozen scope
+
+The architecture is frozen for static planar patches in a true-XYZ environment presented through an orthographic 2.5D camera.
+
+The following are intentionally outside the validated boundary:
+
+- arbitrary polygonal and deforming blood-bearing meshes;
+- free-surface fluid simulation;
+- aerodynamic droplet breakup;
+- a complete physical surface-material model;
+- generalized rigid-body contact manifolds.
+
+Future NM-PM studies may extend these areas without changing the result of this completed method.

@@ -136,7 +136,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <aside id="sidebar">
   <div class="side-section"><h3>Blood Simulation</h3><a class="side-label active" href="#overview">Overview</a><a class="side-label" href="#status">Current Status</a><a class="side-label" href="#problem">Research Problem</a></div>
   <div class="side-section"><h3>Foundation</h3><a class="side-label" href="#world">World Model</a><a class="side-label" href="#surface">Surface Contract</a><a class="side-label" href="#representation">Representation</a></div>
-  <div class="side-section"><h3>Dynamics</h3><a class="side-label" href="#phase3">Phase 3</a><a class="side-label" href="#phase4">Phase 4</a><a class="side-label" href="#phase5">Phase 5</a><a class="side-label" href="#phase6">Phase 6</a><div class="side-sub"><a href="#tool">Drag Tool</a><a href="#sources">Dense Outlets</a><a href="#zones">Visual Zones</a><a href="#tips">Hanging Tips</a><a href="#radial">Radial Pools</a><a href="#isometric">Isometric View</a><a href="#e5">E5 Sweep</a><a href="#runner">Single Runner</a><a href="#performance">Performance</a></div></div>
+  <div class="side-section"><h3>Dynamics</h3><a class="side-label" href="#phase3">Phase 3</a><a class="side-label" href="#phase4">Phase 4</a><a class="side-label" href="#phase5">Phase 5</a><a class="side-label" href="#phase6">Phase 6</a><a class="side-label" href="#phase7">Phase 7</a><div class="side-sub"><a href="#tool">Drag Tool</a><a href="#sources">Dense Outlets</a><a href="#zones">Visual Zones</a><a href="#tips">Hanging Tips</a><a href="#radial">Radial Pools</a><a href="#isometric">Isometric View</a><a href="#runner">Full Runner</a><a href="#performance">Performance</a><a href="#streaks">Impact Streaks</a><a href="#e7">E7 Final Sweep</a></div></div>
   <div class="side-section"><h3>Research</h3><a class="side-label" href="#experiments">Experiments</a><a class="side-label" href="#measurements">Measurements</a><a class="side-label" href="#failures">Failed Approaches</a><a class="side-label" href="#promotion">Promotion Rule</a><a class="side-label" href="#roadmap">Roadmap</a></div>
   <div class="side-section"><h3>Project</h3><a class="side-label" href="#implementation">Current Implementation</a><a class="side-label" href="#architecture">Architecture</a><a class="side-label" href="#repository">Repository</a><a class="side-label" href="#limitations">Limitations</a><a class="side-label" href="#log">Research Log</a><a class="side-label" href="#versions">Version History</a></div>
 </aside>
@@ -144,12 +144,12 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <main id="main"><article id="article">
 <section id="overview">
 <h1>Real-Time Hybrid Blood Simulation for 2.5D Environments</h1>
-<p class="lead">A living technical study of how ballistic droplets, persistent surface deposits, accumulation, dripping, puddling, transfer, smearing, and drying can be approximated efficiently in an orthographic 2.5D presentation backed by a mathematically three-dimensional world.</p>
-<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current phase</b><span>Phase 6 - visual solidity and surface response</span><b>Current experiments</b><span>BS-014 / BS-015</span><b>Native artifact</b><span><code>phases/phase6/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.7.1</code></span></div>
-<div class="note">Phase 6.1 replaces broad ribbon motion with one seeded reservoir runner per dense region and reduces long-session cost through direct occupied-cell rendering, 32-cell/unit field resolution, and lower-frequency pool/drying maintenance.</div>
+<p class="lead">A completed technical study of how ballistic droplets, persistent surface deposits, accumulation, dripping, puddling, transfer, smearing, and drying can be approximated efficiently in an orthographic 2.5D presentation backed by a mathematically three-dimensional world.</p>
+<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Status</b><span>Completed reference study</span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Final phase</b><span>Phase 7 - sparse impact streaks and reference freeze</span><b>Final experiments</b><span>BS-016 / BS-017</span><b>Native artifact</b><span><code>phases/phase7/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.8.0</code></span></div>
+<div class="note">Phase 7 closes the study with zero-to-two short gravity streaks from fresh wall impacts and an E7 scale sweep. The method is frozen for static planar surface patches; later geometry or material work should be treated as a new extension study rather than an unfinished phase.</div>
 </section>
 
-<section id="status"><h2>Current Status</h2><div class="flow"><div><b>Impact</b>Procedural persistent stains</div><div><b>Drip</b>Sparse channels + hanging tips</div><div><b>Pool</b>Wider radial field relaxation</div><div><b>Transfer</b>Edges, support, contact</div><div><b>Camera</b>Isometric orthographic test</div></div><p>Most deposited wall blood remains stationary. Selected wet peaks create sparse channels. Unsupported endpoint packets now pause as visible hanging beads before entering the world-droplet solver. Concentrated blood on upward surfaces redistributes through a wider radial neighborhood, producing a more circular footprint than the older four- and eight-neighbor-only passes.</p></section>
+<section id="status"><h2>Current Status</h2><div class="flow"><div><b>Impact</b>Procedural persistent stains</div><div><b>Drip</b>Short streaks + full runners</div><div><b>Pool</b>Radial field relaxation</div><div><b>Transfer</b>Edges, support, contact</div><div><b>Camera</b>Camera-independent state</div></div><p>The study is complete for its validated scope. Most deposited wall blood remains stationary. Fresh qualifying impacts may form one or two short surface streaks. A separate, rarer dense-region runner can continue farther, mature into a hanging bead, and enter the world-droplet solver. Concentrated blood on upward surfaces redistributes through the conservative radial pool pass.</p></section>
 
 <section id="problem"><h2>Research Problem</h2><p>How can a large quantity of blood remain spatially coherent while switching between world-space ballistic motion and persistent surface-space state, without requiring a full three-dimensional fluid simulation?</p><p>The current method treats blood as 3D only while free in the world. Once attached, it becomes a sparse two-dimensional material field anchored to a real three-dimensional surface.</p></section>
 
@@ -157,7 +157,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 Y = room depth
 Z = height</pre><p>Droplets, gravity, collision, objects, and surface transforms are defined in XYZ. Camera projection is presentation-only. Phase 5 defaults to an isometric orthographic angle to make that separation visually obvious.</p></section>
 
-<section id="surface"><h2>Surface Contract</h2><p>The current surface type is a finite planar rectangle with an origin, local U/V basis, normal, and dimensions.</p><div class="equation">P = O + uU + vV</div><p>Persistent blood is indexed in local U/V coordinates. Exact shared rectangular edges provide topology for wrapping and dynamic continuation. This rectangular boundary is the primary geometry limitation reserved for Phase 6.</p></section>
+<section id="surface"><h2>Surface Contract</h2><p>The final surface type is a finite planar rectangle with an origin, local U/V basis, normal, and dimensions.</p><div class="equation">P = O + uU + vV</div><p>Persistent blood is indexed in local U/V coordinates. Exact shared rectangular edges provide topology for wrapping and dynamic continuation. Arbitrary polygonal and deforming blood-bearing meshes were not validated and remain outside the frozen scope.</p></section>
 
 <section id="representation"><h2>Hybrid Representation</h2><pre>impact event
     ↓
@@ -205,7 +205,14 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="halo"><h3>Halo Suppression</h3><p>A visible render cell must now contain actual persistent blood and also pass the smoothed visibility threshold. This keeps smoothing inside the blood shape while preventing empty cells around a dense stain from becoming pale translucent borders.</p></section>
 
-<section id="surface-response"><h3>Surface Response</h3><p>The first Phase 6 material scaffold assigns simple response multipliers by surface kind. Room walls use the baseline. Box sides widen less and use a stricter raw render cutoff. Box tops use an intermediate response. Later Phase 6 work can extend this same interface with roughness, absorption and other coefficients.</p></section>
+<section id="surface-response"><h3>Surface Response</h3><p>The Phase 6 material scaffold assigns simple response multipliers by surface kind. Room walls use the baseline, while box surfaces use slightly different runner speed and raw render cutoffs. A complete roughness, porosity, and absorption model was not promoted into the frozen reference.</p></section>
+
+<section id="phase7"><h2>Phase 7 - Final Hybrid Reference</h2><p>Phase 7 does not replace the Phase 6 runner. It adds a second, smaller drip behavior for fresh splatters and then freezes the architecture. A qualifying wall impact may nominate zero, one, or two short streaks from nearby wet body-or-dense cells.</p></section>
+
+<section id="streaks"><h3>Sparse Impact Drip Streaks</h3><p>Each streak gathers a small bounded reservoir while leaving at least 86 percent of each contributing cell or the body threshold. It then advances one field cell at a time under projected world gravity. Most steps remain straight. At sparse deterministic intervals, the streak may shift one perpendicular cell to create a mild wiggle. The trail remains one cell wide and terminates as a small surface bead.</p><p>Impact streaks never become airborne. The Phase 6 full runner remains the distinct path for a bead that reaches a surface edge, hangs, and becomes a world-space droplet.</p></section>
+
+<section id="e7"><h3>E7 Final Scale Sweep</h3><pre>results/phase7/E7_final_reference.csv</pre><p>The final export begins with sixteen deterministic impacts and simulates 45 seconds. It records wet and frozen cells, allocated sparse tiles, estimated field bytes, total attached amount, full runners, short streaks, hanging tips, airborne droplets, puddle cells, runner and streak movement, maintenance passes, detachments, and landings.</p></section>
+
 
 <section id="experiments"><h2>Experiments</h2>
 <div class="experiment"><div class="id">BS-001</div><div class="status">Implemented</div><div class="desc">World and surface coordinate foundation.</div></div>
@@ -221,30 +228,33 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <div class="experiment"><div class="id">BS-013</div><div class="status">Implemented</div><div class="desc">Raw-cell halo suppression, real-cell visibility, solid opacity, and initial surface-response differentiation.</div></div>
 <div class="experiment"><div class="id">BS-014</div><div class="status">Implemented</div><div class="desc">One seeded reservoir runner per dense region, downward travel, narrow trail, and terminal drop.</div></div>
 <div class="experiment"><div class="id">BS-015</div><div class="status">Implemented</div><div class="desc">Direct occupied-cell rendering, 32-cell/unit field, and reduced pool/drying/statistics pass rates.</div></div>
+<div class="experiment"><div class="id">BS-016</div><div class="status">Implemented</div><div class="desc">Zero-to-two short impact streaks, bounded local reservoirs, downward travel, deterministic wiggle, and transient caps.</div></div>
+<div class="experiment"><div class="id">BS-017</div><div class="status">Implemented</div><div class="desc">Final sixteen-impact E7 scale sweep and frozen hybrid reference architecture.</div></div>
 </section>
 
-<section id="measurements"><h2>Measurements</h2><p>The v0.6.2 regression suite verifies that mist produces no source, one dense connected component produces no more than two spaced outlets, selected outlets lie on the lower gravity-facing edge, and dense opacity remains greater than body opacity which remains greater than mist opacity. The earlier downward-motion regression remains in place. The study combines numeric and visual evidence. Current automated checks cover source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial spread symmetry, diagonal occupancy, and material conservation.</p></section>
+<section id="measurements"><h2>Measurements</h2><p>The final native suite covers source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial pool symmetry, opacity ordering, runner conservation, maintenance-rate bounds, short-streak conservation, deterministic streak origins and lengths, downward streak travel, transient caps, and finite state through a ten-second fixed-step run. E7 adds a multi-impact field and transient-state scale record.</p></section>
 
 <section id="failures"><h2>Failed Approaches</h2><h3>Field-wide wall advection</h3><p>Phase 3 allowed too many wet cells to move under gravity. Large splats visibly collapsed downward. The approach is preserved as BS-005 and superseded by sparse source selection.</p><h3>Four-neighbor floor spread</h3><p>The earliest pressure pass produced diamond-shaped puddles. Phase 4 expanded to eight neighbors. Phase 5 uses a wider radial neighborhood.</p><h3>Immediate unsupported detachment</h3><p>Phase 4's endpoint-to-particle transition was functional but visually abrupt. Phase 5 adds a short hanging stage while preserving the same world-droplet solver.</p></section>
 
 <section id="promotion"><h2>Promotion Rule</h2><p>A new blood behavior is not treated as part of the eventual reference architecture simply because it looks better in one scene. Promotion requires deterministic behavior, a preserved baseline, automated conservation or geometry checks where applicable, human visual review, documented failure conditions, and no dependence on camera-space state.</p></section>
 
-<section id="roadmap"><h2>Roadmap</h2><ol><li><b>Phase 6, current:</b> visual solidity and surface-response groundwork, followed by generalized irregular static geometry;</li><li><b>Phase 7:</b> scale testing, evidence review, optimization, and frozen final hybrid reference architecture.</li></ol></section>
+<section id="roadmap"><h2>Completion Boundary</h2><p>The Blood Simulation method is frozen at Phase 7. Future work on arbitrary/deforming meshes, full fluid puddles, aerodynamic breakup, generalized surface materials, or richer rigid-body transfer should begin as a separate extension study. The completed reference remains the baseline rather than receiving additional phases.</p></section>
 
-<section id="implementation"><h2>Current Implementation</h2><pre>1. Convert a surface hit into local impact parameters.
+<section id="implementation"><h2>Final Implementation</h2><pre>1. Convert a surface hit into local impact parameters.
 2. Generate deterministic procedural stain morphology.
 3. Merge the deposit into sparse surface-field tiles.
-4. Age and dry active cells.
-5. Discover dense gravity-facing outlet candidates.
-6. Convert one unseeded outlet into one bounded reservoir runner.
-7. Advance the runner under projected gravity and deposit a narrow trail.
-8. Convert the runner reserve into a hanging tip at the gravity-facing edge.
-9. Release matured tips into the XYZ droplet solver.
-10. Sweep droplets against world surfaces and redeposit impacts.
-11. Redistribute concentrated upward-surface blood through a 30 Hz radial pool pass.
-12. Apply drying/freezing at 20 Hz and puddle statistics at 4 Hz.
-13. Apply optional contact pickup and directional smearing.
-14. Render occupied sparse cells directly, independently of camera orientation.</pre></section>
+4. Optionally seed zero to two short impact streak reservoirs.
+5. Advance short streaks under projected gravity and deposit one-cell trails.
+6. Discover dense gravity-facing full-runner outlet candidates.
+7. Convert one unseeded dense outlet into one larger bounded runner.
+8. Advance the runner under projected gravity and deposit a narrow trail.
+9. Convert the runner reserve into a hanging tip at the gravity-facing edge.
+10. Release matured tips into the XYZ droplet solver.
+11. Sweep droplets against world surfaces and redeposit impacts.
+12. Redistribute concentrated upward-surface blood through a 30 Hz radial pool pass.
+13. Apply drying/freezing at 20 Hz and puddle statistics at 4 Hz.
+14. Apply optional contact pickup and directional smearing.
+15. Render occupied sparse cells directly, independently of camera orientation.</pre></section>
 
 <section id="architecture"><h2>Architecture</h2><pre>phases/
 ├── phase0/
@@ -253,10 +263,11 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 ├── phase3/
 ├── phase4/
 ├── phase5/
-└── phase6/
+├── phase6/
+└── phase7/
     ├── main.cpp
-    ├── phase6_dynamics.hpp
-    └── test_phase6.cpp</pre><p>Phase 6.1 retains Phase 5 dense outlet selection but replaces active ribbon redistribution with a localized reservoir runner. It also keeps occupied-cell halo suppression and the surface-response interface while moving expensive field maintenance off the 120 Hz path.</p></section>
+    ├── phase7_dynamics.hpp
+    └── test_phase7.cpp</pre><p>Phase 7 inherits the optimized Phase 6 runner and field lifecycle, adds bounded short impact streaks, and freezes the method. Earlier phase directories remain buildable research checkpoints rather than being collapsed into the final implementation.</p></section>
 
 <section id="repository"><h2>Repository</h2><pre>nm-pm/
 └── projects/
@@ -274,7 +285,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="ai"><h2>AI Transparency</h2><p>Generative AI was used extensively as a development tool for implementation, debugging, mathematical exploration, and documentation support. The study direction, constraints, testing, visual review, and acceptance or rejection of approaches were decided by the human researcher.</p></section>
 
-<section id="limitations"><h2>Limitations</h2><ul><li>Hanging tips do not yet continue feeding from the surface field after endpoint formation.</li><li>Radial pools remain a pressure-relaxation approximation rather than a free-surface height solver.</li><li>The current surface topology is still rectangular and exact-edge based.</li><li>Contact transfer currently samples the main upward-facing floor.</li><li>Surface roughness, porosity, and absorption are not yet generalized material parameters.</li><li>World droplets remain simple spheres without aerodynamic breakup.</li><li>Moving and deforming blood-bearing surfaces remain outside the current method.</li></ul></section>
+<section id="limitations"><h2>Frozen Limitations</h2><ul><li>Radial pools remain a pressure-relaxation approximation rather than a free-surface height solver.</li><li>Validated surface topology remains rectangular and exact-edge based.</li><li>Contact transfer remains simplified and primarily floor-oriented.</li><li>Surface roughness, porosity, and absorption are not generalized physical material parameters.</li><li>World droplets remain simple spherical packets without aerodynamic breakup.</li><li>Arbitrary polygonal, moving, and deforming blood-bearing surfaces remain outside the validated method.</li></ul><p>These are documented extension points, not unfinished requirements of the completed Phase 7 reference.</p></section>
 
 <section id="log"><h2>Research Log</h2><table><thead><tr><th>Date</th><th>ID</th><th>Entry</th></tr></thead><tbody>
 <tr><td>2026-10-19</td><td>BS-001 / 002</td><td>True-XYZ foundation and representation comparison established.</td></tr>
@@ -289,6 +300,8 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>2026-10-20</td><td>BS-013</td><td>Prevented smoothing from rendering empty neighboring cells and introduced the first surface-response multipliers.</td></tr>
 <tr><td>2026-10-20</td><td>BS-014</td><td>Superseded active ribbon motion with one seeded reservoir runner per dense region.</td></tr>
 <tr><td>2026-10-20</td><td>BS-015</td><td>Removed expanded per-frame render candidate hashing, reduced Phase 6 field resolution, and throttled slow field-maintenance passes.</td></tr>
+<tr><td>2026-10-20</td><td>BS-016</td><td>Added zero-to-two bounded short impact streaks with deterministic gravity travel and occasional one-cell wiggle.</td></tr>
+<tr><td>2026-10-20</td><td>BS-017</td><td>Ran the final scale/reference sweep and froze the Blood Simulation architecture at Phase 7.</td></tr>
 </tbody></table></section>
 
 <section id="versions"><h2>Version History</h2><table><thead><tr><th>Milestone</th><th>Change</th></tr></thead><tbody>
@@ -302,9 +315,10 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>v0.6.2</td><td>Dense-region outlet gating, mist rejection, source spacing, lower-edge selection, darker dense cores, and more opaque drip-scale material.</td></tr>
 <tr><td>v0.7.0</td><td>Phase 6 visual-solidity checkpoint: thicker mass-conserving ribbons, larger tips, halo suppression, and surface-response groundwork.</td></tr>
 <tr><td>v0.7.1</td><td>Single-reservoir runner drips, one-shot region seeding, direct occupied-cell rendering, 32-cell/unit Phase 6 field, and lower-frequency pool/drying maintenance.</td></tr>
+<tr><td>v0.8.0</td><td>Final Phase 7 reference: sparse impact streaks, bounded transient state, E7 scale sweep, and architecture freeze.</td></tr>
 </tbody></table></section>
 
-<footer>NM-PM / Blood Simulation / living technical documentation</footer>
+<footer>NM-PM / Blood Simulation / completed technical reference</footer>
 </article></main>
 
 <aside id="toc">
@@ -318,6 +332,8 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <a href="#phase3">Phase 3</a>
 <a href="#phase4">Phase 4</a>
 <a href="#phase5">Phase 5</a>
+<a href="#phase6">Phase 6</a>
+<a href="#phase7">Phase 7</a>
 <a href="#experiments">Experiments</a>
 <a href="#measurements">Measurements</a>
 <a href="#failures">Failed Approaches</a>

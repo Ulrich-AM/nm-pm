@@ -19,5 +19,7 @@ The Blood Simulation study uses durable identifiers beginning with `BS-`.
 | BS-013 | Phase 6 | Implemented | Test raw-cell halo suppression, real-cell visibility, solid opacity ordering, and surface-response differentiation |
 | BS-014 | Phase 6 | Implemented | Test a single seeded reservoir runner, local conservation, downward travel, narrow trail deposition, and terminal hanging-tip formation |
 | BS-015 | Phase 6 | Implemented | Test direct occupied-cell rendering architecture, reduced Phase 6 field resolution, and lower-frequency pool/drying maintenance |
+| BS-016 | Phase 7 | Implemented | Test zero-to-two sparse impact streaks, local reservoir conservation, projected-gravity travel, deterministic wiggle, and active-streak caps |
+| BS-017 | Phase 7 | Implemented | Run the final scale sweep and freeze the validated hybrid reference architecture |
 
 Failed and superseded experiments remain in the registry because they are part of the research result.

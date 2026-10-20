@@ -17,7 +17,7 @@ GitHub Releases are milestone checkpoints, not the experiment history. The canon
 | Phase 5 patch | `blood-simulation-v0.6.2` | Dense-region outlet gating, mist rejection, source spacing and stronger core/drip opacity |
 | Phase 6 | `blood-simulation-v0.7.0` | Drip ribbons, halo suppression and surface-response groundwork |
 | Phase 6 patch | `blood-simulation-v0.7.1` | Single-reservoir drips and active-field performance pass |
-| Phase 7 | `blood-simulation-v0.8.0` | Planned scale testing and final hybrid reference architecture |
+| Phase 7 | `blood-simulation-v0.8.0` | Sparse impact streaks, final scale sweep and frozen hybrid reference architecture |
 
 Patch versions may correct a phase without changing its research scope.
 
@@ -90,3 +90,23 @@ Arbitrary polygonal and irregular static geometry remains a later Phase 6 contin
 - BS-014 and BS-015 document the behavior and performance changes.
 
 The v0.7.0 release remains the preserved ribbon checkpoint.
+
+
+## Phase 7 final milestone v0.8.0
+
+`blood-simulation-v0.8.0` marks the end of the Blood Simulation method study.
+
+The final phase adds a second wall-drip behavior and freezes the reference architecture:
+
+- a qualifying fresh wall splatter may create zero, one, or two short attached streaks;
+- streaks borrow a bounded reservoir from nearby wet body/dense material rather than creating new blood;
+- each streak advances as a one-cell gravity line with occasional deterministic one-cell lateral wiggle;
+- streaks terminate on the surface as a small endpoint bead;
+- the Phase 6 full runner remains the separate, rarer path that can mature into a hanging tip and airborne droplet;
+- active short streaks are globally capped;
+- the E7 final export begins with sixteen deterministic impacts and records 45 seconds of field, transient-state, memory-estimate and maintenance data;
+- BS-016 records the short-streak behavior;
+- BS-017 records the final scale sweep and architecture freeze;
+- Phase 7 becomes the packaged executable while all prior phase harnesses remain preserved.
+
+The method is frozen as complete for static planar surface patches in a true-XYZ environment with orthographic 2.5D presentation. Arbitrary/deforming meshes, full free-surface fluids, aerodynamic breakup and a generalized material/contact model remain documented extension points rather than requirements of this completed study.

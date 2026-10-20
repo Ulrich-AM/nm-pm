@@ -8,11 +8,12 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Blood Simulation](projects/blood-simulation/) — real-time hybrid blood simulation for a true-XYZ 2.5D isometric environment.
+No study is currently marked active.
 
 ### Reference
 
-- [Sprite Projection](projects/sprite-projection/) — completed reference study for view-dependent 2D sprite projection over mathematically 3D rigid and articulated objects.
+- [Sprite Projection](projects/sprite-projection/) - completed reference study for view-dependent 2D sprite projection over mathematically 3D rigid and articulated objects.
+- [Blood Simulation](projects/blood-simulation/) - completed reference study for real-time hybrid blood simulation in a true-XYZ 2.5D environment.
 
 ### Planned
 - Anatomically informed procedural human locomotion.
@@ -72,4 +73,4 @@ locomotion-v0.2.0
 blood-simulation-v0.1.0
 ```
 
-Sprite Projection and Blood Simulation include Windows milestone release workflows. Blood Simulation advances one milestone release line per implementation phase, beginning with `blood-simulation-v0.1.0` for Phase 0. Matching release requests/tags build the native harness, run its tests, package the executable and documentation, and create the GitHub Release.
+Sprite Projection and Blood Simulation include Windows milestone release workflows. Blood Simulation is frozen at `blood-simulation-v0.8.0` as its final Phase 7 reference. Matching release requests/tags build the native harness, run its tests, package the executable and documentation, and create the GitHub Release.
