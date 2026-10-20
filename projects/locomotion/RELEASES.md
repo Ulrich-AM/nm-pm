@@ -31,3 +31,20 @@ The first milestone freezes the initial static contract:
 - automated anatomy validation.
 
 No walking controller is included in this release.
+
+## v0.2.0 - LO-002 Mass and Support Analysis
+
+The second milestone adds measurement without active balance control:
+
+- fourteen-segment de Leva-informed relative mass model;
+- per-segment and whole-body COM;
+- DOUBLE / LEFT / RIGHT / NONE support classification;
+- convex support polygons;
+- signed COM support margins;
+- COM velocity presets;
+- velocity-aware XCoM diagnostics;
+- eleven Phase 1 tests in addition to the preserved Phase 0 suite;
+- Windows Arial loading aligned with the other NM-PM native studies;
+- documentation scrollbar styling aligned with Sprite Projection and Blood Simulation.
+
+The release packages both preserved native harnesses so the Phase 0 and Phase 1 checkpoints can be inspected directly.
