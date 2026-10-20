@@ -19,6 +19,7 @@ GitHub Releases are milestone checkpoints, not the experiment history. The canon
 | Phase 6 patch | `blood-simulation-v0.7.1` | Single-reservoir drips and active-field performance pass |
 | Phase 7 | `blood-simulation-v0.8.0` | Sparse impact streaks, final scale sweep and frozen hybrid reference architecture |
 | Phase 7 patch | `blood-simulation-v0.8.1` | Thicker, darker and more frequent short streaks with wider persistent trails |
+| Phase 8 extension | `blood-simulation-v0.9.0` | Immediate dense-impact gravity rivulets using the existing full-runner, hanging-tip and XYZ droplet pipeline |
 
 Patch versions may correct a phase without changing its research scope.
 
@@ -131,3 +132,22 @@ The method is frozen as complete for static planar surface patches in a true-XYZ
 - BS-018 adds side-cell visibility and conservation checks.
 
 The patch changes presentation strength and local reservoir tuning only. The distinction between short attached streaks and the rarer floor-reaching full runner remains unchanged.
+
+
+## Phase 8 extension v0.9.0
+
+`blood-simulation-v0.9.0` preserves the frozen Phase 7 reference and adds a bounded long-rivulet extension:
+
+- qualifying fresh wall impacts may immediately nominate one dense wet outlet into the existing full runner;
+- mist, body-only material, frozen cells, insufficiently wet material, already-seeded neighborhoods and nearby active runners are rejected;
+- nomination is deterministic from the impact seed and remains subject to the existing active-runner cap;
+- the runner gathers a bounded local reservoir and leaves most of the parent stain stationary;
+- its trail budget is derived from distance to the gravity-facing surface edge;
+- the existing Phase 6 movement carries the rivulet toward lower world Z;
+- reaching the edge reuses hanging-tip maturation and XYZ free flight;
+- swept world-space collision determines the first valid lower landing surface;
+- Phase 7 zero-to-two short impact streaks remain unchanged and may coexist with the long rivulet;
+- BS-019 records conservation, mist rejection, downward travel and endpoint behavior;
+- Phase 8 becomes the packaged executable while all earlier phase harnesses remain preserved.
+
+The extension intentionally does not revive Phase 3 field-wide wall advection and does not alter the static-planar-surface scope of the reference architecture.
