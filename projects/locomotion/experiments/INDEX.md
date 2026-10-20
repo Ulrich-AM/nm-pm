@@ -5,7 +5,7 @@ Detailed discussion lives in `DOCUMENTATION.html`. Durable IDs remain stable eve
 | ID | Phase | Status | Purpose |
 |---|---|---|---|
 | LO-001 | Phase 0 | Implemented | Static anatomical rig, coordinate convention, joint envelopes, and foot-contact contract |
-| LO-002 | Phase 1 | Planned | Segment COM, whole-body COM, support contacts, and support polygon without active balancing |
+| LO-002 | Phase 1 | Implemented | de Leva-based segment COM, whole-body COM, support polygon, signed margins, and XCoM diagnostic without active balancing |
 | LO-003 | Phase 2 | Planned | Standing pose solver and anatomical reach constraints |
 | LO-004 | Phase 3 | Planned | One procedural step with planted support and swing clearance |
 | LO-005 | Phase 4 | Planned | Alternating event-driven steps |
