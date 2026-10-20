@@ -1,16 +1,16 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-001 / Phase 0 anatomy foundation  
+**Current checkpoint:** LO-002 / Phase 1 mass + support analysis  
 **Status:** Active
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
 The current implementation intentionally does **not** walk yet.
 
-LO-001 establishes the coordinate, anatomy, joint-range, and foot-contact contract that later experiments will depend on.
+LO-001 establishes the coordinate, anatomy, joint-range, and foot-contact contract. LO-002 adds a measurement-only body mass, COM, support-polygon, and XCoM layer on top of it.
 
-## Phase 0 goals
+## Implemented foundation
 
 LO-001 defines:
 
@@ -23,7 +23,17 @@ LO-001 defines:
 - native validation tests;
 - a compact NM-PM inspection UI.
 
-The coordinate convention is:
+LO-002 additionally defines:
+
+- fourteen de Leva-informed body segments;
+- per-segment centers of mass;
+- whole-body COM;
+- DOUBLE / LEFT / RIGHT / NONE support classes;
+- convex support polygons;
+- signed static support margins;
+- COM velocity and XCoM diagnostics.
+
+The coordinate convention remains:
 
 ```text
 +X = subject right
@@ -56,6 +66,8 @@ ctest --test-dir build -C Release --output-on-failure
 ```text
 locomotion_phase0.exe
 locomotion_phase0_tests.exe
+locomotion_phase1.exe
+locomotion_phase1_tests.exe
 ```
 
 ## Y Bot policy
