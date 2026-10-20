@@ -527,30 +527,66 @@ std::uint64_t coordKey(int gx,int gy) {
         |std::uint32_t(gy);
 }
 
-Color bloodColor(const blood3::RenderSample& sample) {
-    const double wet=std::clamp(sample.wetness,0.0,1.0);
-    const double thick=std::clamp(sample.amount/1.35,0.0,1.0);
-    const double edge=std::clamp(sample.amount*5.6,0.0,1.0);
+Color bloodColor(
+    const blood3::RenderSample& sample,
+    const Settings& settings
+) {
+    const double wet=std::clamp(
+        sample.wetness,
+        0.0,
+        1.0
+    );
 
-    const int r=int(62+58*wet+15*thick);
-    const int g=int(4+8*wet);
-    const int b=int(8+8*wet);
+    const blood5::BloodZone zone=
+        blood5::classifyZone(
+            sample.amount,
+            sample.wetness,
+            settings
+        );
 
-    // Interior blood is intentionally close to opaque.
-    // Only the smoothed perimeter uses lower alpha.
-    const int a=int(28+222*std::sqrt(edge));
+    const double opacity=
+        blood5::renderOpacity(
+            sample.amount,
+            sample.wetness,
+            settings
+        );
+
+    int r=142;
+    int g=12;
+    int b=14;
+
+    if(zone==blood5::BloodZone::Body) {
+        r=int(112+18*wet);
+        g=int(5+6*wet);
+        b=int(8+5*wet);
+    } else if(zone==blood5::BloodZone::Dense) {
+        r=int(72+22*wet);
+        g=int(2+4*wet);
+        b=int(6+3*wet);
+    } else {
+        r=int(132+24*wet);
+        g=int(10+8*wet);
+        b=int(12+7*wet);
+    }
+
+    const int a=int(
+        std::round(
+            255.0*opacity
+        )
+    );
 
     return {
         (unsigned char)std::clamp(r,0,255),
         (unsigned char)std::clamp(g,0,255),
         (unsigned char)std::clamp(b,0,255),
-        (unsigned char)std::clamp(a,0,250)
+        (unsigned char)std::clamp(a,0,252)
     };
 }
 
 void drawFieldSmooth(
     const FieldSet& fields,
-    const std::vector<PlanarSurface>& surfaces
+    const std::vector<PlanarSurface>& surfaces,
+    const Settings& settings
 ) {
     for(std::size_t si=0;si<fields.surfaces.size();++si) {
         const auto& field=fields.surfaces[si];
@@ -650,7 +686,7 @@ void drawFieldSmooth(
                 )
             }};
 
-            const Color color=bloodColor(sample);
+            const Color color=bloodColor(sample,settings);
 
             DrawTriangle3D(
                 rv(world[0]),
@@ -688,7 +724,7 @@ void drawHangingDrops(
         DrawSphere(
             rv(tip.position),
             float(radius),
-            Color{98,4,12,250}
+            Color{78,2,8,252}
         );
 
         const double stretch=
@@ -701,7 +737,7 @@ void drawHangingDrops(
             float(radius*0.52),
             float(radius*0.76),
             10,
-            Color{91,3,11,235}
+            Color{72,2,7,248}
         );
     }
 }
@@ -1065,12 +1101,12 @@ void DrawSidebar(
 
     GroupHeader(
         {r.x,y,r.width,23},
-        "PHASE 5 / DRIP + RADIAL POOLING"
+        "PHASE 5 / DENSE OUTLETS + POOLING"
     );
     y+=30;
 
     Text(
-        "BS-009 hanging drip maturation",
+        "BS-009 / 010 drip + pool refinement",
         r.x+9,
         y,
         10,
@@ -1079,7 +1115,7 @@ void DrawSidebar(
     y+=15;
 
     Text(
-        "BS-010 radial pooling + camera stress",
+        "BS-011 dense-region outlet gating",
         r.x+9,
         y,
         10,
@@ -1198,7 +1234,7 @@ void DrawSidebar(
 
     Slider(
         {r.x+9,y,r.width-18,21},
-        "drip density",
+        "outlet density",
         state.sourceDensity,
         0.03,
         0.40,
@@ -1521,7 +1557,7 @@ void DrawMainView(
     DrawRectangleLinesEx(header,1,C_LINE);
 
     Text(
-        "PHASE 5 / DRIP MATURATION + RADIAL POOLING",
+        "PHASE 5 / DENSE OUTLETS + RADIAL POOLING",
         header.x+8,
         header.y+5,
         11,
@@ -1707,6 +1743,8 @@ int main() {
     PushLog("[camera] isometric checkpoint / simulation unchanged");
     PushLog("[tool] drag splash direction + force enabled");
     PushLog("[patch] slower pools / slower drying / easier drip sources");
+    PushLog("[patch] dense-region outlets / opaque core rendering");
+    PushLog("[BS-011] mist rejected / lower-edge outlets only");
 
     int rtW=900;
     int rtH=620;
@@ -2005,9 +2043,13 @@ int main() {
 
         BeginMode3D(camera);
         drawRoom(boxes,state.grid);
+        const Settings renderSettings=
+            flowSettings(state);
+
         drawFieldSmooth(
             state.fields,
-            surfaces
+            surfaces,
+            renderSettings
         );
         drawDroplets(state.droplets);
         drawHangingDrops(state.dynamics.hanging);

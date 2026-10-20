@@ -115,6 +115,158 @@ int main() {
     }
 
     {
+        blood5::Settings settings;
+
+        assert(
+            blood5::classifyZone(
+                0.03,
+                1.0,
+                settings
+            )==blood5::BloodZone::Mist
+        );
+
+        assert(
+            blood5::classifyZone(
+                0.10,
+                1.0,
+                settings
+            )==blood5::BloodZone::Body
+        );
+
+        assert(
+            blood5::classifyZone(
+                0.40,
+                1.0,
+                settings
+            )==blood5::BloodZone::Dense
+        );
+
+        const double mistAlpha=
+            blood5::renderOpacity(
+                0.03,
+                1.0,
+                settings
+            );
+
+        const double bodyAlpha=
+            blood5::renderOpacity(
+                0.10,
+                1.0,
+                settings
+            );
+
+        const double denseAlpha=
+            blood5::renderOpacity(
+                0.40,
+                1.0,
+                settings
+            );
+
+        assert(mistAlpha<bodyAlpha);
+        assert(bodyAlpha<denseAlpha);
+        assert(mistAlpha<0.50);
+        assert(denseAlpha>0.90);
+
+        ++passed;
+    }
+
+    {
+        const auto surfaces=makeElevatedWall();
+
+        FieldSet fields=blood2::makeFieldSet(
+            surfaces.size(),
+            20.0
+        );
+
+        for(int y=8;y<=12;++y) {
+            for(int x=5;x<=18;++x) {
+                auto& c=
+                    fields.surfaces[0].cellAt(x,y);
+
+                c.amount=
+                    float(
+                        0.34
+                        +(y==8?0.08:0.0)
+                        +(x==6||x==17?0.05:0.0)
+                    );
+
+                c.wetness=1.0f;
+            }
+        }
+
+        blood5::State state;
+        blood5::Settings settings;
+
+        settings.sourceDensity=0.20;
+        settings.maxSourcesPerSurface=4;
+        settings.maxSourcesPerDenseComponent=2;
+        settings.minDenseSourceSpacingCells=5;
+
+        const int spawned=
+            blood5::discoverDenseOutletSources(
+                fields,
+                surfaces,
+                state,
+                settings
+            );
+
+        assert(spawned>=1);
+        assert(spawned<=2);
+        assert(state.sources.size()==std::size_t(spawned));
+
+        for(const auto& source:state.sources) {
+            assert(source.rootY==8);
+        }
+
+        if(state.sources.size()==2) {
+            assert(
+                std::abs(
+                    state.sources[0].rootX
+                    -state.sources[1].rootX
+                )>settings.minDenseSourceSpacingCells
+            );
+        }
+
+        ++passed;
+    }
+
+    {
+        const auto surfaces=makeElevatedWall();
+
+        FieldSet fields=blood2::makeFieldSet(
+            surfaces.size(),
+            20.0
+        );
+
+        for(int y=8;y<=12;++y) {
+            for(int x=7;x<=13;++x) {
+                auto& c=
+                    fields.surfaces[0].cellAt(x,y);
+
+                c.amount=0.04f;
+                c.wetness=1.0f;
+            }
+        }
+
+        blood5::State state;
+        blood5::Settings settings;
+        settings.sourceDensity=1.0;
+
+        const int spawned=
+            blood5::discoverDenseOutletSources(
+                fields,
+                surfaces,
+                state,
+                settings
+            );
+
+        assert(spawned==0);
+        assert(state.sources.empty());
+
+        ++passed;
+    }
+
+    {
         const auto surfaces=makeElevatedWall();
         const auto topology=blood2::buildTopology(surfaces);
 
@@ -131,7 +283,6 @@ int main() {
         blood5::Settings settings;
 
         settings.sourceDensity=1.0;
-        settings.sourceDensityMultiplier=10.0;
         settings.sourceScanInterval=0.01;
         settings.sourceSiteCooldown=0.20;
         settings.maxSourcesPerSurface=2;
@@ -345,7 +496,7 @@ int main() {
 
     std::cout
         <<passed
-        <<" Phase 5 drip and radial pooling tests passed.\n";
+        <<" Phase 5 dense-outlet, drip, and radial pooling tests passed.\n";
 
     return 0;
 }

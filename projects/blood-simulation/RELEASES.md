@@ -14,6 +14,7 @@ GitHub Releases are milestone checkpoints, not the experiment history. The canon
 | Phase 4 | `blood-simulation-v0.5.0` | Sparse channels, support probing, connected transfer and contact smearing |
 | Phase 5 | `blood-simulation-v0.6.0` | Hanging drip maturation, radial floor pooling and isometric camera stress |
 | Phase 5 patch | `blood-simulation-v0.6.1` | Drag-directed splashes, reliable downward source discovery, slower pooling and slower drying |
+| Phase 5 patch | `blood-simulation-v0.6.2` | Dense-region outlet gating, mist rejection, source spacing and stronger core/drip opacity |
 | Phase 6 | `blood-simulation-v0.7.0` | Planned irregular static surfaces and material response |
 | Phase 7 | `blood-simulation-v0.8.0` | Planned scale testing and final hybrid reference architecture |
 
@@ -39,3 +40,18 @@ The release also brings the living documentation structure and native lab presen
 - radial pooling is substantially slower;
 - drying is substantially slower;
 - a regression test verifies discovered wall material moves into lower cells.
+
+
+## Phase 5 patch v0.6.2
+
+`blood-simulation-v0.6.2` refines source placement and appearance without changing the Phase 5 architecture:
+
+- connected dense cells are treated as one source region;
+- only gravity-facing lower-edge candidates may become drip outlets;
+- each dense component may create at most two spaced outlets;
+- low-density mist and intermediate body material cannot start new drips;
+- per-surface source count is reduced to four;
+- body material renders more opaquely so narrow runs stay visible;
+- dense cores render darker and nearly opaque;
+- hanging tips are darkened to match their parent regions;
+- BS-011 adds regression checks for mist rejection, lower-edge selection, spacing, source limits, and opacity ordering.

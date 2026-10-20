@@ -14,5 +14,6 @@ The Blood Simulation study uses durable identifiers beginning with `BS-`.
 | BS-008 | Phase 4 | Implemented | Test dynamic connected-surface transfer and player contact pickup/smearing |
 | BS-009 | Phase 5 | Implemented | Test hanging drip-tip maturation between unsupported channel endpoints and world-space droplet release |
 | BS-010 | Phase 5 | Implemented | Test wider radial floor pooling, repeated accumulation behavior, and camera independence under an isometric orthographic view |
+| BS-011 | Phase 5 | Implemented | Test dense connected-region outlet selection, mist rejection, outlet spacing, lower-edge preference, and zone-aware opacity ordering |
 
 Failed and superseded experiments remain in the registry because they are part of the research result.

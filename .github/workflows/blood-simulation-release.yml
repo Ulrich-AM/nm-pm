@@ -60,6 +60,7 @@ jobs:
           Copy-Item experiments/INDEX.md dist/experiments/INDEX.md
           Copy-Item experiments/BS-009.md dist/experiments/BS-009.md
           Copy-Item experiments/BS-010.md dist/experiments/BS-010.md
+          Copy-Item experiments/BS-011.md dist/experiments/BS-011.md
 
           New-Item -ItemType Directory -Force dist/site | Out-Null
           Copy-Item DOCUMENTATION.html dist/site/DOCUMENTATION.html
@@ -75,9 +76,9 @@ jobs:
           $notes = @"
           NM-PM patch release for Blood Simulation Phase 5.
 
-          This patch adds a surface-aware drag-to-splash tool, lowers Phase 5 drip-source thresholds so ordinary wet wall splats form descending channels, speeds visible channel travel, and slows both radial pool expansion and drying.
+          This patch replaces broad per-cell drip-source competition with dense connected-region outlet selection. Only a few gravity-facing lower-edge outlets may emerge from each dense region, while mist remains non-dripping.
 
-          Phase 4 remains preserved unchanged. The ZIP contains the patched Phase 5 executable and updated research documentation.
+          Dense cores and drip-scale body material now render more opaquely, and hanging tips are darker. Phase 4 remains preserved unchanged. The ZIP contains the patched Phase 5 executable and updated research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {

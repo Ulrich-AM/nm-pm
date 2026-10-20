@@ -1,6 +1,6 @@
 # Blood Simulation Architecture
 
-**Architecture checkpoint:** Phase 5 patch v0.6.1  
+**Architecture checkpoint:** Phase 5 patch v0.6.2  
 **Date:** 2026-10-20
 
 ## Coordinate boundary
@@ -55,6 +55,29 @@ Phase 4 source discovery required a dense cell with amount at least 0.46 and wet
 Phase 5 now performs its own source scan before invoking the preserved Phase 4 channel transport. The new default source thresholds are amount 0.18 and wetness 0.20, with deterministic density selection, four-cell source spacing, per-surface caps, and the existing regional cooldown system.
 
 The transport direction itself remains projected world gravity, so a source on a vertical surface advances toward lower world Z regardless of camera angle.
+
+## Dense-region outlet selection
+
+Phase 5.2 replaces the v0.6.1 per-cell refined source scan with connected dense-region analysis.
+
+The attached field remains continuous, but each cell is classified for source eligibility and rendering as mist, body, or dense material.
+
+Dense cells are grouped using eight-neighbor connectivity. Each connected component is processed independently. Projected gravity is expressed in that surface's U/V frame, and only the lower gravity-facing part of the component may nominate outlets.
+
+Candidate scoring combines amount, wetness, downhill contrast, local peak strength, lower-edge position, and a small deterministic tie-break. At most two outlets are retained per dense component, with a five-cell minimum spacing and a four-source per-surface cap.
+
+Mist and body cells may still receive, retain, dry, smear, and pool blood. They simply cannot create new wall drip sources.
+
+## Visual zoning
+
+Rendering uses the same continuous field but a zone-aware opacity and color mapping:
+
+- mist: faint, brighter red, decorative;
+- body: substantially more opaque so narrow drip trails remain readable;
+- dense: darker red and nearly opaque;
+- hanging tips: darkened to match dense outlet material.
+
+This visual classification does not alter field amount or conservation.
 
 ## Hanging-tip stage
 
@@ -125,5 +148,7 @@ E5 records the controlled Phase 5 lifecycle.
 8. Contact transfer reuses the persistent field.
 9. Rendering and camera orientation do not modify simulation state.
 10. Earlier phase harnesses remain preserved.
-11. Drag input changes impact direction and speed but never camera or simulation coordinates.
-12. A phase commit or patch commit updates code, tests, experiment records, documentation, and release metadata together.
+11. Only dense connected regions may nominate new wall drip sources.
+12. Mist remains non-dripping decorative material.
+13. Drag input changes impact direction and speed but never camera or simulation coordinates.
+14. A phase commit or patch commit updates code, tests, experiment records, documentation, and release metadata together.

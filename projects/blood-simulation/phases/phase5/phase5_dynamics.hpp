@@ -5,7 +5,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <queue>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace blood5 {
@@ -22,9 +25,13 @@ struct Settings : blood4::Settings {
     double radialPoolRate{0.22};
     double poolRadiusCells{3.0};
     double poolIrregularity{0.055};
-    double sourceAmountThreshold{0.18};
-    double sourceWetnessThreshold{0.20};
-    double sourceDensityMultiplier{2.0};
+    double mistAmountThreshold{0.045};
+    double bodyAmountThreshold{0.065};
+    double denseAmountThreshold{0.28};
+    double denseWetnessThreshold{0.24};
+    double denseOutletContrastThreshold{0.025};
+    int maxSourcesPerDenseComponent{2};
+    int minDenseSourceSpacingCells{5};
     int maxHangingTips{24};
 
     Settings() {
@@ -35,7 +42,7 @@ struct Settings : blood4::Settings {
         sourceDensity=0.16;
         sourceScanInterval=0.18;
         sourceSiteCooldown=1.20;
-        maxSourcesPerSurface=6;
+        maxSourcesPerSurface=4;
     }
 };
 
@@ -60,6 +67,83 @@ struct Stats : blood4::Stats {
     int hangingTips{};
     double radialPoolMoved{};
 };
+
+enum class BloodZone {
+    Mist,
+    Body,
+    Dense
+};
+
+inline BloodZone classifyZone(
+    double amount,
+    double wetness,
+    const Settings& settings
+) {
+    if(
+        amount>=settings.denseAmountThreshold
+        &&wetness>=settings.denseWetnessThreshold
+    ) {
+        return BloodZone::Dense;
+    }
+
+    if(amount>=settings.bodyAmountThreshold) {
+        return BloodZone::Body;
+    }
+
+    return BloodZone::Mist;
+}
+
+inline double renderOpacity(
+    double amount,
+    double wetness,
+    const Settings& settings
+) {
+    const BloodZone zone=
+        classifyZone(amount,wetness,settings);
+
+    if(zone==BloodZone::Dense) {
+        const double t=std::clamp(
+            (
+                amount-settings.denseAmountThreshold
+            )/0.55,
+            0.0,
+            1.0
+        );
+        return 0.93+0.05*std::sqrt(t);
+    }
+
+    if(zone==BloodZone::Body) {
+        const double t=std::clamp(
+            (
+                amount-settings.bodyAmountThreshold
+            )/std::max(
+                0.001,
+                settings.denseAmountThreshold
+                -settings.bodyAmountThreshold
+            ),
+            0.0,
+            1.0
+        );
+        return 0.72+0.22*std::sqrt(t);
+    }
+
+    const double t=std::clamp(
+        amount/std::max(
+            0.001,
+            settings.bodyAmountThreshold
+        ),
+        0.0,
+        1.0
+    );
+    return 0.10+0.30*std::sqrt(t);
+}
+
+inline std::uint64_t denseCoordKey(int gx,int gy) {
+    return
+        (std::uint64_t(std::uint32_t(gx))<<32)
+        |std::uint32_t(gy);
+}
+
 
 inline double tipProgress(const HangingDrop& tip) {
     if(tip.releaseAge<=1e-9)return 1.0;
@@ -171,7 +255,7 @@ inline int updateHangingDrops(
     return released;
 }
 
-inline int discoverSourcesRefined(
+inline int discoverDenseOutletSources(
     FieldSet& fields,
     const std::vector<PlanarSurface>& surfaces,
     State& state,
@@ -181,151 +265,336 @@ inline int discoverSourcesRefined(
 
     state.sourceScanTimer=settings.sourceScanInterval;
 
+    const auto active=blood3::activeWetCells(fields);
     int spawned=0;
-    const auto cells=blood3::activeWetCells(fields);
 
-    for(const auto& snap:cells) {
-        if(snap.surface<0||snap.surface>=int(surfaces.size()))continue;
+    struct DenseRef {
+        int gx{};
+        int gy{};
+        double amount{};
+        double wetness{};
+    };
 
+    struct Candidate {
+        DenseRef cell{};
+        double score{};
+    };
+
+    for(int surfaceIndex=0;
+        surfaceIndex<int(surfaces.size());
+        ++surfaceIndex
+    ) {
         const auto& surface=
-            surfaces[std::size_t(snap.surface)];
+            surfaces[std::size_t(surfaceIndex)];
 
         if(blood4::horizontal(surface))continue;
 
         if(
-            snap.amount<settings.sourceAmountThreshold
-            ||snap.wetness<settings.sourceWetnessThreshold
-        ) {
-            continue;
-        }
-
-        if(
             blood4::sourceCountOnSurface(
                 state,
-                snap.surface
+                surfaceIndex
             )>=settings.maxSourcesPerSurface
         ) {
             continue;
         }
 
-        if(
-            blood4::hasNearbySource(
-                state,
-                snap.surface,
-                snap.gx,
-                snap.gy,
-                4
-            )
-        ) {
-            continue;
-        }
-
-        const std::uint64_t key=
-            blood4::siteKey(
-                snap.surface,
-                snap.gx,
-                snap.gy
-            );
-
-        if(
-            state.siteCooldown.find(key)
-            !=state.siteCooldown.end()
-        ) {
-            continue;
-        }
-
         const Vec3 gravity{0,0,-9.81};
-
         const Vec3 tangent=
             blood::surfaceGravity(
                 gravity,
                 surface.normal
             );
 
-        const double gU=
-            blood::dot(
-                tangent,
-                surface.axisU
+        double gU=blood::dot(tangent,surface.axisU);
+        double gV=blood::dot(tangent,surface.axisV);
+        const double gMag=std::hypot(gU,gV);
+
+        if(gMag<0.20)continue;
+
+        gU/=gMag;
+        gV/=gMag;
+
+        std::unordered_map<
+            std::uint64_t,
+            DenseRef
+        > dense;
+
+        for(const auto& snap:active) {
+            if(snap.surface!=surfaceIndex)continue;
+
+            if(
+                classifyZone(
+                    snap.amount,
+                    snap.wetness,
+                    settings
+                )!=BloodZone::Dense
+            ) {
+                continue;
+            }
+
+            dense.emplace(
+                denseCoordKey(snap.gx,snap.gy),
+                DenseRef{
+                    snap.gx,
+                    snap.gy,
+                    snap.amount,
+                    snap.wetness
+                }
             );
-
-        const double gV=
-            blood::dot(
-                tangent,
-                surface.axisV
-            );
-
-        if(std::hypot(gU,gV)<0.20)continue;
-
-        const auto& field=
-            fields.surfaces[
-                std::size_t(snap.surface)
-            ];
-
-        if(
-            !blood4::localPeakAcrossFlow(
-                field,
-                snap.gx,
-                snap.gy,
-                gU,
-                gV,
-                snap.amount
-            )
-        ) {
-            continue;
         }
 
-        const double chance=
-            blood4::hash01(
-                std::uint32_t(snap.surface+1),
-                std::uint32_t(snap.gx+4096),
-                std::uint32_t(snap.gy+8192)
+        if(dense.empty())continue;
+
+        std::unordered_set<std::uint64_t> visited;
+        const auto& field=
+            fields.surfaces[
+                std::size_t(surfaceIndex)
+            ];
+
+        for(const auto& seedEntry:dense) {
+            if(
+                visited.find(seedEntry.first)
+                !=visited.end()
+            ) {
+                continue;
+            }
+
+            std::vector<DenseRef> component;
+            std::queue<DenseRef> pending;
+
+            pending.push(seedEntry.second);
+            visited.insert(seedEntry.first);
+
+            while(!pending.empty()) {
+                const DenseRef current=pending.front();
+                pending.pop();
+                component.push_back(current);
+
+                for(int oy=-1;oy<=1;++oy) {
+                    for(int ox=-1;ox<=1;++ox) {
+                        if(ox==0&&oy==0)continue;
+
+                        const std::uint64_t key=
+                            denseCoordKey(
+                                current.gx+ox,
+                                current.gy+oy
+                            );
+
+                        const auto it=dense.find(key);
+
+                        if(
+                            it==dense.end()
+                            ||visited.find(key)!=visited.end()
+                        ) {
+                            continue;
+                        }
+
+                        visited.insert(key);
+                        pending.push(it->second);
+                    }
+                }
+            }
+
+            if(component.empty())continue;
+
+            double minDown=1e30;
+            double maxDown=-1e30;
+
+            for(const auto& c:component) {
+                const double p=c.gx*gU+c.gy*gV;
+                minDown=std::min(minDown,p);
+                maxDown=std::max(maxDown,p);
+            }
+
+            std::vector<Candidate> candidates;
+
+            for(const auto& c:component) {
+                bool downhillBoundary=false;
+                double strongestContrast=0.0;
+
+                double neighborTotal=0.0;
+                int neighborCount=0;
+
+                for(int oy=-1;oy<=1;++oy) {
+                    for(int ox=-1;ox<=1;++ox) {
+                        if(ox==0&&oy==0)continue;
+
+                        const double len=
+                            std::hypot(
+                                double(ox),
+                                double(oy)
+                            );
+
+                        const double downhill=
+                            (ox*gU+oy*gV)/len;
+
+                        const double other=
+                            blood4::amountAt(
+                                field,
+                                c.gx+ox,
+                                c.gy+oy
+                            );
+
+                        neighborTotal+=other;
+                        ++neighborCount;
+
+                        if(downhill<=0.30)continue;
+
+                        const auto denseIt=
+                            dense.find(
+                                denseCoordKey(
+                                    c.gx+ox,
+                                    c.gy+oy
+                                )
+                            );
+
+                        if(
+                            denseIt==dense.end()
+                            ||c.amount-other
+                                >=settings
+                                    .denseOutletContrastThreshold
+                        ) {
+                            downhillBoundary=true;
+                            strongestContrast=std::max(
+                                strongestContrast,
+                                c.amount-other
+                            );
+                        }
+                    }
+                }
+
+                if(!downhillBoundary)continue;
+
+                const double localMean=
+                    neighborCount>0
+                    ?neighborTotal/neighborCount
+                    :0.0;
+
+                const double localPeak=
+                    std::max(
+                        0.0,
+                        c.amount-localMean
+                    );
+
+                const double downPosition=
+                    maxDown-minDown>1e-6
+                    ?std::clamp(
+                        (
+                            c.gx*gU+c.gy*gV
+                            -minDown
+                        )/(maxDown-minDown),
+                        0.0,
+                        1.0
+                    )
+                    :1.0;
+
+                if(downPosition<0.82)continue;
+
+                const double score=
+                    c.amount*2.0
+                    +c.wetness*0.45
+                    +std::max(
+                        0.0,
+                        strongestContrast
+                    )*1.8
+                    +localPeak*0.8
+                    +downPosition*0.75
+                    +0.05*blood4::hash01(
+                        std::uint32_t(surfaceIndex+1),
+                        std::uint32_t(c.gx+4096),
+                        std::uint32_t(c.gy+8192)
+                    );
+
+                candidates.push_back({c,score});
+            }
+
+            std::sort(
+                candidates.begin(),
+                candidates.end(),
+                [](const Candidate& a,const Candidate& b) {
+                    return a.score>b.score;
+                }
             );
 
-        const double richness=
-            std::clamp(
-                (
-                    snap.amount
-                    -settings.sourceAmountThreshold
-                    +0.10
-                )/0.55,
-                0.65,
-                1.80
-            );
+            const int densityOutlets=
+                settings.sourceDensity>=0.15
+                ?2
+                :1;
 
-        const double probability=
-            std::clamp(
-                settings.sourceDensity
-                *settings.sourceDensityMultiplier
-                *richness,
-                0.0,
-                1.0
-            );
+            const int outletLimit=
+                std::min(
+                    settings.maxSourcesPerDenseComponent,
+                    densityOutlets
+                );
 
-        if(chance>probability)continue;
+            int selected=0;
 
-        blood4::DripSource source;
+            for(const auto& candidate:candidates) {
+                if(selected>=outletLimit)break;
 
-        source.surface=snap.surface;
-        source.gx=snap.gx;
-        source.gy=snap.gy;
-        source.rootX=snap.gx;
-        source.rootY=snap.gy;
+                if(
+                    blood4::sourceCountOnSurface(
+                        state,
+                        surfaceIndex
+                    )>=settings.maxSourcesPerSurface
+                ) {
+                    break;
+                }
 
-        source.seed=blood3::mixSeed(
-            0x5a91bu,
-            ++state.sourceSerial
-        );
+                if(
+                    blood4::hasNearbySource(
+                        state,
+                        surfaceIndex,
+                        candidate.cell.gx,
+                        candidate.cell.gy,
+                        settings
+                            .minDenseSourceSpacingCells
+                    )
+                ) {
+                    continue;
+                }
 
-        source.timer=
-            0.02
-            +0.09*blood4::hash01(
-                source.seed,
-                std::uint32_t(snap.gx),
-                std::uint32_t(snap.gy)
-            );
+                const std::uint64_t key=
+                    blood4::siteKey(
+                        surfaceIndex,
+                        candidate.cell.gx,
+                        candidate.cell.gy
+                    );
 
-        state.sources.push_back(source);
-        ++spawned;
+                if(
+                    state.siteCooldown.find(key)
+                    !=state.siteCooldown.end()
+                ) {
+                    continue;
+                }
+
+                blood4::DripSource source;
+                source.surface=surfaceIndex;
+                source.gx=candidate.cell.gx;
+                source.gy=candidate.cell.gy;
+                source.rootX=candidate.cell.gx;
+                source.rootY=candidate.cell.gy;
+                source.seed=blood3::mixSeed(
+                    0x5a91bu,
+                    ++state.sourceSerial
+                );
+                source.timer=
+                    0.02
+                    +0.08*blood4::hash01(
+                        source.seed,
+                        std::uint32_t(
+                            candidate.cell.gx
+                        ),
+                        std::uint32_t(
+                            candidate.cell.gy
+                        )
+                    );
+
+                state.sources.push_back(source);
+                ++selected;
+                ++spawned;
+            }
+        }
     }
 
     return spawned;
@@ -562,7 +831,7 @@ inline Stats update(
     blood4::tickCooldowns(state,dt);
 
     const int refinedSpawned=
-        discoverSourcesRefined(
+        discoverDenseOutletSources(
             fields,
             surfaces,
             state,

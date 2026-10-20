@@ -3,7 +3,7 @@
 **NM-PM study:** Real-Time Hybrid Blood Simulation for 2.5D Environments  
 **Canonical path:** `projects/blood-simulation/`  
 **Current phase:** Phase 5 - drip maturation and radial floor pooling  
-**Current milestone:** `blood-simulation-v0.6.1`
+**Current milestone:** `blood-simulation-v0.6.2`
 
 This study investigates performance-oriented approximations for blood motion and persistent deposits in a mathematically three-dimensional environment presented through an orthographic 2.5D camera.
 
@@ -30,12 +30,13 @@ The active prototype has reached Phase 5 refinement testing:
 - exact shared-edge continuation plus short support probing;
 - player pickup and directional floor smearing;
 - hanging-tip maturation before unsupported drops enter world space;
-- Phase 5-specific lower-threshold drip-source discovery so ordinary wet wall splats actually form descending channels;
+- dense connected-region outlet selection so only the heaviest gravity-facing parts of a wall stain can start drips;
+- mist/body/dense visual zoning with much darker, more opaque dense cores and more visible drip-scale body material;
 - wider radial floor relaxation for more circular pools, retuned to expand substantially more slowly;
 - drag-to-splash input: drag direction maps into the clicked surface's local U/V direction and drag length controls impact speed;
 - an isometric orthographic default camera for this release;
 - fixed simulation substeps of at most 1/120 s;
-- durable experiments BS-001 through BS-010 and E1 through E5 exports.
+- durable experiments BS-001 through BS-011 and E1 through E5 exports.
 
 Earlier phase harnesses remain preserved. Phase 5 is the current behavioral checkpoint before surface geometry is generalized.
 
@@ -88,6 +89,7 @@ The camera defaults to approximately 45 degrees yaw and 35.264 degrees pitch. Ca
 | BS-008 | Phase 4 | Connected transfer and contact smearing |
 | BS-009 | Phase 5 | Hanging drip-tip maturation and delayed detachment |
 | BS-010 | Phase 5 | Radial floor pooling and isometric camera stress test |
+| BS-011 | Phase 5 | Dense-region outlet gating and mist/body/dense visual zoning |
 
 See `experiments/INDEX.md`.
 
@@ -111,3 +113,10 @@ Phase 7 -> blood-simulation-v0.8.0
 ## AI transparency
 
 This study follows the repository-level `AI_DISCLOSURE.md`. Generative AI substantially assists implementation, mathematical exploration, prototyping, debugging, alternative approaches, code generation, documentation, and research organization. Human direction defines and evaluates the research.
+
+
+## Phase 5.2 dense-region patch
+
+The v0.6.2 patch replaces broad cell-by-cell source competition with connected dense-region outlet selection. Low-density mist can no longer start a drip. A dense connected stain component may nominate only a small number of well-spaced outlets from its gravity-facing lower edge.
+
+Rendering now separates mist, body material, and dense cores. Mist remains faint, body material is more opaque so narrow runs stay visible, and dense cores are darker and nearly opaque.
