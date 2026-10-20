@@ -1,4 +1,4 @@
-# NM-PM — New Methodology, Powered by Machines
+# NM-PM: New Methodology, Powered by Machines
 
 NM-PM is a monorepo for independent experimental technical systems developed through human-directed research with substantial assistance from generative AI and machine-learning-based tools.
 
