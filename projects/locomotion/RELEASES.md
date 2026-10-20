@@ -48,3 +48,20 @@ The second milestone adds measurement without active balance control:
 - documentation scrollbar styling aligned with Sprite Projection and Blood Simulation.
 
 The release packages both preserved native harnesses so the Phase 0 and Phase 1 checkpoints can be inspected directly.
+
+## v0.3.0 - LO-003 Static Standing Solver
+
+The third milestone introduces the first pose-changing locomotion method:
+
+- analytic two-link IK for both legs;
+- shared pelvis-height feasibility before solving;
+- deterministic body-forward knee branch;
+- exact feasible ankle targets;
+- unreachable-target clamping without limb stretching;
+- comfortable and outer joint-envelope diagnostics;
+- unequal-height foot support preset;
+- deliberate high-pelvis and overreach failure tests;
+- fifteen Phase 2 tests in addition to preserved Phase 0 and Phase 1 suites;
+- preserved LO-001, LO-002, and LO-003 native harnesses in one release.
+
+The milestone remains static. No gait clock, step trajectory, momentum-driven pelvis movement, or balance force is introduced.
