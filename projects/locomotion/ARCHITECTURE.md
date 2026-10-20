@@ -1,14 +1,14 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-002 / Phase 1 mass + support analysis  
+**Architecture checkpoint:** LO-003 / Phase 2 static standing solver  
 **Date:** 2026-10-20  
-**Status:** Active study, measurement layer implemented
+**Status:** Active study, first pose-solving layer implemented
 
 ## Current boundary
 
-LO-002 still does not implement locomotion control.
+LO-003 is the first experiment that changes the pose, but it still does not implement gait.
 
-Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state on top of that contract without altering the pose.
+Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves explicit static pelvis and foot targets with analytic two-link legs.
 
 It freezes the first contract that later phases are allowed to build on:
 
@@ -171,6 +171,38 @@ The 14-segment mass distribution uses the arithmetic mean of de Leva's female an
 
 No result from this layer applies a force, moves the pelvis, edits a foot target, or changes the pose.
 
+## Phase 2 standing solver
+
+LO-003 adds a pose-solving layer above the frozen anatomy:
+
+```text
+requested pelvis + ankle targets
+              |
+              v
+   shared pelvis-height window
+              |
+              v
+      analytic two-leg IK
+              |
+      +-------+-------+
+      v               v
+ deterministic     reach /
+ knee branch       limit status
+      |               |
+      +-------+-------+
+              v
+         solved pose
+              |
+              v
+      LO-002 measurement
+```
+
+The leg solver preserves upper- and lower-leg lengths. A body-forward knee preference selects the analytic branch. If a requested pelvis height exceeds the shared geometric window, pelvis Z is clamped before solving. If an ankle target is fundamentally unreachable, the requested marker remains visible but the solved ankle clamps to the nearest legal chain length instead of stretching a segment.
+
+Phase 2 feet remain flat. Heel, forefoot, and toe markers translate with the solved ankle but do not rotate.
+
+Joint-angle diagnostics test hip flexion/extension, hip abduction/adduction, knee flexion, and ankle plantar/dorsiflexion against the LO-001 comfortable and outer envelopes. These are controller diagnostics, not a full clinical joint model.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
@@ -232,16 +264,17 @@ This is a research decomposition, not yet an implementation hierarchy.
 
 ## Next research boundary
 
-LO-003 should be the first pose-solving experiment.
+LO-004 should introduce exactly one procedural step.
 
 Expected additions:
 
-- explicit foot targets;
-- analytic two-link leg solving;
-- pelvis-height feasibility;
-- knee-direction control;
-- reach margin;
-- joint-limit-aware standing poses;
-- unequal foot-height tests.
+- one planted support foot;
+- one swing foot;
+- start and end footholds;
+- generated swing trajectory;
+- minimum toe-clearance measurement;
+- contact-aware landing event;
+- pelvis/body target interpolation through the step;
+- explicit abort/reject behavior for unreachable landing targets.
 
-LO-003 may change the pose to satisfy explicit geometric targets, but support analysis must remain a measurement layer. It must not silently translate the body merely because a COM or XCoM margin is negative.
+Continuous alternating gait remains outside LO-004. The purpose is to validate one complete support-to-support transfer before repetition hides errors.
