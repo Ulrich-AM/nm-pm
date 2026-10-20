@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-002 adds segment mass, whole-body COM, support polygons, signed margins, and XCoM diagnostics without active balancing.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-003 adds the first analytic static standing solver with explicit pelvis/foot targets, reach constraints, and joint-envelope diagnostics.
 
 ### Reference
 
