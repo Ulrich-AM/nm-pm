@@ -31,15 +31,31 @@ add_executable(locomotion_phase0_tests
 )
 target_include_directories(locomotion_phase0_tests PRIVATE phases/phase0)
 
+add_executable(locomotion_phase1
+    phases/phase1/main.cpp
+)
+target_include_directories(locomotion_phase1 PRIVATE phases/phase0 phases/phase1)
+target_link_libraries(locomotion_phase1 PRIVATE raylib)
+
+add_executable(locomotion_phase1_tests
+    phases/phase1/test_phase1.cpp
+)
+target_include_directories(locomotion_phase1_tests PRIVATE phases/phase0 phases/phase1)
+
 if (MSVC)
     target_compile_options(locomotion_phase0 PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase0_tests PRIVATE /W4 /permissive-)
+    target_compile_options(locomotion_phase1 PRIVATE /W4 /permissive-)
+    target_compile_options(locomotion_phase1_tests PRIVATE /W4 /permissive-)
 else()
     target_compile_options(locomotion_phase0 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase0_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(locomotion_phase1 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(locomotion_phase1_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 include(CTest)
 if (BUILD_TESTING)
     add_test(NAME locomotion_phase0_tests COMMAND locomotion_phase0_tests)
+    add_test(NAME locomotion_phase1_tests COMMAND locomotion_phase1_tests)
 endif()
