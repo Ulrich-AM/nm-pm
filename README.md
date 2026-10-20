@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-001 establishes the static anatomy, coordinate, joint-envelope, and foot-contact foundation.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-002 adds segment mass, whole-body COM, support polygons, signed margins, and XCoM diagnostics without active balancing.
 
 ### Reference
 
