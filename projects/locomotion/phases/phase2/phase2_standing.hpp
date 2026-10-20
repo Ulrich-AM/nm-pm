@@ -368,6 +368,7 @@ inline StandingTargets splitPreset(const ReferenceBody& reference){
 
 inline StandingTargets raisedLeftPreset(const ReferenceBody& reference){
     auto t=neutralTargets(reference);
+    t.left.ankle.y+=0.25;
     t.left.ankle.z+=0.18;
     return t;
 }
@@ -387,7 +388,7 @@ inline StandingTargets overreachPreset(const ReferenceBody& reference){
 
 struct SelfTestResult { const char* name; bool pass; };
 
-inline std::array<SelfTestResult,15> runSelfTests(){
+inline std::array<SelfTestResult,16> runSelfTests(){
     const ReferenceBody reference=locomotion::makeReferenceBody();
     const auto neutral=solveStanding(reference,neutralTargets(reference));
     const auto low=solveStanding(reference,lowPreset(reference));
@@ -414,6 +415,7 @@ inline std::array<SelfTestResult,15> runSelfTests(){
         {"split pose preserves exact ankle targets",locomotion::near(split.left.ankle,split.requested.left.ankle,1e-8)&&locomotion::near(split.right.ankle,split.requested.right.ankle,1e-8)},
         {"raised foot lands on requested surface",std::abs(raisedSurface-0.18)<1e-8},
         {"raised foot solution remains reachable",raised.left.geometricReach&&raised.right.geometricReach},
+        {"raised step stays inside outer limits",raised.left.withinOuterLimits&&raised.right.withinOuterLimits},
         {"too-high pelvis clamps to shared feasible maximum",high.pelvisHeightClamped&&high.solvedTargets.pelvis.z<high.requested.pelvis.z},
         {"overreach preset reports infeasible shared pelvis",!overreach.sharedPelvisFeasible&&!overreach.left.geometricReach&&!overreach.right.geometricReach},
         {"overreach fallback preserves solved bone lengths",
