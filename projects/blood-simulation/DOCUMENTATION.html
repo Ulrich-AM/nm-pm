@@ -145,7 +145,7 @@ footer{margin-top:54px;padding-top:14px;border-top:1px solid var(--line);font-si
 <section id="overview">
 <h1>Real-Time Hybrid Blood Simulation for 2.5D Environments</h1>
 <p class="lead">A completed technical study of how ballistic droplets, persistent surface deposits, accumulation, dripping, puddling, transfer, smearing, and drying can be approximated efficiently in an orthographic 2.5D presentation backed by a mathematically three-dimensional world.</p>
-<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Status</b><span>Completed reference study + Phase 8 extension</span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current extension</b><span>Phase 8 - impact-fed gravity rivulets</span><b>Final experiments</b><span>BS-016 / BS-017</span><b>Native artifact</b><span><code>phases/phase8/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.9.0</code></span></div>
+<div class="meta"><b>Collection</b><span><a href="../../">NM-PM - New Methodology, Powered by Machines</a></span><b>Status</b><span>Completed reference study + Phase 8 extension</span><b>Study path</b><span><code>projects/blood-simulation/</code></span><b>Current extension</b><span>Phase 8 - impact-fed gravity rivulets</span><b>Extension experiment</b><span>BS-019</span><b>Native artifact</b><span><code>phases/phase8/main.cpp</code></span><b>Milestone</b><span><code>blood-simulation-v0.9.0</code></span></div>
 <div class="note">Phase 7 remains the frozen reference. Phase 8 is a bounded extension that promotes qualifying fresh dense wall impacts directly into the existing full-runner path, producing long gravity rivulets without restoring broad stain advection.</div>
 </section>
 
@@ -211,7 +211,9 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 
 <section id="streaks"><h3>Sparse Impact Drip Streaks</h3><p>Each streak gathers a bounded reservoir while leaving at least 82 percent of each contributing cell or the body threshold. It advances under projected world gravity. In the v0.8.1 readability patch, a normal step writes a mass-conserving three-cell ribbon with most material in the center and enough real side-cell mass to remain visible through the raw-cell cutoff. Strong streaks may briefly use a wider source-proximal profile. Most travel remains straight, with sparse deterministic one-cell lateral wiggle.</p><p>Impact streaks never become airborne. The Phase 6 full runner remains the distinct path for a bead that reaches a surface edge, hangs, and becomes a world-space droplet.</p></section>
 
-<section id="e7"><h3>E7 Final Scale Sweep</h3><pre>results/phase7/E7_final_reference.csv</pre><p>The preserved Phase 7 export begins with sixteen deterministic impacts and simulates 45 seconds. It records wet and frozen cells, allocated sparse tiles, estimated field bytes, total attached amount, full runners, short streaks, hanging tips, airborne droplets, puddle cells, runner and streak movement, maintenance passes, detachments, and landings.</p></section>\n\n<section id="phase8"><h2>Phase 8 - Gravity Rivulet Extension</h2><p>Phase 8 does not add another fluid representation. After a fresh impact is deposited, a deterministic local search may promote one sufficiently wet dense cell into the existing Phase 6 full-runner path immediately. Mist, body-only material, frozen cells, already-seeded neighborhoods and nearby active runners remain ineligible.</p><p>The promoted runner uses the existing bounded reservoir and distance-to-edge trail budget, moves under projected world gravity, leaves a persistent narrow runoff trail, becomes a hanging tip at the surface edge, and then enters the existing XYZ droplet solver. Swept collision determines the first valid lower surface for redeposition. Phase 7 short impact streaks remain unchanged and may coexist with the rivulet.</p><h3>E8 Rivulet Sweep</h3><pre>results/phase8/E8_rivulet_reference.csv</pre><p>E8 repeats the multi-impact reference run with immediate long-rivulet nomination enabled while retaining the same sparse-field, runner, hanging-tip, droplet, pooling, drying and performance accounting.</p></section>
+<section id="e7"><h3>E7 Final Scale Sweep</h3><pre>results/phase7/E7_final_reference.csv</pre><p>The preserved Phase 7 export begins with sixteen deterministic impacts and simulates 45 seconds. It records wet and frozen cells, allocated sparse tiles, estimated field bytes, total attached amount, full runners, short streaks, hanging tips, airborne droplets, puddle cells, runner and streak movement, maintenance passes, detachments, and landings.</p></section>
+
+<section id="phase8"><h2>Phase 8 - Gravity Rivulet Extension</h2><p>Phase 8 does not add another fluid representation. After a fresh impact is deposited, a deterministic local search may promote one sufficiently wet dense cell into the existing Phase 6 full-runner path immediately. Mist, body-only material, frozen cells, already-seeded neighborhoods and nearby active runners remain ineligible.</p><p>The promoted runner uses the existing bounded reservoir and distance-to-edge trail budget, moves under projected world gravity, leaves a persistent narrow runoff trail, becomes a hanging tip at the surface edge, and then enters the existing XYZ droplet solver. Swept collision determines the first valid lower surface for redeposition. Phase 7 short impact streaks remain unchanged and may coexist with the rivulet.</p><h3>E8 Rivulet Sweep</h3><pre>results/phase8/E8_rivulet_reference.csv</pre><p>E8 repeats the multi-impact reference run with immediate long-rivulet nomination enabled while retaining the same sparse-field, runner, hanging-tip, droplet, pooling, drying and performance accounting.</p></section>
 
 
 <section id="experiments"><h2>Experiments</h2>
@@ -230,32 +232,34 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <div class="experiment"><div class="id">BS-015</div><div class="status">Implemented</div><div class="desc">Direct occupied-cell rendering, 32-cell/unit field, and reduced pool/drying/statistics pass rates.</div></div>
 <div class="experiment"><div class="id">BS-016</div><div class="status">Implemented</div><div class="desc">Zero-to-two short impact streaks, bounded local reservoirs, downward travel, deterministic wiggle, and transient caps.</div></div>
 <div class="experiment"><div class="id">BS-017</div><div class="status">Implemented</div><div class="desc">Final sixteen-impact E7 scale sweep and frozen hybrid reference architecture.</div></div>
-<div class="experiment"><div class="id">BS-018</div><div class="status">Implemented</div><div class="desc">Final readability patch for short streaks: higher nomination probability, larger reservoir, wider persistent trail, darker head, and side-cell conservation checks.</div></div>\n<div class="experiment"><div class="id">BS-019</div><div class="status">Implemented</div><div class="desc">Immediate dense-impact promotion into the existing full-runner path for long gravity rivulets, hanging tips and first-lower-surface redeposition.</div></div>
+<div class="experiment"><div class="id">BS-018</div><div class="status">Implemented</div><div class="desc">Final readability patch for short streaks: higher nomination probability, larger reservoir, wider persistent trail, darker head, and side-cell conservation checks.</div></div>
+<div class="experiment"><div class="id">BS-019</div><div class="status">Implemented</div><div class="desc">Immediate dense-impact promotion into the existing full-runner path for long gravity rivulets, hanging tips and first-lower-surface redeposition.</div></div>
 </section>
 
-<section id="measurements"><h2>Measurements</h2><p>The native suite covers Phase 8 rivulet nomination plus source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial pool symmetry, opacity ordering, runner conservation, maintenance-rate bounds, short-streak conservation, deterministic streak origins and lengths, downward streak travel, transient caps, and finite state through a ten-second fixed-step run. E7 adds a multi-impact field and transient-state scale record.</p></section>
+<section id="measurements"><h2>Measurements</h2><p>The native suite covers Phase 8 rivulet nomination plus source sparsity, stationary mass retention, support transfer, detachment, near-floor collision, connected transfer, contact smearing, hanging-tip staging, radial pool symmetry, opacity ordering, runner conservation, maintenance-rate bounds, short-streak conservation, deterministic streak origins and lengths, downward streak travel, transient caps, and finite state through a ten-second fixed-step run. E7 preserves the frozen Phase 7 scale record; E8 adds the same multi-impact accounting with immediate long-rivulet nomination enabled.</p></section>
 
 <section id="failures"><h2>Failed Approaches</h2><h3>Field-wide wall advection</h3><p>Phase 3 allowed too many wet cells to move under gravity. Large splats visibly collapsed downward. The approach is preserved as BS-005 and superseded by sparse source selection.</p><h3>Four-neighbor floor spread</h3><p>The earliest pressure pass produced diamond-shaped puddles. Phase 4 expanded to eight neighbors. Phase 5 uses a wider radial neighborhood.</p><h3>Immediate unsupported detachment</h3><p>Phase 4's endpoint-to-particle transition was functional but visually abrupt. Phase 5 adds a short hanging stage while preserving the same world-droplet solver.</p></section>
 
 <section id="promotion"><h2>Promotion Rule</h2><p>A new blood behavior is not treated as part of the eventual reference architecture simply because it looks better in one scene. Promotion requires deterministic behavior, a preserved baseline, automated conservation or geometry checks where applicable, human visual review, documented failure conditions, and no dependence on camera-space state.</p></section>
 
-<section id="roadmap"><h2>Completion Boundary</h2><p>The Blood Simulation method is frozen at Phase 7. Future work on arbitrary/deforming meshes, full fluid puddles, aerodynamic breakup, generalized surface materials, or richer rigid-body transfer should begin as a separate extension study. The completed reference remains the baseline rather than receiving additional phases.</p></section>
+<section id="roadmap"><h2>Completion Boundary</h2><p>The Phase 7 reference remains frozen. Phase 8 is a bounded source-nomination extension inside the same validated static-planar-surface scope. Future work on arbitrary/deforming meshes, full fluid puddles, aerodynamic breakup, generalized surface materials, or richer rigid-body transfer should still begin as a separate study rather than expanding this extension into a general fluid solver.</p></section>
 
-<section id="implementation"><h2>Final Implementation</h2><pre>1. Convert a surface hit into local impact parameters.
+<section id="implementation"><h2>Current Implementation</h2><pre>1. Convert a surface hit into local impact parameters.
 2. Generate deterministic procedural stain morphology.
 3. Merge the deposit into sparse surface-field tiles.
-4. Optionally seed zero to two short impact streak reservoirs.
-5. Advance short streaks under projected gravity and deposit mass-conserving three-cell trails.
-6. Discover dense gravity-facing full-runner outlet candidates.
-7. Convert one unseeded dense outlet into one larger bounded runner.
-8. Advance the runner under projected gravity and deposit a narrow trail.
-9. Convert the runner reserve into a hanging tip at the gravity-facing edge.
-10. Release matured tips into the XYZ droplet solver.
-11. Sweep droplets against world surfaces and redeposit impacts.
-12. Redistribute concentrated upward-surface blood through a 30 Hz radial pool pass.
-13. Apply drying/freezing at 20 Hz and puddle statistics at 4 Hz.
-14. Apply optional contact pickup and directional smearing.
-15. Render occupied sparse cells directly, independently of camera orientation.</pre></section>
+4. For a qualifying dense wet impact, optionally nominate one immediate long rivulet.
+5. Optionally seed zero to two preserved Phase 7 short-streak reservoirs.
+6. Advance short streaks under projected gravity and deposit mass-conserving three-cell trails.
+7. Periodically discover any remaining dense gravity-facing full-runner outlet candidates.
+8. Convert an unseeded dense outlet into the bounded full-runner representation.
+9. Advance the runner under projected gravity and deposit a narrow persistent trail.
+10. Convert the runner reserve into a hanging tip at the gravity-facing edge.
+11. Release matured tips into the XYZ droplet solver.
+12. Sweep droplets against world surfaces and redeposit on the first valid lower surface.
+13. Redistribute concentrated upward-surface blood through a 30 Hz radial pool pass.
+14. Apply drying/freezing at 20 Hz and puddle statistics at 4 Hz.
+15. Apply optional contact pickup and directional smearing.
+16. Render occupied sparse cells directly, independently of camera orientation.</pre></section>
 
 <section id="architecture"><h2>Architecture</h2><pre>phases/
 ├── phase0/
@@ -265,10 +269,11 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 ├── phase4/
 ├── phase5/
 ├── phase6/
-└── phase7/
+├── phase7/   frozen reference
+└── phase8/
     ├── main.cpp
-    ├── phase7_dynamics.hpp
-    └── test_phase7.cpp</pre><p>Phase 7 inherits the optimized Phase 6 runner and field lifecycle, adds bounded short impact streaks, and freezes the method. Earlier phase directories remain buildable research checkpoints rather than being collapsed into the final implementation.</p></section>
+    ├── phase8_dynamics.hpp
+    └── test_phase8.cpp</pre><p>Phase 8 inherits the frozen Phase 7 short-streak behavior and the optimized Phase 6 full-runner lifecycle. It changes only how a fresh dense impact may enter that runner path. Earlier phase directories remain buildable research checkpoints.</p></section>
 
 <section id="repository"><h2>Repository</h2><pre>nm-pm/
 └── projects/
@@ -318,7 +323,8 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <tr><td>v0.7.0</td><td>Phase 6 visual-solidity checkpoint: thicker mass-conserving ribbons, larger tips, halo suppression, and surface-response groundwork.</td></tr>
 <tr><td>v0.7.1</td><td>Single-reservoir runner drips, one-shot region seeding, direct occupied-cell rendering, 32-cell/unit Phase 6 field, and lower-frequency pool/drying maintenance.</td></tr>
 <tr><td>v0.8.0</td><td>Final Phase 7 reference: sparse impact streaks, bounded transient state, E7 scale sweep, and architecture freeze.</td></tr>
-<tr><td>v0.8.1</td><td>Reference readability patch: thicker, darker and more frequent short impact streaks while preserving the frozen architecture.</td></tr>\n<tr><td>v0.9.0</td><td>Phase 8 extension: qualifying fresh dense impacts can immediately enter the existing full-runner, hanging-tip and XYZ droplet pipeline for long wall rivulets.</td></tr>
+<tr><td>v0.8.1</td><td>Reference readability patch: thicker, darker and more frequent short impact streaks while preserving the frozen architecture.</td></tr>
+<tr><td>v0.9.0</td><td>Phase 8 extension: qualifying fresh dense impacts can immediately enter the existing full-runner, hanging-tip and XYZ droplet pipeline for long wall rivulets.</td></tr>
 </tbody></table></section>
 
 <footer>NM-PM / Blood Simulation / completed technical reference</footer>
@@ -337,6 +343,7 @@ new impact event</pre><p>Overlapping deposits merge through field amount instead
 <a href="#phase5">Phase 5</a>
 <a href="#phase6">Phase 6</a>
 <a href="#phase7">Phase 7</a>
+<a href="#phase8">Phase 8</a>
 <a href="#experiments">Experiments</a>
 <a href="#measurements">Measurements</a>
 <a href="#failures">Failed Approaches</a>
