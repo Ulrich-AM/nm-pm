@@ -1,0 +1,31 @@
+name: Locomotion CI
+
+on:
+  push:
+    branches:
+      - main
+      - "locomotion-*"
+    paths:
+      - "projects/locomotion/**"
+      - ".github/workflows/locomotion-ci.yml"
+  pull_request:
+    paths:
+      - "projects/locomotion/**"
+      - ".github/workflows/locomotion-ci.yml"
+
+jobs:
+  windows-native:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projects/locomotion
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build
+      - name: Build Release
+        run: cmake --build build --config Release
+      - name: Run native tests
+        run: ctest --test-dir build -C Release --output-on-failure
