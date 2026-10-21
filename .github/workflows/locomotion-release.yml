@@ -46,13 +46,14 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package LO-003
+      - name: Package LO-004
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/Release/locomotion_phase0.exe dist/Locomotion-LO001-Anatomy.exe
           Copy-Item build/Release/locomotion_phase1.exe dist/Locomotion-LO002-MassSupport.exe
           Copy-Item build/Release/locomotion_phase2.exe dist/Locomotion-LO003-StandingSolver.exe
+          Copy-Item build/Release/locomotion_phase3.exe dist/Locomotion-LO004-OneStep.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -63,6 +64,7 @@ jobs:
           Copy-Item experiments/LO-001.md dist/experiments/LO-001.md
           Copy-Item experiments/LO-002.md dist/experiments/LO-002.md
           Copy-Item experiments/LO-003.md dist/experiments/LO-003.md
+          Copy-Item experiments/LO-004.md dist/experiments/LO-004.md
 
           New-Item -ItemType Directory -Force dist/projects/locomotion | Out-Null
           Copy-Item ../../index.html dist/index.html
@@ -88,13 +90,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM third milestone release for Anatomically Constrained Procedural Human Locomotion.
+          NM-PM fourth milestone release for Anatomically Constrained Procedural Human Locomotion.
 
-          LO-003 introduces the first pose-changing method: analytic two-link standing IK with a shared pelvis-height feasibility window, deterministic forward knee selection, exact feasible foot targets, and explicit clamping for unreachable requests without limb stretching.
+          LO-004 introduces the first bounded locomotion transaction: PRELOAD, SWING, LANDING, and COMPLETE. One ankle remains planted while the opposite foot follows a generated clearance trajectory into a new standing pose.
 
-          Joint-envelope and reach diagnostics remain visible, while the LO-002 COM/support layer observes the solved pose without controlling it. The milestone remains static and contains no gait clock, step trajectory, or balance force.
+          The phase formalizes support-foot slip and swing toe clearance, validates every sampled pose through the LO-003 solver, and observes LO-002 COM/support state without feeding those measurements back into the pose.
 
-          The ZIP preserves the LO-001, LO-002, and LO-003 native harnesses and living research documentation.
+          The ZIP preserves the LO-001 through LO-004 native harnesses and living research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
