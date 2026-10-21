@@ -1,14 +1,14 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-003 / Phase 2 static standing solver  
+**Current checkpoint:** LO-004 / Phase 3 one procedural step  
 **Status:** Active
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
 The current implementation intentionally does **not** walk yet.
 
-LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 is the first pose-solving phase: explicit static pelvis and foot targets are solved with deterministic analytic two-link legs.
+LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 connects two valid standing states with one deterministic support-to-support step.
 
 ## Implemented foundation
 
@@ -44,6 +44,18 @@ LO-003 additionally defines:
 - approximate hip, knee, and ankle angle diagnostics;
 - neutral, low, wide, split, raised-foot, high-pelvis, and overreach stress presets.
 
+LO-004 additionally defines:
+
+- PRELOAD / SWING / LANDING / COMPLETE stages;
+- left- or right-foot single-step plans;
+- fixed planted-foot support targets;
+- smooth generated swing trajectories;
+- toe-clearance measurement;
+- support-slip measurement;
+- pelvis progression constrained only by reach geometry;
+- one-shot playback and phase scrubbing;
+- explicit double/single/double support transitions.
+
 The coordinate convention remains:
 
 ```text
@@ -62,7 +74,7 @@ Run:
 build_windows.bat
 ```
 
-The script configures CMake, builds the Release configuration, runs CTest, and launches the current Phase 2 harness.
+The script configures CMake, builds the Release configuration, runs CTest, and launches the current Phase 3 harness.
 
 Manual equivalent:
 
@@ -81,6 +93,8 @@ locomotion_phase1.exe
 locomotion_phase1_tests.exe
 locomotion_phase2.exe
 locomotion_phase2_tests.exe
+locomotion_phase3.exe
+locomotion_phase3_tests.exe
 ```
 
 ## Y Bot policy
