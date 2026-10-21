@@ -148,6 +148,7 @@ constexpr double kWalkHandLateralReferenceMax=0.834;
 constexpr double kWalkElbowReferenceMinDeg=15.0;
 constexpr double kWalkElbowReferenceMaxDeg=59.0;
 constexpr double kArmLengthTolerance=1e-7;
+constexpr double kPelvisYawDoubleSupportScale=0.75;
 
 inline double clamp01(double x){return std::clamp(x,0.0,1.0);}
 inline double lerp(double a,double b,double t){return a+(b-a)*t;}
@@ -563,9 +564,18 @@ inline CoordinatedSample sampleCoordinated(
         targets.pelvis.x+=out.pelvisLateralShift;
 
         // The supplied walk reference shows pelvis yaw opposing the signed
-        // leg-separation signal.
+        // leg-separation signal. The current flat-foot lower body cannot
+        // tolerate full yaw immediately after support transfer, so the yaw
+        // envelope grows with single-support progression while retaining a
+        // nonzero double-support component for continuity.
+        const double yawTransferWeight=
+            kPelvisYawDoubleSupportScale
+            +(1.0-kPelvisYawDoubleSupportScale)
+                *out.supportWeight;
         out.pelvisYawDeg=
-            -out.profile.pelvisYawAmpDeg*out.legSignal;
+            -out.profile.pelvisYawAmpDeg
+            *out.legSignal
+            *yawTransferWeight;
         out.pelvisRollDeg=
             out.profile.pelvisRollAmpDeg
             *swingSideSign(out.gait.swingSide)
