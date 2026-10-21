@@ -96,14 +96,14 @@ The fifth milestone is intended to prove that the one-step transaction can repea
 - exact completed-stance handoff;
 - fixed 0.28 m successive footfall spacing;
 - fixed 0.82 s step duration;
-- 0.045 m swing clearance retained from LO-004;
+- 0.040 m repeated-gait swing clearance after flat-foot limit testing;
 - maximum full-pose handoff delta measurement;
 - maximum pelvis handoff delta measurement;
 - accumulated planted-foot slip measurement;
 - knee-branch continuity checks;
 - 4-, 6-, and 8-step deterministic harness sequences;
 - explicit controller handoff count and integer-step stop;
-- twenty Phase 4 tests in addition to preserved earlier suites;
+- twenty-two Phase 4 tests in addition to preserved earlier suites;
 - preserved LO-001 through LO-005 native harnesses in one release.
 
 Cadence, stride length, acceleration, and desired speed remain fixed or absent. LO-006 owns continuous speed adaptation.
