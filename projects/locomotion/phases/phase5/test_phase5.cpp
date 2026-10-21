@@ -55,6 +55,43 @@ int main(){
     std::cout<<"min toe clearance = "
              <<envelope.minCoreToeClearance<<'\n';
 
+    bool printedViolation=false;
+    for(int si=0;si<=8&&!printedViolation;++si){
+        const double speed=
+            locomotion5::lerp(
+                locomotion5::kMinWalkingSpeed,
+                locomotion5::kMaxWalkingSpeed,
+                (double)si/8.0
+            );
+        locomotion5::VelocityCommand cmd{};
+        cmd.desiredSpeed=speed;
+        cmd.stepCount=6;
+        for(int pi=0;pi<=80;++pi){
+            const double phase=(double)pi/80.0;
+            const auto s=
+                locomotion5::sampleCoordinated(
+                    reference,cmd,phase
+                );
+            if(!s.allOuterLimits){
+                std::cout<<"first coordinated outer violation"
+                         <<" speed="<<speed
+                         <<" sequencePhase="<<phase
+                         <<" pelvisYaw="<<s.pelvisYawDeg
+                         <<" pelvisRoll="<<s.pelvisRollDeg
+                         <<" pelvisShift="<<s.pelvisLateralShift
+                         <<" Lhip="<<s.pose.left.angles.hipFlexionDeg
+                         <<" Lknee="<<s.pose.left.angles.kneeFlexionDeg
+                         <<" Lankle="<<s.pose.left.angles.ankleDorsiflexionDeg
+                         <<" Rhip="<<s.pose.right.angles.hipFlexionDeg
+                         <<" Rknee="<<s.pose.right.angles.kneeFlexionDeg
+                         <<" Rankle="<<s.pose.right.angles.ankleDorsiflexionDeg
+                         <<"\n";
+                printedViolation=true;
+                break;
+            }
+        }
+    }
+
     std::cout<<passed<<" / "
              <<results.size()
              <<" tests passed\n";
