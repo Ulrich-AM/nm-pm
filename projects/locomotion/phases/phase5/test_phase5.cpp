@@ -13,11 +13,11 @@ int main(){
     const auto reference=locomotion::makeReferenceBody();
     const auto envelope=locomotion5::evaluateVelocityEnvelope(reference,9,81);
     const auto slow=locomotion5::profileForSpeed(0.40);
-    const auto cruise=locomotion5::profileForSpeed(0.70);
-    const auto fast=locomotion5::profileForSpeed(1.00);
+    const auto cruise=locomotion5::profileForSpeed(0.60);
+    const auto fast=locomotion5::profileForSpeed(0.80);
 
     locomotion5::VelocityCommand cruiseCommand{};
-    cruiseCommand.desiredSpeed=0.70;
+    cruiseCommand.desiredSpeed=0.60;
     cruiseCommand.stepCount=6;
     const auto cruisePlan=locomotion5::gaitPlanFor(cruiseCommand);
     const auto cruiseEval=locomotion4::evaluateGait(reference,cruisePlan,101);
