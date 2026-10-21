@@ -416,7 +416,7 @@ void DrawDebug(
     const float x=r.x+r.width*0.73f;
     DrawLine((int)x,(int)r.y,(int)x,(int)(r.y+r.height),C_LINE2);
     Text("WHOLE-BODY STATE",x+9,r.y+8,10,C_MUTED);
-    Text(locomotion5::coordinationModeName(sample.gait.finished?CoordinationMode::FullBody:CoordinationMode::FullBody),x+9,r.y+28,9,C_DIM);
+    Text("arm actual / target",x+9,r.y+28,9,C_DIM);
     Text("L arm "+Fmt(arms.leftDeg,1)+" / "+Fmt(sample.leftArmTargetDeg,1),x+9,r.y+46,9,C_TEXT);
     Text("R arm "+Fmt(arms.rightDeg,1)+" / "+Fmt(sample.rightArmTargetDeg,1),x+9,r.y+62,9,C_TEXT);
     Text(sample.allReachable?"legs reachable":"REACH FAILURE",x+9,r.y+80,9,C_TEXT);
