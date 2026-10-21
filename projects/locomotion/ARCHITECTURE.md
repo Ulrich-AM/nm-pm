@@ -273,6 +273,40 @@ Playback uses explicit controller state: current step index, local step time, co
 
 Speed-dependent cadence and stride remain absent. Phase 4 answers only whether one validated transaction can repeat cleanly.
 
+## Phase 4 repeated gait handoff
+
+LO-005 adds persistent stance state and explicit step handoff:
+
+```text
+completed stance
+     |
+     +-- left ankle
+     +-- right ankle
+     +-- pelvis
+     |
+     v
+choose alternating swing side
+     |
+     v
+run one validated step
+     |
+     v
+COMPLETE event
+     |
+     v
+completed stance becomes next start
+```
+
+Every boundary compares the complete solved pose at `phase=1` with the next step at `phase=0`. Maximum joint and pelvis deltas are retained as formal handoff metrics.
+
+The support ankle remains a per-step invariant, so numerical drift is exposed before it can accumulate. Knee branch direction is also checked throughout the sequence.
+
+The fixed 0.28 m quantity is successive footfall spacing. After the aligned initialization step, the trailing foot travels about twice that distance in world space to pass the planted foot and land ahead of it.
+
+Playback uses explicit controller state: current step index, local step time, completed handoffs, and finished state. A normalized sequence phase exists for inspection and scrubbing, not as the sole definition of gait identity.
+
+Speed-dependent cadence and stride remain absent. Phase 4 answers only whether one validated transaction can repeat cleanly.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
