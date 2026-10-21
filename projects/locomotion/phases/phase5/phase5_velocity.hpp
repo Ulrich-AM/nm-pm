@@ -191,8 +191,8 @@ inline VelocityProfile profileForSpeed(double desiredSpeed){
     // The walk reference shows pelvis and thorax rotating approximately in
     // opposition while the hands stay much closer to the torso than the LO-001
     // neutral arm markers. These values remain conservative and procedural.
-    p.pelvisYawAmpDeg=lerp(0.6,1.2,p.speedUnit);
-    p.pelvisRollAmpDeg=lerp(0.7,1.5,p.speedUnit);
+    p.pelvisYawAmpDeg=lerp(1.0,1.8,p.speedUnit);
+    p.pelvisRollAmpDeg=lerp(0.3,0.6,p.speedUnit);
     p.pelvisLateralAmp=lerp(0.009,0.017,p.speedUnit);
     p.thoraxYawAmpDeg=lerp(2.4,4.0,p.speedUnit);
 
