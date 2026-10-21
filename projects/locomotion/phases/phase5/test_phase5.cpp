@@ -22,6 +22,12 @@ int main(){
     const auto cruisePlan=locomotion5::gaitPlanFor(cruiseCommand);
     const auto cruiseEval=locomotion4::evaluateGait(reference,cruisePlan,101);
 
+    locomotion5::VelocityCommand fastCommand{};
+    fastCommand.desiredSpeed=0.80;
+    fastCommand.stepCount=6;
+    const auto fastPlan=locomotion5::gaitPlanFor(fastCommand);
+    const auto fastEval=locomotion4::evaluateGait(reference,fastPlan,101);
+
     std::cout<<"cruise valid = "<<cruiseEval.valid
              <<" reachable="<<cruiseEval.allReachable
              <<" outer="<<cruiseEval.allOuterLimits
@@ -41,6 +47,21 @@ int main(){
              <<" Rankle="<<cruiseEval.firstOuterViolationRight.ankleDorsiflexionDeg
              <<"\n";
 
+    std::cout<<"fast valid = "<<fastEval.valid
+             <<" reachable="<<fastEval.allReachable
+             <<" outer="<<fastEval.allOuterLimits
+             <<" clamp="<<fastEval.noPelvisClamp
+             <<" knee="<<fastEval.kneeBranchesForward
+             <<" toe="<<fastEval.minCoreToeClearance
+             <<" firstOuterStep="<<fastEval.firstOuterViolationStep
+             <<" firstOuterPhase="<<fastEval.firstOuterViolationPhase
+             <<" Lhip="<<fastEval.firstOuterViolationLeft.hipFlexionDeg
+             <<" Lknee="<<fastEval.firstOuterViolationLeft.kneeFlexionDeg
+             <<" Lankle="<<fastEval.firstOuterViolationLeft.ankleDorsiflexionDeg
+             <<" Rhip="<<fastEval.firstOuterViolationRight.hipFlexionDeg
+             <<" Rknee="<<fastEval.firstOuterViolationRight.kneeFlexionDeg
+             <<" Rankle="<<fastEval.firstOuterViolationRight.ankleDorsiflexionDeg
+             <<"\n";
     std::cout<<"slow cadence = "<<slow.cadenceSpm<<" spm\n";
     std::cout<<"cruise cadence = "<<cruise.cadenceSpm<<" spm\n";
     std::cout<<"fast cadence = "<<fast.cadenceSpm<<" spm\n";
