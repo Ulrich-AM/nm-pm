@@ -44,6 +44,21 @@ int main(){
     std::cout<<"slow cadence = "<<slow.cadenceSpm<<" spm\n";
     std::cout<<"cruise cadence = "<<cruise.cadenceSpm<<" spm\n";
     std::cout<<"fast cadence = "<<fast.cadenceSpm<<" spm\n";
+    std::cout<<"envelope valid="<<envelope.valid
+             <<" stepLen="<<envelope.monotonicStepLength
+             <<" cadence="<<envelope.monotonicCadence
+             <<" duration="<<envelope.monotonicDuration
+             <<" doubleSupport="<<envelope.monotonicDoubleSupport
+             <<" gaitValid="<<envelope.allGaitsValid
+             <<" reachable="<<envelope.allReachable
+             <<" outer="<<envelope.allOuterLimits
+             <<" feet="<<envelope.feetPreserved
+             <<" arms="<<envelope.contralateralArms
+             <<" trunk="<<envelope.trunkCounterRotates
+             <<" slip="<<envelope.maxSupportSlip
+             <<" handoff="<<envelope.maxHandoffJointDelta
+             <<" toe="<<envelope.minCoreToeClearance
+             <<"\n";
     std::cout<<"max speed error = "<<envelope.maxSteadySpeedError<<'\n';
     std::cout<<"max coordinated foot error = "<<envelope.maxCoordinatedSupportFootError<<'\n';
     std::cout<<"min toe clearance = "<<envelope.minCoreToeClearance<<'\n';
