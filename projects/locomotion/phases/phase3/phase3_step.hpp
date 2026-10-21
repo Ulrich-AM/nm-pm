@@ -38,7 +38,7 @@ inline const char* stepStageName(StepStage stage){
 struct StepPlan {
     LegSide swingSide=LegSide::Right;
     double landingDistance=0.28;
-    double clearance=0.05;
+    double clearance=0.045;
     double duration=0.82;
     double liftoffPhase=0.10;
     double touchdownPhase=0.90;
