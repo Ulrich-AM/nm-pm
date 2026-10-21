@@ -1,12 +1,12 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-006 / Phase 5 velocity-driven whole-body walking  
+**Current checkpoint:** LO-006 / Phase 5 reference-informed whole-body walking  
 **Status:** Active
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
-The current implementation can now execute a steady forward walking family from a desired-speed command, including speed-dependent step spacing, cadence, support timing, pelvis/trunk coordination, and contralateral arm swing. It does **not** yet change speed while already moving.
+The current implementation can execute a steady forward walking family from a desired-speed command. Its v0.6.1 refinement uses supplied reference motion only as a measurement envelope, replacing the original wide rigid-arm approximation with independent pelvis/thorax coordination and a torso-relative two-link arm solve. It does **not** yet change speed while already moving.
 
 LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 repeats it with persistent handoffs. LO-006 maps desired steady walking speed into gait timing and restrained whole-body coordination.
 
@@ -77,11 +77,15 @@ LO-006 additionally defines:
 - exact speed closure in steady repeated gait;
 - pelvis yaw, obliquity, and lateral stance-side shift;
 - re-solving of rotated hip geometry without moving foot targets;
-- trunk counter-rotation;
-- contralateral arm targets;
-- damped stateful arm response;
+- independent opposing pelvis/thorax yaw;
+- a derived reference-motion envelope from supplied walk/run FBXs without runtime FBX dependence;
+- torso-relative normalized wrist corridors;
+- analytic shoulder/elbow/wrist solving with exact arm lengths;
+- walking elbow-flexion validation;
+- contralateral arm-drive targets;
+- damped persistent arm-drive state;
 - LEGS / PELVIS / TRUNK / FULL BODY comparison modes;
-- a sampled whole-speed-envelope validation pass.
+- a sampled whole-speed-and-body-envelope validation pass.
 
 The coordinate convention remains:
 
@@ -135,6 +139,8 @@ An untextured Y Bot or another Mixamo-style humanoid is suitable as a visual tes
 The locomotion study owns its anatomical and coordinate contract. A future adapter may map that contract onto Y Bot, Sprite Projection, or another renderer without changing the controller's meaning.
 
 LO-001 therefore uses a deterministic native reference mannequin and deliberately does not require an FBX file.
+
+LO-006 v0.6.1 analyzed four supplied Mixamo-style motion clips as evidence only. Their derived measurements are retained under `reference/`; the original animation files are neither redistributed nor required by the controller.
 
 ## Documentation
 
