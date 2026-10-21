@@ -6,7 +6,7 @@
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
-The current implementation intentionally does **not** walk yet.
+The current implementation can now repeat a fixed forward gait, but it does **not** yet adapt stride, cadence, or timing from desired speed.
 
 LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 carries completed stance state forward and alternates that step across a fixed multi-step gait.
 
