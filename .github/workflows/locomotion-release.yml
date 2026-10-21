@@ -96,7 +96,7 @@ jobs:
           $notes = @"
           NM-PM sixth milestone release for Anatomically Constrained Procedural Human Locomotion.
 
-          LO-006 maps desired steady walking speed to successive-footfall spacing, cadence, step duration, and support timing across a validated 0.40-1.00 m/s envelope.
+          LO-006 maps desired steady walking speed to successive-footfall spacing, cadence, step duration, and support timing across a validated 0.40-0.80 m/s envelope.
 
           Whole-body coordination adds pelvis yaw/obliquity/lateral shift, trunk counter-rotation, and damped contralateral arm swing while exact LO-005 foot targets remain invariant. The failed speed-scaled swing-clearance attempt is retained in the research record.
 
