@@ -1,8 +1,8 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-006 / Phase 5 reference-informed whole-body walking  
+**Architecture checkpoint:** Post-LO-006 flow audit / dynamic rebase planned  
 **Date:** 2026-10-21  
-**Status:** Active study, steady velocity-driven walking with reference-informed procedural body dynamics implemented
+**Status:** Active study; LO-006 remains implemented, but the planned architecture after Phase 5 has been revised after visual and literature review
 
 ## Current boundary
 
@@ -384,6 +384,131 @@ LEGS ONLY
 FULL BODY
 ```
 
+## Post-LO-006 flow audit
+
+LO-006 v0.6.1 passes its numerical validation but still reads visually as a march-like repeated gait.
+
+This is now treated as an architecture finding rather than a tuning failure.
+
+The implemented Phase 3-5 lineage is structurally:
+
+```text
+one valid step
+    |
+    v
+repeat with persistent stance
+    |
+    v
+derive timing from desired speed
+    |
+    v
+add pelvis / thorax / arm coordination
+```
+
+That sequence successfully proves reachability, planted-foot invariants, handoff continuity, steady-speed closure, and constrained whole-body coordination.
+
+It does **not** prove that the resulting walk has natural flow.
+
+The main limitation is that the **step transaction remains the source of body motion**. Future phases will invert that relationship so that continuous body state persists through support changes and each step/contact becomes an event inside that ongoing motion.
+
+The research note is preserved in:
+
+```text
+experiments/LO-006-FLOW-AUDIT.md
+```
+
+The audit was informed especially by:
+
+- Bruderlin and Calvert (1989), who combine goal-directed control with locomotion-specific dynamics and state/phase timing;
+- Chung and Hahn (1999), who center stance constraints, pelvis/root trajectory, swing-foot trajectory, and optimization in a hierarchical controller;
+- Boulic, Magnenat-Thalmann, and Thalmann (1990), whose parameterized empirical walking model is useful as a reference benchmark;
+- Fu (2025), whose coupled-limb phase/CPG-style architecture is useful as a modern timing reference, though not treated as biomechanical ground truth.
+
+The resulting architecture rule is:
+
+> gait rhythm may organize *when* contacts and limb transitions are preferred, but it should not directly prescribe the complete pose.
+
+### Revised runtime state
+
+Future locomotion phases should promote these quantities to persistent state:
+
+```text
+root position
+root linear velocity
+root angular velocity
+per-limb phase / readiness
+active contacts
+contact history
+support / flight state
+```
+
+The controller should not reset those quantities when one nominal step ends.
+
+### Revised runtime event flow
+
+The target event structure is:
+
+```text
+movement intent
+      |
+      v
+continuous body transport
+      |
+      v
+support/contact evaluation
+      |
+      v
+weight acceptance / stance transport
+      |
+      v
+heel -> flat -> forefoot rollover
+      |
+      +-------------------------+
+      |                         |
+      v                         v
+swing readiness            body passage
+      |                         |
+      v                         |
+toe-off / release               |
+      |                         |
+      v                         |
+swing initiation                |
+      |                         |
+      v                         |
+mid-swing transport             |
+      |                         |
+      v                         |
+terminal swing                  |
+      |                         |
+      v                         |
+contact prediction <------------+
+      |
+      v
+heel strike / touchdown
+      |
+      v
+state correction + weight transfer
+      |
+      v
+continue without a global gait reset
+```
+
+Several of these events overlap. This is not intended as another rigid fourteen-state animation machine.
+
+### Revised validation direction
+
+Existing anatomical and geometric tests remain required.
+
+Later phases should additionally measure:
+
+- root velocity continuity through contact changes;
+- root acceleration and jerk;
+- joint angular-velocity and angular-acceleration continuity;
+- contact/state discontinuity;
+- stance-leg angular acceleration where the chosen model exposes it;
+- phase correction after contact;
+- momentum/energy discontinuity where meaningful for the simplified dynamics.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
@@ -452,21 +577,50 @@ This is a research decomposition, not yet an implementation hierarchy.
 20. Reference motion may constrain or falsify procedural hypotheses, but source animation curves must not become a runtime dependency.
 21. Reference clips with qualitative names must not be treated as measured speed samples without independent velocity data.
 22. Upper-body corrections must preserve the frozen anatomical segment lengths rather than editing LO-001 proportions to fit a clip.
+23. A completed step must not automatically imply a reset of root velocity, limb phase, or contact history.
+24. Gait phase may organize event readiness, but it must not become a hidden authored animation curve for every joint.
+25. Foot rocker/contact progression must be treated as part of stance mechanics rather than decorative post-processing.
+26. Natural-flow validation must include velocity/acceleration continuity in addition to pose legality and endpoint accuracy.
 
-## Next research boundary
+## Revised research boundary
 
-LO-007 should change desired speed while the controller is already moving.
+The original plan placed acceleration/deceleration immediately after LO-006.
+
+That has been deferred.
+
+Changing speed on the current step-chain would mainly make the existing march-like controller move faster or slower without addressing the source of the visual problem.
+
+The revised sequence is:
+
+```text
+LO-007  continuous locomotion state
+LO-008  articulated stance foot
+LO-009  dynamic stance / root transport
+LO-010  contact handoff + impact
+LO-011  functional swing leg
+LO-012  pelvis / root flow
+LO-013  reactive whole body
+LO-014  start / stop / acceleration
+LO-015  dynamic balance + corrective placement
+LO-016  continuous walk / run transition
+LO-017+ terrain / stairs / obstacles / recovery / turning / body variation / whole-body contacts
+```
+
+### LO-007 - Continuous Locomotion State
+
+The next implementation should answer one narrow question:
+
+> Can the character retain continuous root motion, contact state, and coupled limb timing across support changes without treating each step as a resettable transaction?
 
 Expected additions:
 
-- start from rest;
-- accelerate toward a walking command;
-- decelerate to a lower walking command;
-- stop on a valid support state;
-- continuous stride/cadence interpolation;
-- preservation of step identity during parameter change;
-- no arm-state reset when speed changes;
-- pelvis/trunk coordination that changes without phase popping;
-- deterministic finite acceleration tests.
+- root position and linear velocity as persistent state;
+- root angular state;
+- persistent per-limb phases/readiness;
+- contact events allowed to correct phase;
+- no body-velocity reset at nominal step boundaries;
+- velocity/acceleration/phase-continuity diagnostics.
 
-LO-007 should still avoid corrective foothold placement. Active stability response remains a later question.
+LO-007 should **not** yet solve running, terrain, corrective balance, or a full rigid-body human.
+
+Its purpose is to establish the state model that those later phases need.
