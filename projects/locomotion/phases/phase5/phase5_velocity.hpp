@@ -116,7 +116,7 @@ struct VelocityEvaluation {
 constexpr double kMinWalkingSpeed=0.40;
 constexpr double kMaxWalkingSpeed=0.80;
 constexpr double kMinStepLength=0.26;
-constexpr double kMaxStepLength=0.32;
+constexpr double kMaxStepLength=0.30;
 constexpr double kMinClearance=0.038;
 constexpr double kMaxClearance=0.038;
 constexpr double kSlowDoubleSupportEdge=0.12;
