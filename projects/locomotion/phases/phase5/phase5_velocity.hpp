@@ -117,7 +117,7 @@ constexpr double kMinWalkingSpeed=0.40;
 constexpr double kMaxWalkingSpeed=1.00;
 constexpr double kMinStepLength=0.26;
 constexpr double kMaxStepLength=0.40;
-constexpr double kMinClearance=0.030;
+constexpr double kMinClearance=0.038;
 constexpr double kMaxClearance=0.038;
 constexpr double kSlowDoubleSupportEdge=0.16;
 constexpr double kFastDoubleSupportEdge=0.08;
@@ -683,7 +683,7 @@ inline std::array<SelfTestResult,26> runSelfTests(){
         {"step duration falls with requested speed",slow.stepDuration>cruise.stepDuration&&cruise.stepDuration>fast.stepDuration},
         {"double-support share falls with requested speed",slow.doubleSupportFraction>cruise.doubleSupportFraction&&cruise.doubleSupportFraction>fast.doubleSupportFraction},
         {"single-support share rises with requested speed",slow.singleSupportFraction<cruise.singleSupportFraction&&cruise.singleSupportFraction<fast.singleSupportFraction},
-        {"clearance rises modestly with requested speed",slow.clearance<cruise.clearance&&cruise.clearance<fast.clearance},
+        {"clearance preserves LO-005 flat-foot value",std::abs(slow.clearance-0.038)<1e-12&&std::abs(cruise.clearance-0.038)<1e-12&&std::abs(fast.clearance-0.038)<1e-12},
         {"pelvis yaw amplitude scales with speed",slow.pelvisYawAmpDeg<cruise.pelvisYawAmpDeg&&cruise.pelvisYawAmpDeg<fast.pelvisYawAmpDeg},
         {"arm swing amplitude scales with speed",slow.armSwingAmpDeg<cruise.armSwingAmpDeg&&cruise.armSwingAmpDeg<fast.armSwingAmpDeg},
         {"steady gait closes requested speed",std::abs(steadyPelvisSpeed(reference,command)-cruise.speed)<1e-9},
