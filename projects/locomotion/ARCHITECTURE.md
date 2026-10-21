@@ -1,14 +1,14 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-005 / Phase 4 alternating event-sequenced steps  
+**Architecture checkpoint:** LO-006 / Phase 5 velocity-driven whole-body walking  
 **Date:** 2026-10-21  
-**Status:** Active study, repeated fixed gait implemented
+**Status:** Active study, steady velocity-driven walking and whole-body coordination implemented
 
 ## Current boundary
 
-LO-005 is the first experiment that repeats locomotion over several alternating support transfers.
+LO-006 is the first experiment that accepts desired forward walking speed and changes gait parameters continuously inside a validated steady-state envelope.
 
-Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves static pelvis and foot targets. Phase 3 validates one support-to-support step. Phase 4 chains those transactions while carrying completed world-space stance state forward.
+Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves static pelvis and foot targets. Phase 3 validates one support-to-support step. Phase 4 chains those transactions with persistent stance state. Phase 5 derives step spacing, cadence, support timing, and restrained whole-body coordination from desired speed.
 
 It freezes the first contract that later phases are allowed to build on:
 
@@ -307,6 +307,68 @@ Playback uses explicit controller state: current step index, local step time, co
 
 Speed-dependent cadence and stride remain absent. Phase 4 answers only whether one validated transaction can repeat cleanly.
 
+## Phase 5 velocity-driven whole-body walking
+
+LO-006 adds one continuous command above the LO-005 handoff controller:
+
+```text
+desired forward speed
+        |
+        v
+  velocity profile
+        |
+        +-- step length
+        +-- step duration / cadence
+        +-- liftoff / touchdown timing
+        +-- pelvis coordination amplitudes
+        +-- trunk counter-yaw
+        +-- arm target amplitude
+        |
+        v
+LO-005 persistent alternating gait
+        |
+        v
+coordinated hip-frame solve
+        |
+        +-- exact foot targets retained
+        +-- pelvis yaw / obliquity
+        +-- lateral support-side shift
+        |
+        v
+trunk + stateful arm response
+        |
+        v
+LO-002 measurement of displayed body
+```
+
+The validated Phase 5 walking envelope is 0.40 to 1.00 m/s. That interval is a current-model validation range, not a biological walk/run boundary.
+
+Step duration is derived from the requested speed and successive-footfall spacing:
+
+```text
+step_duration = step_length / desired_speed
+cadence = 60 / step_duration
+```
+
+Step length increases continuously across the envelope while double-support share decreases. Exact endpoint values are controller heuristics documented in LO-006, not fitted human regressions.
+
+Whole-body coordination is layered without permitting foot drift. Pelvis yaw and obliquity first rotate the reference hip offsets, then each leg is re-solved through the LO-003 analytic solver while the original LO-005 ankle targets remain unchanged.
+
+A lateral pelvis shift is explicitly tied to single-support timing. It does not read COM or XCoM and therefore is not an active balance correction.
+
+The shoulder frame receives a smaller counter-yaw against pelvis rotation. Arm targets are contralateral to foot separation, while playback uses a damped second-order arm state rather than snapping directly to the target angle.
+
+Four comparison modes are preserved in the native harness:
+
+```text
+LEGS ONLY
++ PELVIS
++ PELVIS + TRUNK
+FULL BODY
+```
+
+The first LO-006 candidate also attempted to scale swing clearance down at slower speeds. That violated the preserved LO-005 central toe-clearance invariant, so the assumption was rejected. Phase 5 keeps the validated 0.038 m flat-foot lift across the speed envelope instead of weakening the test.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
@@ -369,19 +431,24 @@ This is a research decomposition, not yet an implementation hierarchy.
 14. Foot-specific step logic should remain separable from any future generalized hand/wall/ledge contact planner.
 15. Step-to-step continuity must be measured on the complete solved pose, not inferred from matching foot targets.
 16. Desired speed must not be introduced until fixed repeated gait can hand off without accumulated error.
+17. Whole-body coordination must preserve exact foot targets instead of visually rotating solved legs.
+18. Speed maps must be documented as controller heuristics unless fitted directly to measured data.
+19. Arm and trunk motion must remain inspectable independently from lower-body gait.
 
 ## Next research boundary
 
-LO-006 should introduce desired forward speed as an independent control input.
+LO-007 should change desired speed while the controller is already moving.
 
 Expected additions:
 
-- continuous cadence variation;
-- continuous step-length variation;
-- stance/swing timing variation;
-- gait timing derived from desired speed rather than one fixed duration;
-- smooth pelvis excursion changes;
-- preserved handoff invariants from LO-005;
-- no discrete walk-speed presets masquerading as continuous locomotion.
+- start from rest;
+- accelerate toward a walking command;
+- decelerate to a lower walking command;
+- stop on a valid support state;
+- continuous stride/cadence interpolation;
+- preservation of step identity during parameter change;
+- no arm-state reset when speed changes;
+- pelvis/trunk coordination that changes without phase popping;
+- deterministic finite acceleration tests.
 
-Start/stop acceleration and deceleration remain outside LO-006. First establish a stable family of steady forward walking speeds.
+LO-007 should still avoid corrective foothold placement. Active stability response remains a later question.
