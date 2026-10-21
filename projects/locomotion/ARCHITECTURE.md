@@ -1,16 +1,18 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** Post-LO-006 flow audit / dynamic rebase planned  
-**Date:** 2026-10-21  
-**Status:** Active study; LO-006 remains implemented, but the planned architecture after Phase 5 has been revised after visual and literature review
+**Architecture checkpoint:** LO-007 continuous locomotion state  
+**Date:** 2026-10-22  
+**Status:** Active study; Phase 6 validates persistent fixed-step locomotion state and LO-008 articulated stance-foot mechanics are next
 
 ## Current boundary
 
-LO-006 is the first experiment that accepts desired forward walking speed and changes gait parameters continuously inside a validated steady-state envelope.
+LO-007 is the first experiment that removes the finite step transaction from the runtime controller.
 
-Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves static pelvis and foot targets. Phase 3 validates one support-to-support step. Phase 4 chains those transactions with persistent stance state. Phase 5 derives step spacing, cadence, support timing, and restrained whole-body coordination from desired speed.
+Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves static pelvis and foot targets. Phase 3 validates one support-to-support step. Phase 4 chains those transactions with persistent stance state. Phase 5 derives step spacing, cadence, support timing, and restrained whole-body coordination from desired speed. Phase 6 introduces persistent fixed-step root, limb-phase, contact, and arm-response state that survives support changes.
 
-It freezes the first contract that later phases are allowed to build on:
+LO-006 remains the final checkpoint of the original step-chain architecture. LO-007 begins the dynamic rebase while preserving the validated anatomy, support analysis, constrained IK, reference analysis, and upper-limb geometry.
+
+The frozen lower-level contract remains:
 
 ```text
 renderer / imported model
@@ -384,6 +386,79 @@ LEGS ONLY
 FULL BODY
 ```
 
+## Phase 6 continuous locomotion state
+
+LO-007 implements the first architecture experiment after the flow audit.
+
+The runtime relationship is now approximately:
+
+```text
+steady desired speed
+        |
+        v
+persistent root state
+        |
+        +---------------------------+
+        |                           |
+        v                           v
+left/right unwrapped phase     contact state/history
+        |                           |
+        +-------------+-------------+
+                      v
+            release / touchdown
+             transition events
+                      |
+                      v
+          bounded timing correction
+                      |
+                      v
+        temporary swing + planted anchors
+                      |
+                      v
+           constrained LO-003 pose solve
+                      |
+                      v
+             LO-002 measurement
+```
+
+The simulation advances at a fixed 120 Hz. Root forward position is integrated from persistent root velocity. Left and right limb phases remain unwrapped across nominal cycle boundaries. Grounded feet retain world-space planted ankle anchors. Contact-transition events are written to a bounded history and may apply bounded phase/rate correction.
+
+The Phase 6 runtime does not use Phase 4 `ControllerState`, `stepIndex`, `sampleSequence()`, or Phase 5 `sampleCoordinated()` as the source of locomotion.
+
+### Contact interpretation
+
+LO-007 contact transitions are still predicted from limb phase readiness on flat ground.
+
+They are therefore not physical collision events.
+
+The architectural result is that release/touchdown transitions now modify continuing locomotion state instead of completing and reconstructing a finite step transaction. LO-010 remains responsible for contact handoff, impact, and weight-transfer response.
+
+### Flat-foot root/pelvis split
+
+The persistent root is not yet identical to the displayed kinematic pelvis.
+
+Root Y integrates continuously from root velocity. The pose solver then substitutes the midpoint of the current ankle targets for pelvis Y because the unchanged flat-foot LO-003 geometry otherwise exceeds the ankle dorsiflexion guardrail.
+
+This is an explicit temporary boundary, not hidden compensation.
+
+LO-008 will test whether heel-to-toe stance articulation removes part of this constraint. LO-009 will then compare dynamic stance/root-transport models.
+
+### Validation result
+
+The accepted LO-007 candidate adds 29 Phase 6 self-tests. Windows CI builds all Phase 0 through Phase 6 targets and reports 7 / 7 CTest suites passing.
+
+The candidate preserves:
+
+- zero measured root-velocity jump at support transitions;
+- zero measured root-acceleration jump in the steady kinematic transport model;
+- planted-foot slip at numerical precision;
+- exact segment lengths at numerical precision;
+- exact deterministic replay for identical fixed-tick runs;
+- persistent arm-response state;
+- indefinite locomotion without a requested integer step count.
+
+The gait may still appear march-like. That is expected because foot rocker, dynamic stance, impact handoff, functional swing, pelvis flow, and reactive whole-body dynamics remain future experiments.
+
 ## Post-LO-006 flow audit
 
 LO-006 v0.6.1 passes its numerical validation but still reads visually as a march-like repeated gait.
@@ -608,19 +683,20 @@ LO-017+ terrain / stairs / obstacles / recovery / turning / body variation / who
 
 ### LO-007 - Continuous Locomotion State
 
-The next implementation should answer one narrow question:
+Implemented in Phase 6.
 
-> Can the character retain continuous root motion, contact state, and coupled limb timing across support changes without treating each step as a resettable transaction?
+Result:
 
-Expected additions:
+> Persistent root, limb-phase, contact-history, and arm-response state can survive support transitions without a global `COMPLETE -> RESET` controller.
 
-- root position and linear velocity as persistent state;
-- root angular state;
-- persistent per-limb phases/readiness;
-- contact events allowed to correct phase;
-- no body-velocity reset at nominal step boundaries;
-- velocity/acceleration/phase-continuity diagnostics.
+The result remains intentionally incomplete. The visible pelvis still uses a flat-foot midpoint constraint even while the persistent root advances continuously.
 
-LO-007 should **not** yet solve running, terrain, corrective balance, or a full rigid-body human.
+### LO-008 - Articulated Stance Foot
 
-Its purpose is to establish the state model that those later phases need.
+The next implementation should answer:
+
+> Can heel-to-toe stance contact reduce the flat-foot compensation observed in LO-007 while preserving persistent state, planted support, and anatomical guardrails?
+
+LO-008 must make heel/flat/forefoot/toe support affect the actual solve constraint rather than rotating the rendered foot after solving.
+
+LO-009 remains responsible for the full dynamic stance/root transport model.
