@@ -201,6 +201,14 @@ DOCUMENTATION.html
 
 It is the primary living technical notebook for the study.
 
+For the immediate implementation handoff after the post-LO-006 flow audit, read:
+
+```text
+NEXT.md
+```
+
+before starting LO-007.
+
 ## Research boundary
 
 This project will not contain the complete later NM-PM physical-reaction system. Locomotion should expose useful support, gait, stability, foothold, and target-pose state so another study can disturb or react to it later.
