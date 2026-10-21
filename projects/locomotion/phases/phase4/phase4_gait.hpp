@@ -72,6 +72,10 @@ struct GaitEvaluation {
     double maxHandoffPelvisDelta=0.0;
     double minCoreToeClearance=std::numeric_limits<double>::infinity();
     double finalPelvisAdvance=0.0;
+    int firstOuterViolationStep=-1;
+    double firstOuterViolationPhase=0.0;
+    locomotion2::JointAngles firstOuterViolationLeft{};
+    locomotion2::JointAngles firstOuterViolationRight{};
 };
 
 struct ControllerState {
@@ -331,6 +335,12 @@ inline GaitEvaluation evaluateGait(
             const double u=(double)k/(double)(count-1);
             const GaitSample s=sampleStep(reference,plan,step,u);
             e.allReachable=e.allReachable&&s.allReachable;
+            if(!s.allOuterLimits&&e.firstOuterViolationStep<0){
+                e.firstOuterViolationStep=step;
+                e.firstOuterViolationPhase=u;
+                e.firstOuterViolationLeft=s.pose.left.angles;
+                e.firstOuterViolationRight=s.pose.right.angles;
+            }
             e.allOuterLimits=e.allOuterLimits&&s.allOuterLimits;
             e.noPelvisClamp=e.noPelvisClamp&&!s.pose.pelvisHeightClamped;
             e.kneeBranchesForward=e.kneeBranchesForward&&s.kneeBranchesForward;
