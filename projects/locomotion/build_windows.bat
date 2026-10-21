@@ -1,10 +1,10 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title NM-PM Locomotion - LO-003 Standing Solver
+title NM-PM Locomotion - LO-004 One Procedural Step
 
 echo ==============================================
-echo  NM-PM Locomotion - LO-003 Standing Solver
+echo  NM-PM Locomotion - LO-004 One Procedural Step
 echo ==============================================
 echo.
 
@@ -28,7 +28,7 @@ cmake --build build --config Release
 if errorlevel 1 goto :failed
 
 echo.
-echo [3/3] Running LO-001 + LO-002 + LO-003 tests...
+echo [3/3] Running LO-001 + LO-002 + LO-003 + LO-004 tests...
 ctest --test-dir build -C Release --output-on-failure
 if errorlevel 1 goto :failed
 
@@ -36,16 +36,16 @@ echo.
 echo Build and tests completed successfully.
 echo.
 
-if exist "build\Release\locomotion_phase2.exe" (
-  start "" "build\Release\locomotion_phase2.exe"
+if exist "build\Release\locomotion_phase3.exe" (
+  start "" "build\Release\locomotion_phase3.exe"
   exit /b 0
 )
-if exist "build\locomotion_phase2.exe" (
-  start "" "build\locomotion_phase2.exe"
+if exist "build\locomotion_phase3.exe" (
+  start "" "build\locomotion_phase3.exe"
   exit /b 0
 )
 
-echo [ERROR] Build reported success, but locomotion_phase2.exe was not found.
+echo [ERROR] Build reported success, but locomotion_phase3.exe was not found.
 pause
 exit /b 1
 
