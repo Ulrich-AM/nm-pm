@@ -16,6 +16,25 @@ int main(){
     const auto cruise=locomotion5::profileForSpeed(0.70);
     const auto fast=locomotion5::profileForSpeed(1.00);
 
+    locomotion5::VelocityCommand cruiseCommand{};
+    cruiseCommand.desiredSpeed=0.70;
+    cruiseCommand.stepCount=6;
+    const auto cruisePlan=locomotion5::gaitPlanFor(cruiseCommand);
+    const auto cruiseEval=locomotion4::evaluateGait(reference,cruisePlan,101);
+
+    std::cout<<"cruise valid = "<<cruiseEval.valid
+             <<" reachable="<<cruiseEval.allReachable
+             <<" outer="<<cruiseEval.allOuterLimits
+             <<" clamp="<<cruiseEval.noPelvisClamp
+             <<" knee="<<cruiseEval.kneeBranchesForward
+             <<" slip="<<cruiseEval.maxSupportSlip
+             <<" handoff="<<cruiseEval.maxHandoffJointDelta
+             <<" pelvisHandoff="<<cruiseEval.maxHandoffPelvisDelta
+             <<" toe="<<cruiseEval.minCoreToeClearance
+             <<" firstOuterStep="<<cruiseEval.firstOuterViolationStep
+             <<" firstOuterPhase="<<cruiseEval.firstOuterViolationPhase
+             <<"\n";
+
     std::cout<<"slow cadence = "<<slow.cadenceSpm<<" spm\n";
     std::cout<<"cruise cadence = "<<cruise.cadenceSpm<<" spm\n";
     std::cout<<"fast cadence = "<<fast.cadenceSpm<<" spm\n";
