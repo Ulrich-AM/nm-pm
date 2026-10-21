@@ -1,14 +1,14 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-003 / Phase 2 static standing solver  
-**Date:** 2026-10-20  
-**Status:** Active study, first pose-solving layer implemented
+**Architecture checkpoint:** LO-004 / Phase 3 one procedural step  
+**Date:** 2026-10-21  
+**Status:** Active study, first bounded locomotion transaction implemented
 
 ## Current boundary
 
-LO-003 is the first experiment that changes the pose, but it still does not implement gait.
+LO-004 is the first experiment that changes pose continuously through a locomotion event, but it still does not implement repeated gait.
 
-Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves explicit static pelvis and foot targets with analytic two-link legs.
+Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves explicit static pelvis and foot targets. Phase 3 connects valid standing states with one bounded support-to-support step.
 
 It freezes the first contract that later phases are allowed to build on:
 
@@ -203,6 +203,42 @@ Phase 2 feet remain flat. Heel, forefoot, and toe markers translate with the sol
 
 Joint-angle diagnostics test hip flexion/extension, hip abduction/adduction, knee flexion, and ankle plantar/dorsiflexion against the LO-001 comfortable and outer envelopes. These are controller diagnostics, not a full clinical joint model.
 
+## Phase 3 one-step transaction
+
+LO-004 introduces a time-normalized one-step plan:
+
+```text
+valid standing pose
+       |
+       v
+    PRELOAD
+       |
+       v
+liftoff event
+       |
+       v
+single support + swing trajectory
+       |
+       v
+touchdown event
+       |
+       v
+    LANDING
+       |
+       v
+valid standing pose
+```
+
+The opposite foot remains an invariant planted support target. The swing foot uses quintic horizontal interpolation and a `sin^2` vertical clearance profile. Pelvis position progresses independently and may lower only to remain inside the LO-003 shared reach window.
+
+Phase 3 formalizes planted-foot slip and swing toe clearance as metrics. The default plan is invalid if sampled poses become unreachable, exceed LO-001 outer joint limits, require hidden LO-003 pelvis clamping, or move the planted ankle beyond numerical tolerance.
+
+LO-002 support and COM values are observed at every sample but never feed back into the pose.
+
+The step state machine uses explicit support events rather than redefining locomotion as a permanently periodic clock. PRELOAD, LANDING, and COMPLETE are double-support states. SWING is single support.
+
+The global `NONE` support state remains valid and deliberately unused by this walking experiment. This leaves a clean route for future takeoff/flight/landing work without assuming that some foot must always support the body.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
@@ -261,20 +297,22 @@ This is a research decomposition, not yet an implementation hierarchy.
 10. A foot must retain enough geometry to reason about heel, forefoot, toe, and support area.
 11. Visual review and quantitative tests are both required for motion phases.
 12. Failed approaches remain part of the experiment record.
+13. Walking experiments must not erase the valid NONE support state needed by future jumping.
+14. Foot-specific step logic should remain separable from any future generalized hand/wall/ledge contact planner.
 
 ## Next research boundary
 
-LO-004 should introduce exactly one procedural step.
+LO-005 should test whether the end of one validated step can become the initial condition of the next step.
 
 Expected additions:
 
-- one planted support foot;
-- one swing foot;
-- start and end footholds;
-- generated swing trajectory;
-- minimum toe-clearance measurement;
-- contact-aware landing event;
-- pelvis/body target interpolation through the step;
-- explicit abort/reject behavior for unreachable landing targets.
+- alternating left/right swing sides;
+- event-driven step handoff;
+- continuous normalized gait phase across step boundaries;
+- no accumulated planted-foot drift;
+- no knee branch flips at handoff;
+- stable pelvis continuity;
+- repeated support-state transitions;
+- deterministic stop after an integer number of steps.
 
-Continuous alternating gait remains outside LO-004. The purpose is to validate one complete support-to-support transfer before repetition hides errors.
+Speed-dependent cadence and stride adaptation remain outside LO-005. Repetition should be proven before velocity becomes another independent variable.
