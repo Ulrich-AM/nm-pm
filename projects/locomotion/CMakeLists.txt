@@ -64,6 +64,17 @@ add_executable(locomotion_phase3_tests
 )
 target_include_directories(locomotion_phase3_tests PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3)
 
+add_executable(locomotion_phase4
+    phases/phase4/main.cpp
+)
+target_include_directories(locomotion_phase4 PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3 phases/phase4)
+target_link_libraries(locomotion_phase4 PRIVATE raylib)
+
+add_executable(locomotion_phase4_tests
+    phases/phase4/test_phase4.cpp
+)
+target_include_directories(locomotion_phase4_tests PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3 phases/phase4)
+
 if (MSVC)
     target_compile_options(locomotion_phase0 PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase0_tests PRIVATE /W4 /permissive-)
@@ -73,6 +84,8 @@ if (MSVC)
     target_compile_options(locomotion_phase2_tests PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase3 PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase3_tests PRIVATE /W4 /permissive-)
+    target_compile_options(locomotion_phase4 PRIVATE /W4 /permissive-)
+    target_compile_options(locomotion_phase4_tests PRIVATE /W4 /permissive-)
 else()
     target_compile_options(locomotion_phase0 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase0_tests PRIVATE -Wall -Wextra -Wpedantic)
@@ -82,6 +95,8 @@ else()
     target_compile_options(locomotion_phase2_tests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase3 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase3_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(locomotion_phase4 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(locomotion_phase4_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 include(CTest)
@@ -90,4 +105,5 @@ if (BUILD_TESTING)
     add_test(NAME locomotion_phase1_tests COMMAND locomotion_phase1_tests)
     add_test(NAME locomotion_phase2_tests COMMAND locomotion_phase2_tests)
     add_test(NAME locomotion_phase3_tests COMMAND locomotion_phase3_tests)
+    add_test(NAME locomotion_phase4_tests COMMAND locomotion_phase4_tests)
 endif()
