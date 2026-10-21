@@ -70,7 +70,7 @@ LO-005 additionally defines:
 
 LO-006 additionally defines:
 
-- continuous desired walking speed over a validated 0.40-1.00 m/s envelope;
+- continuous desired walking speed over a validated 0.40-0.80 m/s envelope;
 - speed-derived successive footfall spacing;
 - speed-derived cadence and step duration;
 - speed-dependent double/single support timing;
