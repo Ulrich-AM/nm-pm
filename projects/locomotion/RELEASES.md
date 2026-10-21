@@ -129,3 +129,26 @@ The sixth milestone introduces desired forward walking speed as a continuous ste
 - preserved LO-001 through LO-006 native harnesses in one release.
 
 Acceleration, deceleration, stopping, corrective balance, foot rocker, terrain adaptation, running, flight, and generalized contact planning remain outside this milestone.
+
+
+## v0.6.1 - LO-006 Reference-Informed Body Dynamics
+
+This corrective milestone preserves v0.6.0 as the first steady whole-body walking checkpoint, then replaces its visually over-wide upper-body approximation.
+
+Four supplied in-place walk/run FBX clips were analyzed as reference evidence. The source animations are not redistributed or replayed. Only derived measurements and analysis notes are retained.
+
+The refinement adds:
+
+- explicit reference-motion analysis under `reference/`;
+- preservation of the original v0.6.0 findings and failed assumptions;
+- independent opposing pelvis and thorax yaw;
+- reduced pelvis-yaw amplitude to remain inside the unchanged flat-foot ankle guardrail;
+- torso-relative wrist targets normalized by shoulder width;
+- two-link shoulder/elbow/wrist solving with exact segment lengths;
+- speed-dependent walking elbow flexion;
+- contralateral arm-drive targets rather than direct shoulder-angle assignment;
+- damped persistent arm-drive state;
+- normalized hand-corridor and elbow-envelope diagnostics;
+- thirty-two Phase 5 headline tests plus all preserved earlier suites.
+
+The supplied running references remain evidence for future continuous walk/run transition work. v0.6.1 does not copy their curves and does not yet implement running.
