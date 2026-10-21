@@ -464,7 +464,7 @@ inline GaitSample sampleController(
 
 struct SelfTestResult { const char* name; bool pass; };
 
-inline std::array<SelfTestResult,20> runSelfTests(){
+inline std::array<SelfTestResult,22> runSelfTests(){
     const ReferenceBody reference=locomotion::makeReferenceBody();
     GaitPlan plan{};
     const GaitEvaluation eval=evaluateGait(reference,plan);
@@ -472,8 +472,24 @@ inline std::array<SelfTestResult,20> runSelfTests(){
     const auto step0Start=sampleStep(reference,plan,0,0.0);
     const auto step0End=sampleStep(reference,plan,0,1.0);
     const auto step1Start=sampleStep(reference,plan,1,0.0);
+    const auto step1Preload=sampleStep(reference,plan,1,0.05);
+    const auto step1Early=sampleStep(reference,plan,1,0.20);
     const auto step1Mid=sampleStep(reference,plan,1,0.5);
     const auto final=sampleSequence(reference,plan,1.0);
+
+    const Vec3 earlySwingStart=ankle(step1Early.start,step1Early.swingSide);
+    const double earlySwingTravel=
+        step1Early.swingLanding.y-earlySwingStart.y;
+    const double earlySwingProgress=
+        std::abs(earlySwingTravel)>1e-9
+        ?(step1Early.swingRequested.y-earlySwingStart.y)/earlySwingTravel
+        :0.0;
+    const double earlyPelvisTravel=
+        step1Early.end.pelvis.y-step1Early.start.pelvis.y;
+    const double earlyPelvisProgress=
+        std::abs(earlyPelvisTravel)>1e-9
+        ?(step1Early.pose.solvedTargets.pelvis.y-step1Early.start.pelvis.y)/earlyPelvisTravel
+        :0.0;
 
     ControllerState controller{};
     advanceController(plan,controller,plan.stepDuration*1.05);
@@ -495,6 +511,8 @@ inline std::array<SelfTestResult,20> runSelfTests(){
         {"first handoff pelvis is continuous",locomotion::length(step0End.pose.solvedTargets.pelvis-step1Start.pose.solvedTargets.pelvis)<1e-7},
         {"second step begins from previous landing",locomotion::near(step1Start.start.rightAnkle,step0End.swingLanding,1e-8)},
         {"second mid-step uses right support",!step1Mid.support.left&&step1Mid.support.right},
+        {"preload does not advance pelvis forward",std::abs(step1Preload.pose.solvedTargets.pelvis.y-step1Preload.start.pelvis.y)<1e-9},
+        {"early pelvis progress matches swing transfer",std::abs(earlyPelvisProgress-earlySwingProgress)<1e-9},
         {"all repeated poses remain reachable",eval.allReachable},
         {"all repeated poses remain inside outer limits",eval.allOuterLimits},
         {"repeated targets avoid hidden pelvis clamp",eval.noPelvisClamp},
