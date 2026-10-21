@@ -333,7 +333,7 @@ LEGS ONLY
 FULL BODY
 ```
 
-The first LO-006 candidate attempted to scale swing clearance down at slower speeds. That violated the preserved LO-005 central toe-clearance invariant, so Phase 5 keeps the validated 0.038 m flat-foot lift. A second candidate used a broader 0.40-1.00 m/s / 0.26-0.40 m footfall-spacing map; Windows CI found 16.009 degrees of left-ankle dorsiflexion against the existing 16-degree outer guardrail. The guardrail was retained and the validated envelope was narrowed to 0.40-0.80 m/s with 0.26-0.30 m spacing.
+The first LO-006 candidate attempted to scale swing clearance down at slower speeds. That violated the preserved LO-005 central toe-clearance invariant, so Phase 5 keeps the validated 0.038 m flat-foot lift. A second candidate used a broader 0.40-1.00 m/s / 0.26-0.40 m footfall-spacing map; Windows CI found 16.009 degrees of left-ankle dorsiflexion against the existing 16-degree outer guardrail. The guardrail was retained and the validated envelope was narrowed to 0.40-0.80 m/s with 0.26-0.285 m spacing.
 
 ## Planned control architecture
 
