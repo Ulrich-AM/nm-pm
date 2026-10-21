@@ -1,8 +1,8 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-006 / Phase 5 velocity-driven whole-body walking  
+**Architecture checkpoint:** LO-006 / Phase 5 reference-informed whole-body walking  
 **Date:** 2026-10-21  
-**Status:** Active study, steady velocity-driven walking and whole-body coordination implemented
+**Status:** Active study, steady velocity-driven walking with reference-informed procedural body dynamics implemented
 
 ## Current boundary
 
@@ -273,9 +273,11 @@ Playback uses explicit controller state: current step index, local step time, co
 
 Speed-dependent cadence and stride remain absent. Phase 4 answers only whether one validated transaction can repeat cleanly.
 
-## Phase 5 velocity-driven whole-body walking
+## Phase 5 reference-informed whole-body walking
 
-LO-006 adds one continuous command above the LO-005 handoff controller:
+LO-006 retains the steady desired-speed controller from v0.6.0, but v0.6.1 replaces the first upper-body approximation after visual review exposed an overly wide arm posture.
+
+The current boundary is:
 
 ```text
 desired forward speed
@@ -286,9 +288,6 @@ desired forward speed
         +-- step length
         +-- step duration / cadence
         +-- liftoff / touchdown timing
-        +-- pelvis coordination amplitudes
-        +-- trunk counter-yaw
-        +-- arm target amplitude
         |
         v
 LO-005 persistent alternating gait
@@ -300,31 +299,83 @@ coordinated hip-frame solve
         +-- pelvis yaw / obliquity
         +-- lateral support-side shift
         |
-        v
-trunk + stateful arm response
-        |
-        v
-LO-002 measurement of displayed body
+        +----------------------+
+        |                      |
+        v                      v
+ independent thorax      contralateral
+       yaw                arm drive
+        |                      |
+        |               damped state
+        |                      |
+        +-----------+----------+
+                    v
+          torso-relative wrist target
+                    |
+                    v
+           two-link arm solve
+                    |
+                    v
+        LO-002 measurement of
+          the displayed body
 ```
 
-The validated Phase 5 walking envelope is 0.40 to 0.80 m/s. That interval is a current-model validation range, not a biological walk/run boundary.
+The validated steady walking envelope remains 0.40 to 0.80 m/s. The interval is a current-model validation range, not a biological walk/run threshold.
 
-Step duration is derived from the requested speed and successive-footfall spacing:
+Step spacing remains 0.26 to 0.28 m and flat-foot swing clearance remains 0.038 m. Step duration closes requested steady speed by `step_length / desired_speed`. Double-support share decreases across the envelope.
 
-```text
-step_duration = step_length / desired_speed
-cadence = 60 / step_duration
-```
+### Reference-motion boundary
 
-Step length increases continuously across the envelope while double-support share decreases. Exact endpoint values are controller heuristics documented in LO-006, not fitted human regressions.
+Four supplied in-place FBX clips were analyzed: walk, slow run, medium run, and fast run. All share the same Mixamo skeleton.
 
-Whole-body coordination is layered without permitting foot drift. Pelvis yaw and obliquity first rotate the reference hip offsets, then each leg is re-solved through the LO-003 analytic solver while the original LO-005 ankle targets remain unchanged.
+The source files do **not** enter runtime and are not redistributed. Only derived measurements are retained in `reference/`.
 
-A lateral pelvis shift is explicitly tied to single-support timing. It does not read COM or XCoM and therefore is not an active balance correction.
+The clip labels are qualitative. Because the in-place cycle timings are not monotonic with the words slow/medium/fast, they are not treated as measured physical-speed samples or fitted as one numeric regression.
 
-The shoulder frame receives a smaller counter-yaw against pelvis rotation. Arm targets are contralateral to foot separation, while playback uses a damped second-order arm state rather than snapping directly to the target angle.
+The references are used as broad evidence for:
 
-Four comparison modes are preserved in the native harness:
+- torso-relative hand corridor;
+- elbow-flexion behavior;
+- contralateral arm/leg timing;
+- pelvis versus thorax rotation;
+- root lateral and vertical excursion;
+- changes in coordination between walking and running.
+
+The walk reference showed wrists much closer to the torso than the Phase 0 neutral pose. The old v0.6.0 rigid arm rotation therefore preserved a structurally poor starting posture even though limb lengths were correct.
+
+### Pelvis and thorax
+
+Pelvis yaw, obliquity, and lateral stance-side translation remain explicit gait policies. They do not read COM/XCoM and are not active balance corrections.
+
+Pelvis yaw and thorax yaw now have independent targets with opposing signs. This produces a real relative torso twist rather than rotating the upper body as one residual block.
+
+Pelvis yaw was deliberately kept conservative because a larger reference-direction yaw pushed the flat-foot trailing ankle just outside the existing 16-degree dorsiflexion guardrail. The guardrail was not widened.
+
+### Upper-limb solve
+
+The LO-001 arm segment lengths remain unchanged.
+
+For each side, LO-006 creates a torso-relative wrist target from:
+
+- shoulder width;
+- normalized lateral wrist corridor;
+- contralateral fore/aft arm drive;
+- desired elbow flexion.
+
+Elbow flexion determines shoulder-to-wrist chain distance, after which an analytic two-link solve chooses the elbow using a mild torso-relative pole. The hand tip extends along the solved forearm direction.
+
+This preserves upper-arm and forearm lengths while allowing the wrists to remain close to the body.
+
+The current walking controller validates a 0.60-0.90 shoulder-width corridor, with configured targets between 0.72 and 0.78. Elbow flexion remains inside the supplied walk reference range.
+
+### Persistent arm state
+
+Runtime arm state stores a dimensionless drive and angular-like drive velocity rather than a sampled animation angle.
+
+Contralateral leg separation creates the target, but a damped second-order response moves the stored state toward it.
+
+This allows later acceleration and walk/run transition experiments to change the target without resetting the arms or blending authored clips.
+
+Four comparison modes remain:
 
 ```text
 LEGS ONLY
@@ -332,8 +383,6 @@ LEGS ONLY
 + PELVIS + TRUNK
 FULL BODY
 ```
-
-The first LO-006 candidate attempted to scale swing clearance down at slower speeds. That violated the preserved LO-005 central toe-clearance invariant, so Phase 5 keeps the validated 0.038 m flat-foot lift. A second candidate used a broader 0.40-1.00 m/s / 0.26-0.40 m footfall-spacing map; Windows CI found 16.009 degrees of left-ankle dorsiflexion against the existing 16-degree outer guardrail. The guardrail was retained and the validated envelope was narrowed to 0.40-0.80 m/s with 0.26-0.28 m spacing.
 
 ## Planned control architecture
 
@@ -400,6 +449,9 @@ This is a research decomposition, not yet an implementation hierarchy.
 17. Whole-body coordination must preserve exact foot targets instead of visually rotating solved legs.
 18. Speed maps must be documented as controller heuristics unless fitted directly to measured data.
 19. Arm and trunk motion must remain inspectable independently from lower-body gait.
+20. Reference motion may constrain or falsify procedural hypotheses, but source animation curves must not become a runtime dependency.
+21. Reference clips with qualitative names must not be treated as measured speed samples without independent velocity data.
+22. Upper-body corrections must preserve the frozen anatomical segment lengths rather than editing LO-001 proportions to fit a clip.
 
 ## Next research boundary
 
