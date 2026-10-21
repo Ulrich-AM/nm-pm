@@ -113,7 +113,7 @@ Cadence, stride length, acceleration, and desired speed remain fixed or absent. 
 
 The sixth milestone introduces desired forward walking speed as a continuous steady-state input:
 
-- validated 0.40-1.00 m/s command envelope;
+- validated 0.40-0.80 m/s command envelope after rejecting a broader 0.40-1.00 m/s flat-foot map;
 - continuous successive-footfall spacing;
 - cadence and step duration derived from desired speed;
 - speed-dependent liftoff and touchdown timing;
