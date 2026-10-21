@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-005 chains the validated step into alternating fixed gait with explicit handoff continuity and accumulated-drift checks.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-006 adds steady desired-speed walking with continuous stride/cadence timing plus restrained pelvis, trunk, and arm coordination.
 
 ### Reference
 
