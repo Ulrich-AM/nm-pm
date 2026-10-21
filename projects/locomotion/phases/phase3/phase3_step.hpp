@@ -85,11 +85,11 @@ inline Vec3 mix(Vec3 a,Vec3 b,double t){
     return a+(b-a)*t;
 }
 
-inline JointId ankleId(LegSide side){
+inline JointId stepAnkleId(LegSide side){
     return side==LegSide::Left?JointId::LeftAnkle:JointId::RightAnkle;
 }
 
-inline JointId toeTipId(LegSide side){
+inline JointId stepToeTipId(LegSide side){
     return side==LegSide::Left?JointId::LeftToeTip:JointId::RightToeTip;
 }
 
@@ -98,11 +98,11 @@ inline LegSide otherSide(LegSide side){
 }
 
 inline Vec3 ankleOf(const StandingSolution& pose,LegSide side){
-    return pose.body.joint[locomotion::jointIndex(ankleId(side))];
+    return pose.body.joint[locomotion::jointIndex(stepAnkleId(side))];
 }
 
 inline Vec3 toeOf(const StandingSolution& pose,LegSide side){
-    return pose.body.joint[locomotion::jointIndex(toeTipId(side))];
+    return pose.body.joint[locomotion::jointIndex(stepToeTipId(side))];
 }
 
 inline SupportState supportFor(LegSide supportSide,bool doubleSupport){
@@ -140,7 +140,7 @@ inline Vec3 plannedSwingAnkle(Vec3 start,Vec3 landing,const StepPlan& plan,doubl
 
 inline double nominalFootGroundOffset(const ReferenceBody& reference,LegSide side){
     const JointId heel=side==LegSide::Left?JointId::LeftHeel:JointId::RightHeel;
-    return reference.joint[locomotion::jointIndex(ankleId(side))].z
+    return reference.joint[locomotion::jointIndex(stepAnkleId(side))].z
         -reference.joint[locomotion::jointIndex(heel)].z;
 }
 
@@ -164,9 +164,9 @@ inline StandingTargets stepTargets(
     const LegSide supportSide=otherSide(plan.swingSide);
 
     const Vec3 supportStart=
-        reference.joint[locomotion::jointIndex(ankleId(supportSide))];
+        reference.joint[locomotion::jointIndex(stepAnkleId(supportSide))];
     const Vec3 swingStart=
-        reference.joint[locomotion::jointIndex(ankleId(plan.swingSide))];
+        reference.joint[locomotion::jointIndex(stepAnkleId(plan.swingSide))];
 
     Vec3 landing=swingStart;
     landing.y+=plan.landingDistance;
@@ -208,9 +208,9 @@ inline StepSample sampleStep(
 
     const LegSide supportSide=otherSide(plan.swingSide);
     out.supportAnkleStart=
-        reference.joint[locomotion::jointIndex(ankleId(supportSide))];
+        reference.joint[locomotion::jointIndex(stepAnkleId(supportSide))];
     out.swingAnkleStart=
-        reference.joint[locomotion::jointIndex(ankleId(plan.swingSide))];
+        reference.joint[locomotion::jointIndex(stepAnkleId(plan.swingSide))];
     out.swingLanding=out.swingAnkleStart;
     out.swingLanding.y+=plan.landingDistance;
 
