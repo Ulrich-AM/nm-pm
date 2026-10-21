@@ -46,7 +46,7 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package LO-005
+      - name: Package LO-006
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
@@ -55,6 +55,7 @@ jobs:
           Copy-Item build/Release/locomotion_phase2.exe dist/Locomotion-LO003-StandingSolver.exe
           Copy-Item build/Release/locomotion_phase3.exe dist/Locomotion-LO004-OneStep.exe
           Copy-Item build/Release/locomotion_phase4.exe dist/Locomotion-LO005-AlternatingSteps.exe
+          Copy-Item build/Release/locomotion_phase5.exe dist/Locomotion-LO006-VelocityWalk.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -67,6 +68,7 @@ jobs:
           Copy-Item experiments/LO-003.md dist/experiments/LO-003.md
           Copy-Item experiments/LO-004.md dist/experiments/LO-004.md
           Copy-Item experiments/LO-005.md dist/experiments/LO-005.md
+          Copy-Item experiments/LO-006.md dist/experiments/LO-006.md
 
           New-Item -ItemType Directory -Force dist/projects/locomotion | Out-Null
           Copy-Item ../../index.html dist/index.html
@@ -92,13 +94,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM fifth milestone release for Anatomically Constrained Procedural Human Locomotion.
+          NM-PM sixth milestone release for Anatomically Constrained Procedural Human Locomotion.
 
-          LO-005 carries each completed stance into the next step and alternates left/right swing sides across a fixed multi-step sequence. Full-pose handoff delta, pelvis continuity, accumulated support-foot slip, knee branch, reach, and outer joint limits are validated across repeated gait.
+          LO-006 maps desired steady walking speed to successive-footfall spacing, cadence, step duration, and support timing across a validated 0.40-1.00 m/s envelope.
 
-          Repeated split-stance testing required a front-loaded monotonic horizontal transfer and a retained 38 mm flat-foot swing lift; the failed timing assumptions remain documented. Cadence and stride remain fixed so LO-006 can introduce desired speed as an independent variable.
+          Whole-body coordination adds pelvis yaw/obliquity/lateral shift, trunk counter-rotation, and damped contralateral arm swing while exact LO-005 foot targets remain invariant. The failed speed-scaled swing-clearance attempt is retained in the research record.
 
-          The ZIP preserves the LO-001 through LO-005 native harnesses and living research documentation.
+          The ZIP preserves the LO-001 through LO-006 native harnesses and living research documentation.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
