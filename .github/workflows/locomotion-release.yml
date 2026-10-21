@@ -46,7 +46,7 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package LO-006 v0.6.1
+      - name: Package locomotion release
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
@@ -56,6 +56,7 @@ jobs:
           Copy-Item build/Release/locomotion_phase3.exe dist/Locomotion-LO004-OneStep.exe
           Copy-Item build/Release/locomotion_phase4.exe dist/Locomotion-LO005-AlternatingSteps.exe
           Copy-Item build/Release/locomotion_phase5.exe dist/Locomotion-LO006-VelocityWalk.exe
+          Copy-Item build/Release/locomotion_phase6.exe dist/Locomotion-LO007-ContinuousState.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -69,6 +70,15 @@ jobs:
           Copy-Item experiments/LO-004.md dist/experiments/LO-004.md
           Copy-Item experiments/LO-005.md dist/experiments/LO-005.md
           Copy-Item experiments/LO-006.md dist/experiments/LO-006.md
+          if (Test-Path experiments/LO-006-FLOW-AUDIT.md) {
+            Copy-Item experiments/LO-006-FLOW-AUDIT.md dist/experiments/LO-006-FLOW-AUDIT.md
+          }
+          if (Test-Path experiments/LO-007.md) {
+            Copy-Item experiments/LO-007.md dist/experiments/LO-007.md
+          }
+          if (Test-Path NEXT.md) {
+            Copy-Item NEXT.md dist/NEXT.md
+          }
 
           Copy-Item -Recurse reference dist/reference
 
@@ -96,13 +106,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM corrective v0.6.1 milestone for Anatomically Constrained Procedural Human Locomotion.
+          NM-PM locomotion checkpoint for Anatomically Constrained Procedural Human Locomotion.
 
-          LO-006 retains the validated steady walking controller from v0.6.0 while replacing the original wide rigid-arm approximation with reference-informed procedural body dynamics.
+          This release packages the continuous-locomotion-state architecture experiment (LO-007 / Phase 6) together with the preserved LO-001 through LO-006 harnesses.
 
-          Four supplied in-place walk/run FBX clips were analyzed only as measurement evidence. The source clips are not redistributed or required at runtime. Derived envelopes guide independent pelvis/thorax yaw, torso-relative wrist corridors, elbow-flexion targets, and a two-link arm solve that preserves the frozen LO-001 segment lengths.
+          LO-007 replaces the step-transaction runtime as the source of body motion. Persistent root position/velocity, per-limb unwrapped phase, contact state, and arm response survive support changes. Contact events apply bounded timing correction instead of a global COMPLETE -> RESET cycle. Natural walking is not claimed solved; flat-foot stance and scaffold swing remain known limitations deferred to later experiments.
 
-          The ZIP preserves LO-001 through LO-006 harnesses, the living documentation, and the derived reference-analysis files.
+          The ZIP preserves Phase 0-6 executables, living documentation, and derived reference-analysis files. The Phase 6 binary is packaged as Locomotion-LO007-ContinuousState.exe.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
