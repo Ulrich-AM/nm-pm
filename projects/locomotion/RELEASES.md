@@ -108,3 +108,24 @@ The fifth milestone proves that the one-step transaction can repeat without accu
 - preserved LO-001 through LO-005 native harnesses in one release.
 
 Cadence, stride length, acceleration, and desired speed remain fixed or absent. LO-006 owns continuous speed adaptation.
+
+## v0.6.0 - LO-006 Velocity-Driven Whole-Body Walking
+
+The sixth milestone introduces desired forward walking speed as a continuous steady-state input:
+
+- validated 0.40-1.00 m/s command envelope;
+- continuous successive-footfall spacing;
+- cadence and step duration derived from desired speed;
+- speed-dependent liftoff and touchdown timing;
+- preserved 0.038 m LO-005 flat-foot swing clearance;
+- explicit rejection of the first speed-scaled clearance attempt;
+- pelvis yaw, obliquity, and lateral support-side excursion;
+- rotated hip geometry re-solved through LO-003 while retaining exact ankle targets;
+- trunk counter-rotation;
+- speed-dependent contralateral arm targets;
+- damped stateful arm playback;
+- LEGS / PELVIS / TRUNK / FULL BODY comparison modes;
+- twenty-six Phase 5 tests in addition to preserved earlier suites;
+- preserved LO-001 through LO-006 native harnesses in one release.
+
+Acceleration, deceleration, stopping, corrective balance, foot rocker, terrain adaptation, running, flight, and generalized contact planning remain outside this milestone.
