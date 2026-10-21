@@ -74,7 +74,7 @@ The fourth milestone introduces the first bounded locomotion transaction:
 - either leg can become the swing leg;
 - opposite ankle remains a planted invariant;
 - 0.28 m default landing distance;
-- 0.05 m peak swing clearance;
+- 0.045 m peak swing clearance;
 - quintic horizontal swing interpolation;
 - zero-end-velocity `sin^2` lift profile;
 - minimum central toe-clearance measurement;
