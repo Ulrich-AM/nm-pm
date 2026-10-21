@@ -9,7 +9,7 @@ Detailed discussion lives in `DOCUMENTATION.html`. Durable IDs remain stable eve
 | LO-003 | Phase 2 | Implemented | Analytic two-leg standing solver, shared pelvis-height feasibility, deterministic knees, reach clamping, and joint-envelope diagnostics |
 | LO-004 | Phase 3 | Implemented | One bounded support-to-support step with planted-foot invariant, generated swing trajectory, toe-clearance measurement, explicit support stages, and LO-003 pose solving |
 | LO-005 | Phase 4 | Implemented | Alternating fixed gait with persistent stance state, explicit handoffs, pose-continuity metrics, planted-foot drift checks, and deterministic integer-step stopping |
-| LO-006 | Phase 5 | Planned | Velocity-driven stride, cadence, and stance/swing timing |
+| LO-006 | Phase 5 | Implemented | Continuous desired-speed walking with derived step length, cadence, support timing, pelvis/hip coordination, trunk counter-rotation, and stateful contralateral arm swing |
 | LO-007 | Phase 6 | Planned | Start, stop, acceleration, and deceleration with phase continuity |
 | LO-008 | Phase 7 | Planned | Dynamic stability diagnostics and corrective foot placement |
 | LO-009 | Phase 8 | Planned | Running regime and walk/run transition |
