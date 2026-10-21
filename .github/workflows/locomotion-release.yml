@@ -46,7 +46,7 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package LO-006
+      - name: Package LO-006 v0.6.1
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
@@ -69,6 +69,8 @@ jobs:
           Copy-Item experiments/LO-004.md dist/experiments/LO-004.md
           Copy-Item experiments/LO-005.md dist/experiments/LO-005.md
           Copy-Item experiments/LO-006.md dist/experiments/LO-006.md
+
+          Copy-Item -Recurse reference dist/reference
 
           New-Item -ItemType Directory -Force dist/projects/locomotion | Out-Null
           Copy-Item ../../index.html dist/index.html
@@ -94,13 +96,13 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM sixth milestone release for Anatomically Constrained Procedural Human Locomotion.
+          NM-PM corrective v0.6.1 milestone for Anatomically Constrained Procedural Human Locomotion.
 
-          LO-006 maps desired steady walking speed to successive-footfall spacing, cadence, step duration, and support timing across a validated 0.40-0.80 m/s envelope.
+          LO-006 retains the validated steady walking controller from v0.6.0 while replacing the original wide rigid-arm approximation with reference-informed procedural body dynamics.
 
-          Whole-body coordination adds pelvis yaw/obliquity/lateral shift, trunk counter-rotation, and damped contralateral arm swing while exact LO-005 foot targets remain invariant. The failed speed-scaled swing-clearance attempt is retained in the research record.
+          Four supplied in-place walk/run FBX clips were analyzed only as measurement evidence. The source clips are not redistributed or required at runtime. Derived envelopes guide independent pelvis/thorax yaw, torso-relative wrist corridors, elbow-flexion targets, and a two-link arm solve that preserves the frozen LO-001 segment lengths.
 
-          The ZIP preserves the LO-001 through LO-006 native harnesses and living research documentation.
+          The ZIP preserves LO-001 through LO-006 harnesses, the living documentation, and the derived reference-analysis files.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
