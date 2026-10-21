@@ -37,15 +37,15 @@ inline const char* coordinationModeName(CoordinationMode mode){
 }
 
 struct VelocityCommand {
-    double desiredSpeed=0.70;
+    double desiredSpeed=0.60;
     int stepCount=8;
     LegSide firstSwing=LegSide::Right;
     CoordinationMode coordination=CoordinationMode::FullBody;
 };
 
 struct VelocityProfile {
-    double requestedSpeed=0.70;
-    double speed=0.70;
+    double requestedSpeed=0.60;
+    double speed=0.60;
     double speedUnit=0.0;
     double stepLength=0.0;
     double cadenceSpm=0.0;
