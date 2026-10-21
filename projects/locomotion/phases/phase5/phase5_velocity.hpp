@@ -120,7 +120,7 @@ constexpr double kMaxStepLength=0.30;
 constexpr double kMinClearance=0.038;
 constexpr double kMaxClearance=0.038;
 constexpr double kSlowDoubleSupportEdge=0.12;
-constexpr double kFastDoubleSupportEdge=0.08;
+constexpr double kFastDoubleSupportEdge=0.06;
 
 inline double clamp01(double x){return std::clamp(x,0.0,1.0);}
 inline double lerp(double a,double b,double t){return a+(b-a)*t;}
