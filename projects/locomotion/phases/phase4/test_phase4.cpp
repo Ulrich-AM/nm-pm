@@ -19,6 +19,18 @@ int main(){
     std::cout<<"max handoff pelvis delta = "<<evaluation.maxHandoffPelvisDelta<<'\n';
     std::cout<<"min core toe clearance = "<<evaluation.minCoreToeClearance<<'\n';
     std::cout<<"final pelvis advance = "<<evaluation.finalPelvisAdvance<<'\n';
+    if(evaluation.firstOuterViolationStep>=0){
+        std::cout<<"first outer violation step = "<<evaluation.firstOuterViolationStep
+                 <<" phase = "<<evaluation.firstOuterViolationPhase<<'\n';
+        std::cout<<"left hip FE = "<<evaluation.firstOuterViolationLeft.hipFlexionDeg
+                 <<" AA = "<<evaluation.firstOuterViolationLeft.hipAbductionDeg
+                 <<" knee = "<<evaluation.firstOuterViolationLeft.kneeFlexionDeg
+                 <<" ankle = "<<evaluation.firstOuterViolationLeft.ankleDorsiflexionDeg<<'\n';
+        std::cout<<"right hip FE = "<<evaluation.firstOuterViolationRight.hipFlexionDeg
+                 <<" AA = "<<evaluation.firstOuterViolationRight.hipAbductionDeg
+                 <<" knee = "<<evaluation.firstOuterViolationRight.kneeFlexionDeg
+                 <<" ankle = "<<evaluation.firstOuterViolationRight.ankleDorsiflexionDeg<<'\n';
+    }
     std::cout<<passed<<" / "<<results.size()<<" tests passed\n";
     return passed==(int)results.size()?0:1;
 }
