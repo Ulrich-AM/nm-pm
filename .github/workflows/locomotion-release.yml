@@ -107,8 +107,9 @@ jobs:
             throw "Release $env:RELEASE_TAG already exists."
           }
 
+          $displayTag = $env:RELEASE_TAG -replace '^locomotion-', ''
           gh release create "$env:RELEASE_TAG" `
             "locomotion-windows-x64.zip" `
             --target "${{ github.sha }}" `
-            --title "Locomotion $env:RELEASE_TAG" `
+            --title "Locomotion $displayTag" `
             --notes "$notes"
