@@ -348,7 +348,7 @@ Pelvis yaw, obliquity, and lateral stance-side translation remain explicit gait 
 
 Pelvis yaw and thorax yaw now have independent targets with opposing signs. This produces a real relative torso twist rather than rotating the upper body as one residual block.
 
-Pelvis yaw was deliberately kept conservative because a larger reference-direction yaw pushed the flat-foot trailing ankle just outside the existing 16-degree dorsiflexion guardrail. The guardrail was not widened.
+Pelvis coordination was decomposed after the reference-informed solve repeatedly approached the 16-degree ankle dorsiflexion guardrail. At the diagnostic sample, yaw-only and lateral-shift-only remained inside the limit, while pelvic obliquity alone crossed it. The retained controller therefore keeps 1.0-1.5 degrees of yaw and lateral shift, but reduces obliquity to 0.3-0.5 degrees until foot pitch / rocker mechanics exist. The ankle guardrail was not widened.
 
 ### Upper-limb solve
 
