@@ -1,136 +1,266 @@
 # Locomotion - Next Implementation Boundary
 
-**Current implementation checkpoint:** `locomotion-v0.6.1`  
-**Current research checkpoint:** post-LO-006 flow audit  
-**Next experiment:** LO-007 - Continuous Locomotion State
+**Current implementation checkpoint:** LO-007 continuous locomotion state  
+**Target release:** `locomotion-v0.7.0`  
+**Current research checkpoint:** persistent state architecture validated  
+**Next experiment:** LO-008 - Articulated Stance Foot
 
-This file is a short implementation handoff. The full reasoning remains in:
+This file is the immediate implementation handoff. Read it together with:
 
 - `DOCUMENTATION.html`
 - `ARCHITECTURE.md`
 - `experiments/LO-006-FLOW-AUDIT.md`
-- `experiments/LO-006.md`
+- `experiments/LO-007.md`
 
-## Why the roadmap changed
+## What LO-007 established
 
-LO-006 proved that anatomically valid IK, exact planted-foot targets, clean repeated handoffs, speed-dependent timing, pelvis/thorax coordination, and reference-informed arm geometry can still produce a visibly march-like walk.
+LO-007 removed the finite step transaction as the runtime controller.
 
-The next step is therefore **not** acceleration, running, or more cosmetic gait offsets.
+The Phase 6 state now persists:
 
-The step transaction must stop being the primary source of body motion.
+- root position and linear velocity;
+- root angular state;
+- independent unwrapped left/right limb timing;
+- persistent arm response;
+- grounded/airborne contacts;
+- planted world-space ankle anchors;
+- contact history;
+- support classification;
+- continuity diagnostics.
 
-Future walking should instead preserve continuous root/body state through support changes, with contacts acting as events inside that motion.
+The runtime is fixed-step at 120 Hz and does not contain a global `COMPLETE -> RESET -> next step` operation.
 
-## Do not do next
+The accepted candidate preserved anatomical guardrails, planted-foot accuracy, exact segment lengths, and deterministic replay.
 
-Do not begin LO-007 by:
+## The remaining flat-foot problem
 
-- adding a start/stop animation;
-- interpolating between LO-006 speed profiles;
-- increasing pelvis/arm amplitudes;
-- adding random asymmetry;
-- replacing the gait with authored or mocap playback;
-- treating CPG output as direct joint animation;
-- widening existing anatomical limits to make motion fit.
+The persistent root is real, but the displayed pelvis is not yet fully transported by it.
 
-Those may hide the march without addressing its cause.
+The LO-003 flat-foot solve still keeps pose-solver pelvis Y near the midpoint of the two ankle targets to remain inside the unchanged ankle dorsiflexion guardrail.
 
-## LO-007 research question
+This is now the most important immediate constraint.
 
-> Can the character retain continuous root motion, contact state, and coupled limb timing across support changes without treating each step as a resettable transaction?
+Do not hide it with more pelvis oscillation, larger arm motion, noise, or wider joint limits.
 
-## Minimum LO-007 state
+## LO-008 research question
 
-The experiment should introduce a persistent state object containing at least:
+> Can articulated stance-foot contact remove part of the flat-foot constraint and allow the body to progress through support more naturally while preserving continuous LO-007 state and anatomical guardrails?
 
-```text
-root position
-root linear velocity
-root angular velocity
-left leg phase/readiness
-right leg phase/readiness
-left arm response state
-right arm response state
-active contacts
-contact history
-support / flight classification
-```
+LO-008 is about support geometry.
 
-A nominal step boundary must not zero or reconstruct this state.
+It is not yet the full dynamic stance model.
 
-## Rhythm boundary
+## Required stance progression
 
-A phase/oscillator layer may be used, but its responsibility is limited to event readiness.
+Promote the existing heel, forefoot, and toe geometry into meaningful stance mechanics.
 
-Good responsibility:
+A nominal level-ground stance should be able to pass through approximately:
 
 ```text
-left foot is approaching swing readiness
-right foot is accepting support
-left arm prefers a delayed contralateral response
+heel contact
+    |
+weight acceptance
+    |
+foot flat
+    |
+mid-stance
+    |
+heel rise
+    |
+forefoot support
+    |
+toe support / toe-off
+    |
+airborne
 ```
 
-Bad responsibility:
+These labels may be represented by a smaller clean state set if the mechanics remain distinguishable.
+
+Do not create fourteen rigid animation states.
+
+## Critical implementation rule
+
+Foot articulation must affect the contact constraint used by the leg/body solve.
+
+Do not implement LO-008 as:
 
 ```text
-hip angle = sin(phase) * amplitude
-knee angle = curve(phase)
-pelvis = authoredCycle(phase)
+solve the same flat-foot pose
+        |
+        v
+rotate the rendered foot afterward
 ```
 
-Contacts and body state must be able to correct the phase estimate.
+That would be cosmetic and would not test the hypothesis.
 
-## Target runtime relationship
+Instead, heel/forefoot/toe support should alter the world-space support pivot or contact geometry that the ankle/foot must satisfy.
+
+## Preserve LO-007 architecture
+
+LO-008 must build on the persistent Phase 6 state.
+
+Do not reintroduce:
+
+- `stepIndex`;
+- finite `stepCount`;
+- `COMPLETE -> RESET`;
+- Phase 4 `ControllerState`;
+- `sampleSequence()` as the locomotion source;
+- Phase 5 `sampleCoordinated()` as the locomotion source.
+
+Root velocity, unwrapped limb phase, contact history, planted support identity, and arm response must survive foot-contact mode changes.
+
+## Suggested foot-contact representation
+
+A useful minimum may include:
 
 ```text
-movement intent
-      |
-      v
-continuous root/body state
-      |
-      v
-support/contact evaluation
-      |
-      +----------------------+
-      |                      |
-      v                      v
-stance transport       swing readiness
-      |                      |
-heel/flat/forefoot           |
-      |                      |
-      +---------> contact prediction
-                         |
-                         v
-                    touchdown
-                         |
-                         v
-             state correction / transfer
-                         |
-                         v
-                      continue
+AIRBORNE
+HEEL
+FLAT
+FOREFOOT
+TOE
 ```
 
-This diagram is conceptual. LO-007 does not need to implement the articulated foot or full stance dynamics yet; those are LO-008 and LO-009. LO-007 only needs the persistent state architecture that allows them to exist later.
+A separate weight-acceptance or heel-rise quantity may be preferable to adding more discrete modes.
 
-## LO-007 success criteria
+Choose the smallest representation that lets the active support point move from rear foot to forefoot/toe without a visual or numerical teleport.
 
-The first LO-007 harness should demonstrate that:
+## Support geometry
 
-1. root velocity survives nominal left/right support handoffs;
-2. limb phase survives handoff rather than restarting;
-3. contact events can shift/correct phase without discontinuity;
-4. no global `COMPLETE -> RESET` operation is required;
-5. the existing LO-003 leg solver and LO-002 measurements can still consume the generated state;
-6. planted-foot and segment-length invariants remain measurable;
-7. root velocity, acceleration, and phase continuity are reported explicitly;
-8. deterministic fixed-step replay produces identical results.
+The existing LO-001 markers are the anatomical authority:
 
-The harness may still look incomplete. LO-007 is an architecture experiment, not the final natural walk.
+- heel;
+- toe base / forefoot;
+- toe tip;
+- foot width.
+
+Use those markers to construct support patches or pivots.
+
+On flat ground:
+
+- heel contact should constrain the rear part of the foot;
+- flat support should use the complete support area;
+- heel rise should transfer support toward forefoot;
+- toe-off should allow support to narrow toward the toe before release.
+
+The support polygon and LO-002 analysis must consume the actual active contact geometry rather than assuming a fully flat foot.
+
+## Foot orientation
+
+LO-008 may introduce foot pitch needed for rocker progression.
+
+Keep the implementation local to foot/contact mechanics.
+
+Do not introduce a general authored ankle-angle gait curve.
+
+Foot orientation should follow the active contact constraint and leg geometry.
+
+The existing ankle outer guardrail remains unchanged.
+
+## Root/pelvis experiment
+
+LO-008 may test whether articulated support lets the displayed pelvis follow the persistent root more closely than LO-007.
+
+However, do not force a full dynamic root model into this phase.
+
+LO-009 still owns:
+
+- inverted-pendulum-like stance;
+- telescoping stance;
+- compliant/spring-like alternatives;
+- explicit dynamic root transport.
+
+If LO-008 can only reduce the root/pelvis mismatch rather than eliminate it, document that result.
+
+## Swing boundary
+
+Keep the LO-007 temporary swing scaffold unless a minimal adjustment is required to prepare foot orientation for landing.
+
+Do not begin LO-011 functional swing-leg work.
+
+## Contact timing boundary
+
+LO-008 may still use limb phase to predict when stance-contact modes should progress.
+
+Do not claim physical impact detection if touchdown remains scheduled.
+
+LO-010 owns contact handoff, impact, and weight-transfer response.
+
+## Required comparisons
+
+The Phase 7 harness should make flat-foot versus articulated-foot behavior directly inspectable.
+
+At minimum compare:
+
+- LO-007 flat-foot baseline;
+- articulated stance-foot candidate.
+
+Useful overlays include:
+
+- active support mode;
+- active support pivot/patch;
+- heel, forefoot, and toe markers;
+- root Y versus displayed pelvis Y;
+- ankle dorsiflexion;
+- planted-contact slip;
+- support polygon;
+- whole-body COM.
+
+## Success criteria
+
+LO-008 should demonstrate that:
+
+1. heel/flat/forefoot/toe support states change the actual solve constraint;
+2. contact-mode transitions do not reset LO-007 persistent state;
+3. the active ground-contact point remains continuous within a strict tolerance;
+4. the stance foot does not visibly penetrate or teleport across the ground;
+5. planted support remains measurable in world space;
+6. segment lengths remain exact;
+7. LO-001 outer joint guardrails remain respected;
+8. LO-002 support geometry reflects the active foot region;
+9. fixed-step deterministic replay remains exact;
+10. the articulated candidate reduces or clearly explains the flat-foot compensation observed in LO-007.
+
+Do not weaken joint limits to produce a favorable result.
+
+## Measurements to add
+
+Track at least:
+
+- maximum active-contact slip;
+- maximum foot-marker ground penetration;
+- maximum foot-marker ground separation while that marker is declared active;
+- maximum ankle-angle discontinuity at rocker transitions;
+- maximum pose discontinuity at contact-mode transitions;
+- root/pelvis forward mismatch;
+- support-polygon continuity;
+- reachability and outer-limit status;
+- deterministic replay.
+
+A flat-foot baseline should be retained for direct comparison.
+
+## Non-goals
+
+Do not add:
+
+- acceleration/deceleration;
+- start/stop;
+- running or flight;
+- full touchdown impact impulses;
+- full inverted-pendulum or spring stance dynamics;
+- functional swing phases;
+- dynamic balance correction;
+- terrain/slopes/stairs;
+- turning;
+- mocap playback;
+- random asymmetry;
+- noise;
+- widened anatomical limits.
 
 ## Following experiments
 
 ```text
-LO-007  continuous locomotion state
 LO-008  articulated stance foot
 LO-009  dynamic stance / root transport
 LO-010  contact handoff + impact
@@ -144,71 +274,13 @@ LO-017+ terrain / stairs / obstacles / recovery / turning /
         body variation / generalized whole-body contacts
 ```
 
-## Reference priority
-
-For the dynamic rebase, prioritize these sources:
-
-1. Bruderlin & Calvert (1989), *Goal-Directed, Dynamic Animation of Human Walking*  
-   https://www.cs.princeton.edu/courses/archive/spring01/cs598b/papers/bruderlin89.pdf
-
-2. Chung & Hahn (1999), *Animation of Human Walking in Virtual Environments*  
-   https://doi.org/10.1109/CA.1999.781194  
-   https://icg.gwu.edu/sites/g/files/zaxdzs6126/files/downloads/ca99.pdf
-
-3. Boulic, Magnenat-Thalmann & Thalmann (1990), *A Global Human Walking Model with Real-Time Kinematic Personification*  
-   https://doi.org/10.1007/BF01901021
-
-4. Fu (2025), *Exploration of a Hybrid Procedural Animation Framework*  
-   https://lup.lub.lu.se/luur/download?func=downloadFile&recordOId=9206764&fileOId=9206770
-
-5. Wolfram Demonstrations, *Human Walking Animation*  
-   https://demonstrations.wolfram.com/HumanWalkingAnimation/
-
-Use Bruderlin/Calvert primarily for architecture and locomotion-specific dynamics, Chung/Hahn for root/stance/swing hierarchy and timing, Boulic/Thalmann as an empirical level-walk benchmark, and Fu mainly for persistent coupled phase concepts.
-
-## Reference-motion policy
-
-The four supplied FBX clips remain measurement references only:
-
-- walk;
-- slow run;
-- medium run;
-- fast run.
-
-Do not replay, blend, or fit their complete curves.
-
-Their derived measurements are under `reference/`.
-
-The running clips should remain unused as runtime targets until LO-016. They may inform envelopes and transition hypotheses earlier.
-
-## Preserved work
-
-Do not delete or rewrite LO-001 through LO-006.
-
-They remain useful for:
-
-- anatomy and joint envelopes;
-- mass/COM/support analysis;
-- static IK;
-- reach diagnostics;
-- foot contact markers;
-- support-slip and toe-clearance metrics;
-- exact foot-target tests;
-- persistent stance records;
-- reference-motion analysis;
-- upper-limb two-link solving;
-- comparison harnesses;
-- failed/superseded experiment history.
-
-The new architecture should reuse those pieces where appropriate while changing what is considered the source of locomotion.
-
 ## Development policy
 
-- C++20, raylib, CMake.
+- C++20, CMake, raylib 6.2.
 - Pure locomotion math stays independent of raylib.
+- Preserve Phase 0 through Phase 6 harnesses.
 - Use fixed-step deterministic simulation.
-- Preserve completed harnesses.
-- Do not weaken anatomical guardrails to make a candidate pass.
-- Keep failed approaches documented.
-- Use visual inspection and numerical metrics together.
-- Do not create a new GitHub Release until the experiment represents a useful stable checkpoint.
+- Keep the NM-PM grayscale compact harness style.
+- Preserve failed candidates and measured limitations.
+- Use numerical validation and visual inspection together.
+- Do not create a release until the experiment is a useful stable checkpoint.
