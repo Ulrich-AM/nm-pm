@@ -307,7 +307,7 @@ void DrawSidebar(State& state,Rectangle r){
     float y=r.y;
     GroupHeader({r.x,y,r.width,23},"LO-006 / SPEED-DRIVEN WALK");
     y+=31;
-    Text("velocity + whole-body coordination",r.x+9,y,10,C_DIM);
+    Text("velocity + measured body coordination",r.x+9,y,10,C_DIM);
     y+=23;
 
     GroupHeader({r.x+8,y,r.width-16,22},"DESIRED SPEED"); y+=29;
@@ -401,7 +401,7 @@ void DrawDebug(
         {"stage",locomotion3::stepStageName(sample.gait.stage)},
         {"pelvis yaw",Fmt(sample.pelvisYawDeg,2)+" deg"},
         {"pelvis shift",Fmt(sample.pelvisLateralShift*100.0,2)+" cm"},
-        {"trunk counter",Fmt(sample.trunkCounterYawDeg,2)+" deg"},
+        {"thorax-pelvis",Fmt(sample.thoraxPelvisRelativeYawDeg,2)+" deg"},
         {"tests",std::to_string(passed)+" / "+std::to_string(total)}
     }};
 
@@ -415,14 +415,14 @@ void DrawDebug(
 
     const float x=r.x+r.width*0.73f;
     DrawLine((int)x,(int)r.y,(int)x,(int)(r.y+r.height),C_LINE2);
-    Text("WHOLE-BODY STATE",x+9,r.y+8,10,C_MUTED);
-    Text("arm actual / target",x+9,r.y+28,9,C_DIM);
-    Text("L arm "+Fmt(arms.leftDeg,1)+" / "+Fmt(sample.leftArmTargetDeg,1),x+9,r.y+46,9,C_TEXT);
-    Text("R arm "+Fmt(arms.rightDeg,1)+" / "+Fmt(sample.rightArmTargetDeg,1),x+9,r.y+62,9,C_TEXT);
-    Text(sample.allReachable?"legs reachable":"REACH FAILURE",x+9,r.y+80,9,C_TEXT);
-    Text(sample.allOuterLimits?"outer limits respected":"OUTER LIMIT",x+9,r.y+96,9,C_TEXT);
-    Text(envelope.valid?"speed envelope VALID":"speed envelope INVALID",x+9,r.y+114,9,C_TEXT);
-    Text("no active balance correction",x+9,r.y+130,9,C_DIM);
+    Text("REFERENCE-INFORMED UPPER BODY",x+9,r.y+8,10,C_MUTED);
+    Text("drive L/R  "+Fmt(arms.leftDrive,2)+" / "+Fmt(arms.rightDrive,2),x+9,r.y+28,9,C_TEXT);
+    Text("elbow L/R  "+Fmt(sample.leftElbowFlexDeg,1)+" / "+Fmt(sample.rightElbowFlexDeg,1)+" deg",x+9,r.y+46,9,C_TEXT);
+    Text("hand corridor "+Fmt(sample.leftHandLateralNorm,2)+" / "+Fmt(sample.rightHandLateralNorm,2),x+9,r.y+62,9,C_TEXT);
+    Text(sample.armLengthsPreserved?"arm lengths preserved":"ARM LENGTH ERROR",x+9,r.y+80,9,C_TEXT);
+    Text(sample.handCorridorValid&&sample.elbowEnvelopeValid?"reference envelope OK":"REFERENCE ENVELOPE OUT",x+9,r.y+96,9,C_TEXT);
+    Text(envelope.valid?"body envelope VALID":"body envelope INVALID",x+9,r.y+114,9,C_TEXT);
+    Text("FBX curves are reference only",x+9,r.y+130,9,C_DIM);
 }
 
 void DrawMainView(
@@ -435,7 +435,7 @@ void DrawMainView(
     Rectangle header{r.x+9,r.y+9,r.width-18,23};
     DrawRectangleRec(header,C_PANEL);
     DrawRectangleLinesEx(header,1,C_LINE);
-    Text("PHASE 5 / VELOCITY-DRIVEN WHOLE-BODY WALKING",header.x+8,header.y+5,11,C_TEXT);
+    Text("PHASE 5 / REFERENCE-INFORMED WHOLE-BODY WALKING",header.x+8,header.y+5,11,C_TEXT);
     const std::string right=
         std::string(locomotion5::coordinationModeName(state.command.coordination))
         +" / "+SideName(sample.gait.swingSide);
@@ -477,7 +477,7 @@ int main(){
         |FLAG_MSAA_4X_HINT
         |FLAG_WINDOW_HIGHDPI
     );
-    InitWindow(kWindowW,kWindowH,"NM-PM / Locomotion / LO-006 Velocity Walk");
+    InitWindow(kWindowW,kWindowH,"NM-PM / Locomotion / LO-006 Body Dynamics");
     SetWindowMinSize(1120,740);
     SetWindowPosition(42,42);
     SetTargetFPS(120);
