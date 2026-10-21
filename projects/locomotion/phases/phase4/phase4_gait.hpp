@@ -21,7 +21,7 @@ using locomotion3::StepStage;
 
 struct GaitPlan {
     double stepLength=0.28;
-    double clearance=0.045;
+    double clearance=0.040;
     double stepDuration=0.82;
     double liftoffPhase=0.10;
     double touchdownPhase=0.90;
