@@ -1,18 +1,21 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** Post-LO-006 flow audit / dynamic rebase planned  
-**Status:** Active
+**Current checkpoint:** LO-007 continuous locomotion state  
+**Milestone:** `locomotion-v0.7.0`  
+**Status:** Active; LO-008 articulated stance foot is next
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
-The current implementation can execute a steady forward walking family from a desired-speed command. Its v0.6.1 refinement uses supplied reference motion only as a measurement envelope, replacing the original wide rigid-arm approximation with independent pelvis/thorax coordination and a torso-relative two-link arm solve.
+LO-006 v0.6.1 remains the final checkpoint of the original step-transaction-centered controller. It executes a steady forward walking family from desired speed and uses supplied reference motion only as a measurement envelope.
 
-A post-LO-006 visual and literature audit found that this controller can be anatomically valid and numerically continuous while still looking distinctly march-like. The next research sequence therefore no longer begins with acceleration. It first replaces the step-transaction-centered architecture with persistent root motion, articulated stance-foot contact, locomotion-specific stance dynamics, and contact-corrected limb timing.
+A post-LO-006 visual and literature audit found that the controller could be anatomically valid and numerically continuous while still looking distinctly march-like. LO-007 therefore performs the first architectural rebase instead of adding more gait decoration.
 
-LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 repeats it with persistent handoffs. LO-006 maps desired steady walking speed into gait timing and restrained whole-body coordination.
+LO-007 introduces persistent fixed-step locomotion state: root position/velocity/angular state, independent unwrapped left/right limb timing, grounded/airborne contacts, planted world-space anchors, contact history, bounded timing correction, and persistent arm response. The simulation no longer terminates or resets at a nominal completed step.
 
-Those experiments are preserved as the kinematic foundation and as an important negative result: **a clean repeated step-chain is not, by itself, a natural flowing walk.** The audit is documented in `experiments/LO-006-FLOW-AUDIT.md`.
+LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 repeats it with explicit handoffs. LO-006 maps desired steady walking speed into gait timing and restrained whole-body coordination. LO-007 preserves useful parts of that foundation while removing the finite step transaction as the runtime controller.
+
+The earlier experiments remain an important result: **a clean repeated step-chain is not, by itself, a natural flowing walk.** The audit is documented in `experiments/LO-006-FLOW-AUDIT.md`, and the new architecture checkpoint is recorded in `experiments/LO-007.md`.
 
 ## Implemented foundation
 
@@ -91,6 +94,26 @@ LO-006 additionally defines:
 - LEGS / PELVIS / TRUNK / FULL BODY comparison modes;
 - a sampled whole-speed-and-body-envelope validation pass.
 
+LO-007 additionally defines:
+
+- a persistent `ContinuousLocomotionState`;
+- a deterministic 120 Hz fixed simulation step;
+- integrated root position from persistent root velocity;
+- root yaw and angular-velocity state;
+- independent unwrapped left/right leg phases;
+- grounded/airborne foot contacts with planted world-space ankle anchors;
+- bounded contact-event history;
+- bounded direct phase correction plus decaying rate correction;
+- a deterministic disturbance probe;
+- temporary swing scaffolding driven by continuing state rather than a finite `GaitPlan`;
+- persistent damped arm-response state;
+- reuse of LO-002 analysis and LO-003 constrained leg solving;
+- root velocity, acceleration, phase, planted-slip, and segment-length diagnostics;
+- exact deterministic replay for identical fixed-tick runs;
+- indefinite locomotion without `stepCount` termination.
+
+The Phase 6 root and displayed pelvis are not yet identical. Root Y integrates continuously, while the flat-foot pose solver still keeps pelvis Y near the current foot midpoint to respect the unchanged ankle guardrail. LO-008 and LO-009 exist specifically to remove this remaining flat-foot transport constraint.
+
 The coordinate convention remains:
 
 ```text
@@ -103,7 +126,7 @@ Internal physical units are meters, seconds, kilograms where mass is later intro
 
 ## Revised research sequence
 
-The roadmap after LO-006 has been reordered.
+The roadmap after LO-006 has been reordered. LO-007 is now implemented; LO-008 is the next experiment.
 
 ```text
 LO-007  continuous locomotion state
@@ -120,7 +143,7 @@ LO-017+ terrain, stairs, footholds, obstacles, recovery,
         turning/lateral motion, body variation, and whole-body contacts
 ```
 
-The key architectural change is that a step should become an event inside persistent body motion instead of being the unit that creates body motion.
+LO-007 establishes the first half of that architectural change: persistent locomotion state now survives support changes without a global gait reset. The articulated stance contact and body-over-foot mechanics required to make the visible pelvis follow that persistent root more naturally remain LO-008 and LO-009.
 
 The intended runtime relationship is approximately:
 
@@ -154,7 +177,7 @@ Run:
 build_windows.bat
 ```
 
-The script configures CMake, builds the Release configuration, runs CTest, and launches the current Phase 5 harness.
+The script configures CMake, builds the Release configuration, and runs CTest. Use `run_phase6.bat` to launch the current LO-007 harness.
 
 Manual equivalent:
 
@@ -179,6 +202,8 @@ locomotion_phase4.exe
 locomotion_phase4_tests.exe
 locomotion_phase5.exe
 locomotion_phase5_tests.exe
+locomotion_phase6.exe
+locomotion_phase6_tests.exe
 ```
 
 ## Y Bot policy
@@ -201,13 +226,13 @@ DOCUMENTATION.html
 
 It is the primary living technical notebook for the study.
 
-For the immediate implementation handoff after the post-LO-006 flow audit, read:
+For the immediate implementation handoff, read:
 
 ```text
 NEXT.md
 ```
 
-before starting LO-007.
+before starting LO-008.
 
 ## Research boundary
 
