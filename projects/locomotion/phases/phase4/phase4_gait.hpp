@@ -417,6 +417,30 @@ inline double controllerSequencePhase(
     )/(double)plan.stepCount;
 }
 
+inline void setControllerSequencePhase(
+    const GaitPlan& plan,
+    ControllerState& state,
+    double sequencePhase
+){
+    if(plan.stepCount<=0||plan.stepDuration<=0.0){
+        resetController(state);
+        return;
+    }
+    const double p=std::clamp(sequencePhase,0.0,1.0);
+    if(p>=1.0-1e-12){
+        state.stepIndex=plan.stepCount-1;
+        state.handoffCount=plan.stepCount;
+        state.localTime=plan.stepDuration;
+        state.finished=true;
+        return;
+    }
+    const double scaled=p*(double)plan.stepCount;
+    state.stepIndex=std::clamp((int)std::floor(scaled),0,plan.stepCount-1);
+    state.handoffCount=state.stepIndex;
+    state.localTime=(scaled-(double)state.stepIndex)*plan.stepDuration;
+    state.finished=false;
+}
+
 inline GaitSample sampleController(
     const ReferenceBody& reference,
     const GaitPlan& plan,
