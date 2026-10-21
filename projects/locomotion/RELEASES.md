@@ -173,3 +173,33 @@ before returning to start/stop/acceleration, dynamic balance, and walk/run trans
 
 See `experiments/LO-006-FLOW-AUDIT.md` and the living documentation for the full rationale.
 
+
+
+## v0.7.0 - LO-007 Continuous Locomotion State
+
+This milestone is the first executable checkpoint after the post-v0.6.1 flow audit.
+
+It changes the runtime source of locomotion from finite repeated step transactions to persistent fixed-step state.
+
+LO-007 adds:
+
+- a 120 Hz deterministic simulation tick;
+- persistent root position, linear velocity, yaw, and angular velocity;
+- independent unwrapped left/right limb phase;
+- bounded contact-transition timing correction;
+- persistent arm response state;
+- grounded/airborne contacts and world-space planted ankle anchors;
+- bounded contact-event history;
+- indefinite locomotion without a requested step count;
+- root velocity, acceleration, phase, slip, and segment-length continuity diagnostics;
+- twenty-nine Phase 6 self-tests plus all preserved earlier suites;
+- exact deterministic replay for identical fixed-tick runs;
+- a new native Phase 6 inspection harness.
+
+The milestone deliberately retains a temporary flat-foot solve. Persistent root Y advances from root velocity, but the displayed kinematic pelvis Y remains coupled to current foot midpoint for LO-003 feasibility under the unchanged ankle guardrail.
+
+Release and touchdown also remain phase-predicted rather than physical collision events.
+
+These limitations are preserved because they define the questions for LO-008 articulated stance-foot mechanics, LO-009 dynamic root transport, and LO-010 contact handoff/impact.
+
+LO-007 does not claim that natural walking is solved. It establishes that root state, limb timing, contact state, and arm response can survive support transitions without a global `COMPLETE -> RESET` controller.
