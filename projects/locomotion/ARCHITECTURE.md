@@ -1,14 +1,14 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-004 / Phase 3 one procedural step  
+**Architecture checkpoint:** LO-005 / Phase 4 alternating event-sequenced steps  
 **Date:** 2026-10-21  
-**Status:** Active study, first bounded locomotion transaction implemented
+**Status:** Active study, repeated fixed gait implemented
 
 ## Current boundary
 
-LO-004 is the first experiment that changes pose continuously through a locomotion event, but it still does not implement repeated gait.
+LO-005 is the first experiment that repeats locomotion over several alternating support transfers.
 
-Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves explicit static pelvis and foot targets. Phase 3 connects valid standing states with one bounded support-to-support step.
+Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves static pelvis and foot targets. Phase 3 validates one support-to-support step. Phase 4 chains those transactions while carrying completed world-space stance state forward.
 
 It freezes the first contract that later phases are allowed to build on:
 
@@ -239,6 +239,40 @@ The step state machine uses explicit support events rather than redefining locom
 
 The global `NONE` support state remains valid and deliberately unused by this walking experiment. This leaves a clean route for future takeoff/flight/landing work without assuming that some foot must always support the body.
 
+## Phase 4 repeated gait handoff
+
+LO-005 adds persistent stance state and explicit step handoff:
+
+```text
+completed stance
+     |
+     +-- left ankle
+     +-- right ankle
+     +-- pelvis
+     |
+     v
+choose alternating swing side
+     |
+     v
+run one LO-004-style step
+     |
+     v
+COMPLETE event
+     |
+     v
+completed stance becomes next start
+```
+
+Every boundary compares the complete solved pose at `phase=1` with the next step at `phase=0`. Maximum joint and pelvis deltas are retained as formal handoff metrics.
+
+The support ankle remains a per-step invariant, so any numerical drift is exposed before it can accumulate across the sequence. Knee branch direction is also checked throughout repeated gait.
+
+The fixed 0.28 m quantity is successive footfall spacing. After the aligned initialization step, a trailing foot travels roughly twice that distance in world space to pass the planted foot and land ahead of it.
+
+Playback uses explicit controller state: current step index, local step time, completed handoffs, and finished state. A normalized sequence phase is provided for inspection and scrubbing, not as the sole definition of gait identity.
+
+Speed-dependent cadence and stride remain absent. Phase 4 answers only whether one validated transaction can repeat cleanly.
+
 ## Planned control architecture
 
 The current research hypothesis remains:
@@ -299,20 +333,21 @@ This is a research decomposition, not yet an implementation hierarchy.
 12. Failed approaches remain part of the experiment record.
 13. Walking experiments must not erase the valid NONE support state needed by future jumping.
 14. Foot-specific step logic should remain separable from any future generalized hand/wall/ledge contact planner.
+15. Step-to-step continuity must be measured on the complete solved pose, not inferred from matching foot targets.
+16. Desired speed must not be introduced until fixed repeated gait can hand off without accumulated error.
 
 ## Next research boundary
 
-LO-005 should test whether the end of one validated step can become the initial condition of the next step.
+LO-006 should introduce desired forward speed as an independent control input.
 
 Expected additions:
 
-- alternating left/right swing sides;
-- event-driven step handoff;
-- continuous normalized gait phase across step boundaries;
-- no accumulated planted-foot drift;
-- no knee branch flips at handoff;
-- stable pelvis continuity;
-- repeated support-state transitions;
-- deterministic stop after an integer number of steps.
+- continuous cadence variation;
+- continuous step-length variation;
+- stance/swing timing variation;
+- gait timing derived from desired speed rather than one fixed duration;
+- smooth pelvis excursion changes;
+- preserved handoff invariants from LO-005;
+- no discrete walk-speed presets masquerading as continuous locomotion.
 
-Speed-dependent cadence and stride adaptation remain outside LO-005. Repetition should be proven before velocity becomes another independent variable.
+Start/stop acceleration and deceleration remain outside LO-006. First establish a stable family of steady forward walking speeds.
