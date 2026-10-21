@@ -46,7 +46,7 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Package LO-006 v0.6.1
+      - name: Package locomotion release
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
@@ -56,6 +56,7 @@ jobs:
           Copy-Item build/Release/locomotion_phase3.exe dist/Locomotion-LO004-OneStep.exe
           Copy-Item build/Release/locomotion_phase4.exe dist/Locomotion-LO005-AlternatingSteps.exe
           Copy-Item build/Release/locomotion_phase5.exe dist/Locomotion-LO006-VelocityWalk.exe
+          Copy-Item build/Release/locomotion_phase6.exe dist/Locomotion-LO007-ContinuousState.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -69,6 +70,12 @@ jobs:
           Copy-Item experiments/LO-004.md dist/experiments/LO-004.md
           Copy-Item experiments/LO-005.md dist/experiments/LO-005.md
           Copy-Item experiments/LO-006.md dist/experiments/LO-006.md
+          if (Test-Path experiments/LO-006-FLOW-AUDIT.md) {
+            Copy-Item experiments/LO-006-FLOW-AUDIT.md dist/experiments/LO-006-FLOW-AUDIT.md
+          }
+          if (Test-Path experiments/LO-007.md) {
+            Copy-Item experiments/LO-007.md dist/experiments/LO-007.md
+          }
 
           Copy-Item -Recurse reference dist/reference
 
@@ -96,6 +103,17 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
+          NM-PM architecture checkpoint for Anatomically Constrained Procedural Human Locomotion.
+
+          This release packages LO-007 (continuous locomotion state): persistent root position/velocity/angular state, independent per-limb timing, contact events that apply bounded phase correction, and a fixed-step deterministic runtime. Support changes are treated as events inside continuing locomotion rather than as COMPLETE-RESET step transactions.
+
+          LO-007 is an architecture experiment. It does not claim to solve natural human walking. Articulated foot rollover, stance dynamics, functional swing, and reactive whole-body motion remain later experiments.
+
+          The ZIP preserves LO-001 through LO-007 harnesses, living documentation, and derived reference-analysis files.
+          "@
+
+          if ($env:RELEASE_TAG -eq "locomotion-v0.6.1") {
+            $notes = @"
           NM-PM corrective v0.6.1 milestone for Anatomically Constrained Procedural Human Locomotion.
 
           LO-006 retains the validated steady walking controller from v0.6.0 while replacing the original wide rigid-arm approximation with reference-informed procedural body dynamics.
@@ -104,6 +122,7 @@ jobs:
 
           The ZIP preserves LO-001 through LO-006 harnesses, the living documentation, and the derived reference-analysis files.
           "@
+          }
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
             throw "Release $env:RELEASE_TAG already exists."
