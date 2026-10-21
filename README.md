@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-003 adds the first analytic static standing solver with explicit pelvis/foot targets, reach constraints, and joint-envelope diagnostics.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-004 adds the first bounded procedural step with planted-foot invariance, swing clearance, and explicit support-stage transitions.
 
 ### Reference
 
