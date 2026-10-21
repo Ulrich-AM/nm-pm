@@ -65,3 +65,24 @@ The third milestone introduces the first pose-changing locomotion method:
 - preserved LO-001, LO-002, and LO-003 native harnesses in one release.
 
 The milestone remains static. No gait clock, step trajectory, momentum-driven pelvis movement, or balance force is introduced.
+
+## v0.4.0 - LO-004 One Procedural Step
+
+The fourth milestone introduces the first bounded locomotion transaction:
+
+- PRELOAD / SWING / LANDING / COMPLETE stage model;
+- either leg can become the swing leg;
+- opposite ankle remains a planted invariant;
+- 0.28 m default landing distance;
+- 0.05 m peak swing clearance;
+- quintic horizontal swing interpolation;
+- zero-end-velocity `sin^2` lift profile;
+- minimum central toe-clearance measurement;
+- formal planted-foot slip measurement;
+- LO-003 reach and joint-envelope validation across the full step;
+- LO-002 support/COM measurement across each phase;
+- one-shot playback and phase scrubber;
+- eighteen Phase 3 tests in addition to preserved earlier suites;
+- preserved LO-001 through LO-004 native harnesses in one release.
+
+The milestone still contains no repeated gait, automatic footstep planning, speed-dependent cadence, active balance force, jump flight, or generalized hand/environment contacts.
