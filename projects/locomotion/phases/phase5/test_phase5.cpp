@@ -33,6 +33,12 @@ int main(){
              <<" toe="<<cruiseEval.minCoreToeClearance
              <<" firstOuterStep="<<cruiseEval.firstOuterViolationStep
              <<" firstOuterPhase="<<cruiseEval.firstOuterViolationPhase
+             <<" Lhip="<<cruiseEval.firstOuterViolationLeft.hipFlexionDeg
+             <<" Lknee="<<cruiseEval.firstOuterViolationLeft.kneeFlexionDeg
+             <<" Lankle="<<cruiseEval.firstOuterViolationLeft.ankleDorsiflexionDeg
+             <<" Rhip="<<cruiseEval.firstOuterViolationRight.hipFlexionDeg
+             <<" Rknee="<<cruiseEval.firstOuterViolationRight.kneeFlexionDeg
+             <<" Rankle="<<cruiseEval.firstOuterViolationRight.ankleDorsiflexionDeg
              <<"\n";
 
     std::cout<<"slow cadence = "<<slow.cadenceSpm<<" spm\n";
