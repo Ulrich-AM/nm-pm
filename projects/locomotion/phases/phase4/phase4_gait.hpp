@@ -192,7 +192,10 @@ inline StandingTargets targetsForStep(
     if(swing==LegSide::Left)t.left.ankle=plannedSwing(swingStart,swingLanding,plan,u);
     else t.right.ankle=plannedSwing(swingStart,swingLanding,plan,u);
 
-    const double bodyT=locomotion3::smootherStep(u);
+    double bodyT=0.0;
+    if(u>=plan.touchdownPhase)bodyT=1.0;
+    else if(u>plan.liftoffPhase)
+        bodyT=locomotion3::smootherStep(swingPhaseFor(plan,u));
     t.pelvis=locomotion3::mix(start.pelvis,end.pelvis,bodyT);
 
     const auto window=locomotion2::sharedPelvisHeightWindow(reference,t);
