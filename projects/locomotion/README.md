@@ -1,14 +1,14 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-005 / Phase 4 alternating event-sequenced steps  
+**Current checkpoint:** LO-006 / Phase 5 velocity-driven whole-body walking  
 **Status:** Active
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
-The current implementation can now repeat a fixed forward gait, but it does **not** yet adapt stride, cadence, or timing from desired speed.
+The current implementation can now execute a steady forward walking family from a desired-speed command, including speed-dependent step spacing, cadence, support timing, pelvis/trunk coordination, and contralateral arm swing. It does **not** yet change speed while already moving.
 
-LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 carries completed stance state forward and alternates that step across a fixed multi-step gait.
+LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 repeats it with persistent handoffs. LO-006 maps desired steady walking speed into gait timing and restrained whole-body coordination.
 
 ## Implemented foundation
 
@@ -68,6 +68,21 @@ LO-005 additionally defines:
 - deterministic 4-, 6-, and 8-step playback;
 - exact stop after the requested integer number of steps.
 
+LO-006 additionally defines:
+
+- continuous desired walking speed over a validated 0.40-1.00 m/s envelope;
+- speed-derived successive footfall spacing;
+- speed-derived cadence and step duration;
+- speed-dependent double/single support timing;
+- exact speed closure in steady repeated gait;
+- pelvis yaw, obliquity, and lateral stance-side shift;
+- re-solving of rotated hip geometry without moving foot targets;
+- trunk counter-rotation;
+- contralateral arm targets;
+- damped stateful arm response;
+- LEGS / PELVIS / TRUNK / FULL BODY comparison modes;
+- a sampled whole-speed-envelope validation pass.
+
 The coordinate convention remains:
 
 ```text
@@ -86,7 +101,7 @@ Run:
 build_windows.bat
 ```
 
-The script configures CMake, builds the Release configuration, runs CTest, and launches the current Phase 4 harness.
+The script configures CMake, builds the Release configuration, runs CTest, and launches the current Phase 5 harness.
 
 Manual equivalent:
 
@@ -109,6 +124,8 @@ locomotion_phase3.exe
 locomotion_phase3_tests.exe
 locomotion_phase4.exe
 locomotion_phase4_tests.exe
+locomotion_phase5.exe
+locomotion_phase5_tests.exe
 ```
 
 ## Y Bot policy
