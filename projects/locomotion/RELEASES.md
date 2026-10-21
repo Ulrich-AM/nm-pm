@@ -152,3 +152,24 @@ The refinement adds:
 - thirty-two Phase 5 headline tests plus all preserved earlier suites.
 
 The supplied running references remain evidence for future continuous walk/run transition work. v0.6.1 does not copy their curves and does not yet implement running.
+
+## Post-v0.6.1 Flow Audit - Documentation Only
+
+No executable release is attached to this audit.
+
+Visual review after v0.6.1 showed that the validated gait still reads as march-like despite correct foot targets, anatomical limits, whole-body coordination, and reference-informed upper-limb geometry.
+
+The study therefore preserves v0.6.1 as the final checkpoint of the current step-transaction-centered architecture and records a roadmap correction before LO-007.
+
+The revised research order begins with:
+
+- persistent root/body locomotion state;
+- articulated heel-to-toe stance contact;
+- locomotion-specific stance/root dynamics;
+- contact-driven handoff;
+- functional swing phases;
+
+before returning to start/stop/acceleration, dynamic balance, and walk/run transition.
+
+See `experiments/LO-006-FLOW-AUDIT.md` and the living documentation for the full rationale.
+
