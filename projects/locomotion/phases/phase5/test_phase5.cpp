@@ -92,6 +92,47 @@ int main(){
         }
     }
 
+    {
+        locomotion5::VelocityCommand cmd{};
+        cmd.desiredSpeed=0.75;
+        cmd.stepCount=6;
+        const auto profile=locomotion5::profileForSpeed(0.75);
+        const auto plan=locomotion5::gaitPlanFor(cmd);
+        const auto gait=locomotion4::sampleSequence(reference,plan,0.20);
+        const double legSignal=locomotion5::stepLegSignal(gait,plan);
+        const double supportWeight=locomotion5::singleSupportWeight(gait,plan);
+        const double yaw=-profile.pelvisYawAmpDeg*legSignal;
+        const double roll=profile.pelvisRollAmpDeg
+            *locomotion5::swingSideSign(gait.swingSide)
+            *supportWeight;
+        const double shift=locomotion5::supportSideSign(gait.supportSide)
+            *profile.pelvisLateralAmp*supportWeight;
+
+        auto report=[&](const char* name,double y,double r,double sx){
+            auto targets=gait.targets;
+            targets.pelvis.x+=sx;
+            const auto s=locomotion5::solveCoordinatedLegs(
+                reference,targets,y,r
+            );
+            std::cout<<"pelvis decomposition "<<name
+                     <<" yaw="<<y
+                     <<" roll="<<r
+                     <<" shift="<<sx
+                     <<" Lankle="<<s.left.angles.ankleDorsiflexionDeg
+                     <<" Rankle="<<s.right.angles.ankleDorsiflexionDeg
+                     <<" outer="<<(s.left.withinOuterLimits&&s.right.withinOuterLimits)
+                     <<"\n";
+        };
+        report("base",0.0,0.0,0.0);
+        report("yaw",yaw,0.0,0.0);
+        report("roll",0.0,roll,0.0);
+        report("shift",0.0,0.0,shift);
+        report("yaw+roll",yaw,roll,0.0);
+        report("yaw+shift",yaw,0.0,shift);
+        report("roll+shift",0.0,roll,shift);
+        report("all",yaw,roll,shift);
+    }
+
     std::cout<<passed<<" / "
              <<results.size()
              <<" tests passed\n";
