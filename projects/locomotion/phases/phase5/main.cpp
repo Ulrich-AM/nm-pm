@@ -314,11 +314,11 @@ void DrawSidebar(State& state,Rectangle r){
     const float bw=(r.width-27)*0.5f;
     if(Button({r.x+9,y,bw,23},"SLOW 0.40",std::abs(state.command.desiredSpeed-0.40)<1e-6))
         SetSpeed(state,0.40);
-    if(Button({r.x+14+bw,y,bw,23},"WALK 0.70",std::abs(state.command.desiredSpeed-0.70)<1e-6))
-        SetSpeed(state,0.70);
+    if(Button({r.x+14+bw,y,bw,23},"WALK 0.60",std::abs(state.command.desiredSpeed-0.60)<1e-6))
+        SetSpeed(state,0.60);
     y+=28;
-    if(Button({r.x+9,y,r.width-18,23},"FAST WALK 1.00",std::abs(state.command.desiredSpeed-1.00)<1e-6))
-        SetSpeed(state,1.00);
+    if(Button({r.x+9,y,r.width-18,23},"FAST WALK 0.80",std::abs(state.command.desiredSpeed-0.80)<1e-6))
+        SetSpeed(state,0.80);
     y+=31;
 
     Text("speed",r.x+12,y,9,C_DIM);
