@@ -10,16 +10,17 @@ Detailed discussion lives in `DOCUMENTATION.html`. Durable IDs remain stable eve
 | LO-004 | Phase 3 | Implemented | One bounded support-to-support step with planted-foot invariant, generated swing trajectory, toe-clearance measurement, explicit support stages, and LO-003 pose solving |
 | LO-005 | Phase 4 | Implemented | Alternating fixed gait with persistent stance state, explicit handoffs, pose-continuity metrics, planted-foot drift checks, and deterministic integer-step stopping |
 | LO-006 | Phase 5 | Implemented | Continuous desired-speed walking with derived step length, cadence, support timing, pelvis/hip coordination, trunk counter-rotation, and stateful contralateral arm swing |
-| LO-007 | Phase 6 | Planned | Start, stop, acceleration, and deceleration with phase continuity |
-| LO-008 | Phase 7 | Planned | Dynamic stability diagnostics and corrective foot placement |
-| LO-009 | Phase 8 | Planned | Running regime and walk/run transition |
-| LO-010 | Phase 9 | Planned | Slopes and variable ground height |
-| LO-011 | Phase 10 | Planned | Stairs and step-up/step-down behavior |
-| LO-012 | Phase 11 | Planned | Foothold scoring and invalid support regions |
-| LO-013 | Phase 12 | Planned | Obstacle clearance and step-over behavior |
-| LO-014 | Phase 13 | Planned | Corrective stepping after disturbances and support loss |
-| LO-015 | Phase 14 | Planned | Turning, backward motion, and lateral motion |
-| LO-016 | Phase 15 | Planned | Body-proportion generalization |
-| LO-017 | Phase 16 | Planned | Integrated reference controller, performance sweep, and architecture freeze |
+| LO-006 Flow Audit | Post-Phase 5 | Documented | Visual/research audit showing that a valid repeated kinematic step-chain can remain march-like; records the shift toward continuous body transport, articulated contact, and stateful phase dynamics |
+| LO-007 | Phase 6 | Planned | Continuous locomotion state: persistent root position/velocity/angular state, per-limb phases, and contact-corrected timing without step-boundary resets |
+| LO-008 | Phase 7 | Planned | Articulated stance foot: heel strike, flat support, heel rise, forefoot support, and toe-off |
+| LO-009 | Phase 8 | Planned | Dynamic stance/root transport using the smallest useful locomotion-specific model |
+| LO-010 | Phase 9 | Planned | Contact handoff, weight acceptance, touchdown impact, and state correction |
+| LO-011 | Phase 10 | Planned | Functional swing-leg phases: initiation, clearance, transport, terminal extension, and contact preparation |
+| LO-012 | Phase 11 | Planned | Pelvis/root flow: path, nonuniform timing, velocity/acceleration/jerk, and reference comparison |
+| LO-013 | Phase 12 | Planned | Reactive thorax, arms, shoulders, and head driven by root/stance dynamics rather than one leg signal |
+| LO-014 | Phase 13 | Planned | Start, stop, acceleration, and deceleration while preserving continuous locomotion state |
+| LO-015 | Phase 14 | Planned | Dynamic balance and corrective foot placement using support geometry and velocity-aware state |
+| LO-016 | Phase 15 | Planned | Continuous walk/run transition including loss of double support and emergence of flight |
+| LO-017+ | Phase 16+ | Planned | Terrain, slopes, stairs, footholds, obstacles, recovery, turning/lateral motion, body variation, and generalized whole-body contacts |
 
 Failed and superseded experiments will remain in this registry rather than being deleted.
