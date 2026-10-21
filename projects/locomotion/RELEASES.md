@@ -86,3 +86,24 @@ The fourth milestone introduces the first bounded locomotion transaction:
 - preserved LO-001 through LO-004 native harnesses in one release.
 
 The milestone still contains no repeated gait, automatic footstep planning, speed-dependent cadence, active balance force, jump flight, or generalized hand/environment contacts.
+
+## v0.5.0 - LO-005 Alternating Event-Sequenced Steps
+
+The fifth milestone is intended to prove that the one-step transaction can repeat without accumulated handoff error:
+
+- persistent world-space stance state;
+- deterministic right/left swing alternation;
+- exact completed-stance handoff;
+- fixed 0.28 m successive footfall spacing;
+- fixed 0.82 s step duration;
+- 0.045 m swing clearance retained from LO-004;
+- maximum full-pose handoff delta measurement;
+- maximum pelvis handoff delta measurement;
+- accumulated planted-foot slip measurement;
+- knee-branch continuity checks;
+- 4-, 6-, and 8-step deterministic harness sequences;
+- explicit controller handoff count and integer-step stop;
+- twenty Phase 4 tests in addition to preserved earlier suites;
+- preserved LO-001 through LO-005 native harnesses in one release.
+
+Cadence, stride length, acceleration, and desired speed remain fixed or absent. LO-006 owns continuous speed adaptation.
