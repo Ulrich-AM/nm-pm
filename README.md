@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-006 v0.6.1 refines steady walking with measured reference envelopes, independent pelvis/thorax coordination, and torso-relative procedural arm solving.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-006 v0.6.1 remains the latest implementation checkpoint; a post-LO-006 flow audit has reordered the next phases around continuous root state, articulated foot contact, stance dynamics, and contact-driven timing before acceleration and running.
 
 ### Reference
 
