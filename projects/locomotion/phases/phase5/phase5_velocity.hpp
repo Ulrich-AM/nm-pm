@@ -756,7 +756,9 @@ inline VelocityEvaluation evaluateVelocityEnvelope(
 
     for(int i=0;i<count;++i){
         const double t=(double)i/(double)(count-1);
-        const double speed=lerp(kMinWalkingSpeed,kMaxWalkingSpeed,t);
+        const double speed=lerp(
+            kMinWalkingSpeed,kMaxWalkingSpeed,t
+        );
 
         VelocityCommand command{};
         command.desiredSpeed=speed;
@@ -782,7 +784,8 @@ inline VelocityEvaluation evaluateVelocityEnvelope(
                 &&p.stepDuration<previous.stepDuration;
             e.monotonicDoubleSupport=
                 e.monotonicDoubleSupport
-                &&p.doubleSupportFraction<previous.doubleSupportFraction;
+                &&p.doubleSupportFraction
+                    <previous.doubleSupportFraction;
         }
         previous=p;
         havePrevious=true;
@@ -792,13 +795,16 @@ inline VelocityEvaluation evaluateVelocityEnvelope(
             e.maxSupportSlip,g.maxSupportSlip
         );
         e.maxHandoffJointDelta=std::max(
-            e.maxHandoffJointDelta,g.maxHandoffJointDelta
+            e.maxHandoffJointDelta,
+            g.maxHandoffJointDelta
         );
         e.minCoreToeClearance=std::min(
-            e.minCoreToeClearance,g.minCoreToeClearance
+            e.minCoreToeClearance,
+            g.minCoreToeClearance
         );
 
-        const double measured=steadyPelvisSpeed(reference,command);
+        const double measured=
+            steadyPelvisSpeed(reference,command);
         e.maxSteadySpeedError=std::max(
             e.maxSteadySpeedError,
             std::abs(measured-p.speed)
@@ -808,32 +814,84 @@ inline VelocityEvaluation evaluateVelocityEnvelope(
             const double phase=
                 (double)k/(double)(samplesPerStep-1);
             const CoordinatedSample s=
-                sampleCoordinated(reference,command,phase);
+                sampleCoordinated(
+                    reference,command,phase
+                );
 
-            e.allReachable=e.allReachable&&s.allReachable;
-            e.allOuterLimits=e.allOuterLimits&&s.allOuterLimits;
+            e.allReachable=
+                e.allReachable&&s.allReachable;
+            e.allOuterLimits=
+                e.allOuterLimits&&s.allOuterLimits;
+            e.armLengthsPreserved=
+                e.armLengthsPreserved
+                &&s.armLengthsPreserved;
+            e.handCorridorValid=
+                e.handCorridorValid
+                &&s.handCorridorValid;
+            e.elbowEnvelopeValid=
+                e.elbowEnvelopeValid
+                &&s.elbowEnvelopeValid;
+
+            e.maxArmLengthError=std::max(
+                e.maxArmLengthError,
+                s.maxArmLengthError
+            );
+            e.minHandLateralNorm=std::min({
+                e.minHandLateralNorm,
+                s.leftHandLateralNorm,
+                s.rightHandLateralNorm
+            });
+            e.maxHandLateralNorm=std::max({
+                e.maxHandLateralNorm,
+                s.leftHandLateralNorm,
+                s.rightHandLateralNorm
+            });
+            e.minElbowFlexDeg=std::min({
+                e.minElbowFlexDeg,
+                s.leftElbowFlexDeg,
+                s.rightElbowFlexDeg
+            });
+            e.maxElbowFlexDeg=std::max({
+                e.maxElbowFlexDeg,
+                s.leftElbowFlexDeg,
+                s.rightElbowFlexDeg
+            });
 
             const Vec3 leftSolved=
-                locomotion3::ankleOf(s.pose,LegSide::Left);
+                locomotion3::ankleOf(
+                    s.pose,LegSide::Left
+                );
             const Vec3 rightSolved=
-                locomotion3::ankleOf(s.pose,LegSide::Right);
+                locomotion3::ankleOf(
+                    s.pose,LegSide::Right
+                );
             const double footError=std::max(
-                locomotion::length(leftSolved-s.gait.targets.left.ankle),
-                locomotion::length(rightSolved-s.gait.targets.right.ankle)
+                locomotion::length(
+                    leftSolved-s.gait.targets.left.ankle
+                ),
+                locomotion::length(
+                    rightSolved-s.gait.targets.right.ankle
+                )
             );
-            e.maxCoordinatedSupportFootError=std::max(
-                e.maxCoordinatedSupportFootError,footError
-            );
-            e.feetPreserved=e.feetPreserved&&footError<1e-6;
+            e.maxCoordinatedSupportFootError=
+                std::max(
+                    e.maxCoordinatedSupportFootError,
+                    footError
+                );
+            e.feetPreserved=
+                e.feetPreserved&&footError<1e-6;
 
             if(std::abs(s.legSignal)>0.15){
                 e.contralateralArms=
                     e.contralateralArms
-                    &&(s.leftArmTargetDeg*s.legSignal>0.0)
-                    &&(s.rightArmTargetDeg*s.legSignal<0.0);
+                    &&(s.leftArmDriveTarget
+                        *s.legSignal>0.0)
+                    &&(s.rightArmDriveTarget
+                        *s.legSignal<0.0);
                 e.trunkCounterRotates=
                     e.trunkCounterRotates
-                    &&(s.trunkCounterYawDeg*s.pelvisYawDeg<=0.0);
+                    &&(s.thoraxYawDeg
+                        *s.pelvisYawDeg<=0.0);
             }
         }
     }
@@ -849,19 +907,27 @@ inline VelocityEvaluation evaluateVelocityEnvelope(
         &&e.feetPreserved
         &&e.contralateralArms
         &&e.trunkCounterRotates
+        &&e.armLengthsPreserved
+        &&e.handCorridorValid
+        &&e.elbowEnvelopeValid
         &&e.maxSupportSlip<1e-6
         &&e.maxHandoffJointDelta<1e-6
         &&std::isfinite(e.minCoreToeClearance)
         &&e.minCoreToeClearance>0.010
         &&e.maxSteadySpeedError<1e-8
-        &&e.maxCoordinatedSupportFootError<1e-6;
+        &&e.maxCoordinatedSupportFootError<1e-6
+        &&e.maxArmLengthError<kArmLengthTolerance;
     return e;
 }
 
-struct SelfTestResult { const char* name; bool pass; };
+struct SelfTestResult {
+    const char* name;
+    bool pass;
+};
 
-inline std::array<SelfTestResult,26> runSelfTests(){
-    const ReferenceBody reference=locomotion::makeReferenceBody();
+inline std::array<SelfTestResult,32> runSelfTests(){
+    const ReferenceBody reference=
+        locomotion::makeReferenceBody();
 
     const VelocityProfile slow=profileForSpeed(0.40);
     const VelocityProfile cruise=profileForSpeed(0.60);
@@ -875,65 +941,205 @@ inline std::array<SelfTestResult,26> runSelfTests(){
 
     const GaitPlan plan=gaitPlanFor(command);
     const GaitEvaluation gaitEval=
-        locomotion4::evaluateGait(reference,plan,101);
+        locomotion4::evaluateGait(
+            reference,plan,101
+        );
     const CoordinatedSample mid=
-        sampleCoordinated(reference,command,0.42);
+        sampleCoordinated(
+            reference,command,0.42
+        );
 
     VelocityCommand legsOnly=command;
-    legsOnly.coordination=CoordinationMode::LegsOnly;
+    legsOnly.coordination=
+        CoordinationMode::LegsOnly;
     const CoordinatedSample bare=
-        sampleCoordinated(reference,legsOnly,0.42);
+        sampleCoordinated(
+            reference,legsOnly,0.42
+        );
 
     VelocityCommand pelvisOnly=command;
-    pelvisOnly.coordination=CoordinationMode::Pelvis;
+    pelvisOnly.coordination=
+        CoordinationMode::Pelvis;
     const CoordinatedSample pelvis=
-        sampleCoordinated(reference,pelvisOnly,0.42);
+        sampleCoordinated(
+            reference,pelvisOnly,0.42
+        );
 
     const VelocityEvaluation envelope=
-        evaluateVelocityEnvelope(reference,7,61);
+        evaluateVelocityEnvelope(
+            reference,7,61
+        );
 
     ArmOscillatorState arms{};
     CoordinatedSample armTarget=
-        sampleCoordinated(reference,command,0.42);
+        sampleCoordinated(
+            reference,command,0.42
+        );
     syncArmState(arms,armTarget);
-    const double initialLeft=arms.leftDeg;
-    armTarget.leftArmTargetDeg=-initialLeft;
-    armTarget.rightArmTargetDeg=initialLeft;
-    for(int i=0;i<120;++i)
-        advanceArmState(arms,armTarget,1.0/120.0);
+    const double initialLeft=arms.leftDrive;
+    armTarget.leftArmDriveTarget=-initialLeft;
+    armTarget.rightArmDriveTarget=initialLeft;
+    for(int i=0;i<120;++i){
+        advanceArmState(
+            arms,armTarget,1.0/120.0
+        );
+    }
 
     const Vec3 leftSolved=
-        locomotion3::ankleOf(mid.pose,LegSide::Left);
+        locomotion3::ankleOf(
+            mid.pose,LegSide::Left
+        );
     const Vec3 rightSolved=
-        locomotion3::ankleOf(mid.pose,LegSide::Right);
+        locomotion3::ankleOf(
+            mid.pose,LegSide::Right
+        );
+
+    const double neutralWristLateral=
+        std::abs(
+            reference.joint[
+                locomotion::jointIndex(
+                    JointId::LeftWrist
+                )
+            ].x
+        )/reference.dimensions.shoulderWidth;
 
     return {{
-        {"slow command remains inside walking envelope",std::abs(slow.speed-0.40)<1e-12},
-        {"low command clamps to minimum walking speed",std::abs(lowClamp.speed-kMinWalkingSpeed)<1e-12},
-        {"high command clamps to maximum walking speed",std::abs(highClamp.speed-kMaxWalkingSpeed)<1e-12},
-        {"step length increases with requested speed",slow.stepLength<cruise.stepLength&&cruise.stepLength<fast.stepLength},
-        {"cadence increases with requested speed",slow.cadenceSpm<cruise.cadenceSpm&&cruise.cadenceSpm<fast.cadenceSpm},
-        {"step duration falls with requested speed",slow.stepDuration>cruise.stepDuration&&cruise.stepDuration>fast.stepDuration},
-        {"double-support share falls with requested speed",slow.doubleSupportFraction>cruise.doubleSupportFraction&&cruise.doubleSupportFraction>fast.doubleSupportFraction},
-        {"single-support share rises with requested speed",slow.singleSupportFraction<cruise.singleSupportFraction&&cruise.singleSupportFraction<fast.singleSupportFraction},
-        {"clearance preserves LO-005 flat-foot value",std::abs(slow.clearance-0.038)<1e-12&&std::abs(cruise.clearance-0.038)<1e-12&&std::abs(fast.clearance-0.038)<1e-12},
-        {"pelvis yaw amplitude scales with speed",slow.pelvisYawAmpDeg<cruise.pelvisYawAmpDeg&&cruise.pelvisYawAmpDeg<fast.pelvisYawAmpDeg},
-        {"arm swing amplitude scales with speed",slow.armSwingAmpDeg<cruise.armSwingAmpDeg&&cruise.armSwingAmpDeg<fast.armSwingAmpDeg},
-        {"steady gait closes requested speed",std::abs(steadyPelvisSpeed(reference,command)-cruise.speed)<1e-9},
-        {"velocity-derived base gait remains valid",gaitEval.valid},
-        {"coordinated pose remains reachable",mid.allReachable},
-        {"coordinated pose remains inside outer leg limits",mid.allOuterLimits},
-        {"coordinated layer preserves left foot target",locomotion::near(leftSolved,mid.gait.targets.left.ankle,1e-7)},
-        {"coordinated layer preserves right foot target",locomotion::near(rightSolved,mid.gait.targets.right.ankle,1e-7)},
-        {"legs-only mode disables pelvis yaw",std::abs(bare.pelvisYawDeg)<1e-12},
-        {"legs-only mode disables lateral pelvis shift",std::abs(bare.pelvisLateralShift)<1e-12},
-        {"pelvis mode leaves arm targets zero",std::abs(pelvis.leftArmTargetDeg)<1e-12&&std::abs(pelvis.rightArmTargetDeg)<1e-12},
-        {"full-body arms are contralateral",std::abs(mid.legSignal)<0.15||(mid.leftArmTargetDeg*mid.legSignal>0.0&&mid.rightArmTargetDeg*mid.legSignal<0.0)},
-        {"trunk counter-yaw opposes pelvis yaw",mid.trunkCounterYawDeg*mid.pelvisYawDeg<=0.0},
-        {"whole-body COM remains finite",locomotion::finite(mid.analysis.com)},
-        {"arm oscillator moves toward changed target",std::abs(arms.leftDeg-armTarget.leftArmTargetDeg)<std::abs(initialLeft-armTarget.leftArmTargetDeg)},
-        {"velocity envelope validates",envelope.valid},
-        {"speed envelope preserves planted feet",envelope.maxCoordinatedSupportFootError<1e-7}
+        {"slow command remains inside walking envelope",
+            std::abs(slow.speed-0.40)<1e-12},
+        {"low command clamps to minimum walking speed",
+            std::abs(
+                lowClamp.speed-kMinWalkingSpeed
+            )<1e-12},
+        {"high command clamps to maximum walking speed",
+            std::abs(
+                highClamp.speed-kMaxWalkingSpeed
+            )<1e-12},
+        {"step length increases with requested speed",
+            slow.stepLength<cruise.stepLength
+            &&cruise.stepLength<fast.stepLength},
+        {"cadence increases with requested speed",
+            slow.cadenceSpm<cruise.cadenceSpm
+            &&cruise.cadenceSpm<fast.cadenceSpm},
+        {"step duration falls with requested speed",
+            slow.stepDuration>cruise.stepDuration
+            &&cruise.stepDuration>fast.stepDuration},
+        {"double-support share falls with requested speed",
+            slow.doubleSupportFraction
+                >cruise.doubleSupportFraction
+            &&cruise.doubleSupportFraction
+                >fast.doubleSupportFraction},
+        {"single-support share rises with requested speed",
+            slow.singleSupportFraction
+                <cruise.singleSupportFraction
+            &&cruise.singleSupportFraction
+                <fast.singleSupportFraction},
+        {"clearance preserves LO-005 flat-foot value",
+            std::abs(slow.clearance-0.038)<1e-12
+            &&std::abs(cruise.clearance-0.038)<1e-12
+            &&std::abs(fast.clearance-0.038)<1e-12},
+        {"pelvis yaw amplitude scales with speed",
+            slow.pelvisYawAmpDeg
+                <cruise.pelvisYawAmpDeg
+            &&cruise.pelvisYawAmpDeg
+                <fast.pelvisYawAmpDeg},
+        {"thorax yaw amplitude scales with speed",
+            slow.thoraxYawAmpDeg
+                <cruise.thoraxYawAmpDeg
+            &&cruise.thoraxYawAmpDeg
+                <fast.thoraxYawAmpDeg},
+        {"arm forward amplitude scales with speed",
+            slow.armForwardAmp
+                <cruise.armForwardAmp
+            &&cruise.armForwardAmp
+                <fast.armForwardAmp},
+        {"steady gait closes requested speed",
+            std::abs(
+                steadyPelvisSpeed(
+                    reference,command
+                )-cruise.speed
+            )<1e-9},
+        {"velocity-derived base gait remains valid",
+            gaitEval.valid},
+        {"coordinated pose remains reachable",
+            mid.allReachable},
+        {"coordinated pose remains inside outer leg limits",
+            mid.allOuterLimits},
+        {"coordinated layer preserves left foot target",
+            locomotion::near(
+                leftSolved,
+                mid.gait.targets.left.ankle,
+                1e-7
+            )},
+        {"coordinated layer preserves right foot target",
+            locomotion::near(
+                rightSolved,
+                mid.gait.targets.right.ankle,
+                1e-7
+            )},
+        {"legs-only mode disables pelvis yaw",
+            std::abs(bare.pelvisYawDeg)<1e-12},
+        {"legs-only mode disables lateral pelvis shift",
+            std::abs(
+                bare.pelvisLateralShift
+            )<1e-12},
+        {"pelvis mode leaves arm drive targets zero",
+            std::abs(
+                pelvis.leftArmDriveTarget
+            )<1e-12
+            &&std::abs(
+                pelvis.rightArmDriveTarget
+            )<1e-12},
+        {"full-body arms remain contralateral",
+            std::abs(mid.legSignal)<0.15
+            ||(
+                mid.leftArmDriveTarget
+                    *mid.legSignal>0.0
+                &&mid.rightArmDriveTarget
+                    *mid.legSignal<0.0
+            )},
+        {"thorax yaw opposes pelvis yaw",
+            mid.thoraxYawDeg
+                *mid.pelvisYawDeg<=0.0},
+        {"whole-body COM remains finite",
+            locomotion::finite(
+                mid.analysis.com
+            )},
+        {"upper-arm and forearm lengths are preserved",
+            mid.armLengthsPreserved
+            &&mid.maxArmLengthError
+                <kArmLengthTolerance},
+        {"walking hands remain inside torso corridor",
+            mid.handCorridorValid},
+        {"walking elbows remain inside reference envelope",
+            mid.elbowEnvelopeValid},
+        {"procedural wrist corridor is narrower than LO-001 neutral",
+            mid.leftHandLateralNorm
+                <neutralWristLateral
+            &&mid.rightHandLateralNorm
+                <neutralWristLateral},
+        {"cruise hand corridor overlaps supplied walk reference",
+            mid.leftHandLateralNorm
+                >=kWalkHandLateralReferenceMin
+            &&mid.leftHandLateralNorm
+                <=kWalkHandLateralReferenceMax
+            &&mid.rightHandLateralNorm
+                >=kWalkHandLateralReferenceMin
+            &&mid.rightHandLateralNorm
+                <=kWalkHandLateralReferenceMax},
+        {"arm oscillator moves toward changed target",
+            std::abs(
+                arms.leftDrive
+                -armTarget.leftArmDriveTarget
+            )
+            <std::abs(
+                initialLeft
+                -armTarget.leftArmDriveTarget
+            )},
+        {"velocity and body envelope validates",
+            envelope.valid},
+        {"speed envelope preserves planted feet",
+            envelope.maxCoordinatedSupportFootError
+                <1e-7}
     }};
 }
 
