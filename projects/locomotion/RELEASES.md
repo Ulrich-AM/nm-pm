@@ -96,7 +96,8 @@ The fifth milestone proves that the one-step transaction can repeat without accu
 - exact completed-stance handoff;
 - fixed 0.28 m successive footfall spacing;
 - fixed 0.82 s step duration;
-- 0.040 m repeated-gait swing clearance after flat-foot limit testing;
+- 0.038 m repeated-gait swing clearance after flat-foot limit testing;
+- front-loaded monotonic horizontal transfer for split-stance swing;
 - maximum full-pose handoff delta measurement;
 - maximum pelvis handoff delta measurement;
 - accumulated planted-foot slip measurement;
