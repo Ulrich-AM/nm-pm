@@ -89,7 +89,7 @@ The milestone still contains no repeated gait, automatic footstep planning, spee
 
 ## v0.5.0 - LO-005 Alternating Event-Sequenced Steps
 
-The fifth milestone is intended to prove that the one-step transaction can repeat without accumulated handoff error:
+The fifth milestone proves that the one-step transaction can repeat without accumulated handoff error:
 
 - persistent world-space stance state;
 - deterministic right/left swing alternation;
