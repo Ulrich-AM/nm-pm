@@ -114,9 +114,9 @@ struct VelocityEvaluation {
 };
 
 constexpr double kMinWalkingSpeed=0.40;
-constexpr double kMaxWalkingSpeed=1.00;
+constexpr double kMaxWalkingSpeed=0.80;
 constexpr double kMinStepLength=0.26;
-constexpr double kMaxStepLength=0.40;
+constexpr double kMaxStepLength=0.32;
 constexpr double kMinClearance=0.038;
 constexpr double kMaxClearance=0.038;
 constexpr double kSlowDoubleSupportEdge=0.16;
@@ -631,13 +631,13 @@ inline std::array<SelfTestResult,26> runSelfTests(){
     const ReferenceBody reference=locomotion::makeReferenceBody();
 
     const VelocityProfile slow=profileForSpeed(0.40);
-    const VelocityProfile cruise=profileForSpeed(0.70);
-    const VelocityProfile fast=profileForSpeed(1.00);
+    const VelocityProfile cruise=profileForSpeed(0.60);
+    const VelocityProfile fast=profileForSpeed(0.80);
     const VelocityProfile lowClamp=profileForSpeed(0.05);
     const VelocityProfile highClamp=profileForSpeed(2.00);
 
     VelocityCommand command{};
-    command.desiredSpeed=0.70;
+    command.desiredSpeed=0.60;
     command.stepCount=6;
 
     const GaitPlan plan=gaitPlanFor(command);
