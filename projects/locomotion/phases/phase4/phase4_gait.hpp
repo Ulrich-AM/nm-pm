@@ -21,7 +21,7 @@ using locomotion3::StepStage;
 
 struct GaitPlan {
     double stepLength=0.28;
-    double clearance=0.040;
+    double clearance=0.038;
     double stepDuration=0.82;
     double liftoffPhase=0.10;
     double touchdownPhase=0.90;
@@ -127,6 +127,19 @@ inline double swingPhaseFor(const GaitPlan& plan,double phase){
     return clamp01((clamp01(phase)-plan.liftoffPhase)/denom);
 }
 
+inline double transferProgress(const GaitPlan& plan,double phase){
+    const double u=swingPhaseFor(plan,phase);
+    if(phase<=plan.liftoffPhase)return 0.0;
+    if(phase>=plan.touchdownPhase)return 1.0;
+
+    // Repeated gait begins from a split stance. A symmetric smoother leaves
+    // the trailing flat foot behind too long and violates the ankle guardrail.
+    // This monotonic warp front-loads horizontal transfer while the outer
+    // quintic keeps zero endpoint velocity.
+    const double warped=clamp01(u+u*(1.0-u));
+    return locomotion3::smootherStep(warped);
+}
+
 inline Vec3 landingFor(const StanceState& start,LegSide swing,double stepLength){
     const LegSide support=locomotion3::otherSide(swing);
     Vec3 landing=ankle(start,swing);
@@ -168,7 +181,7 @@ inline Vec3 plannedSwing(
     if(phase<=plan.liftoffPhase)return start;
     if(phase>=plan.touchdownPhase)return landing;
     const double u=swingPhaseFor(plan,phase);
-    const double h=locomotion3::smootherStep(u);
+    const double h=transferProgress(plan,phase);
     Vec3 p=locomotion3::mix(start,landing,h);
     p.z+=plan.clearance*std::pow(std::sin(locomotion::kPi*u),2.0);
     return p;
@@ -192,10 +205,7 @@ inline StandingTargets targetsForStep(
     if(swing==LegSide::Left)t.left.ankle=plannedSwing(swingStart,swingLanding,plan,u);
     else t.right.ankle=plannedSwing(swingStart,swingLanding,plan,u);
 
-    double bodyT=0.0;
-    if(u>=plan.touchdownPhase)bodyT=1.0;
-    else if(u>plan.liftoffPhase)
-        bodyT=locomotion3::smootherStep(swingPhaseFor(plan,u));
+    const double bodyT=transferProgress(plan,u);
     t.pelvis=locomotion3::mix(start.pelvis,end.pelvis,bodyT);
 
     const auto window=locomotion2::sharedPelvisHeightWindow(reference,t);
