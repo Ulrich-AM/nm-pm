@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-006 v0.6.1 remains the latest implementation checkpoint; a post-LO-006 flow audit has reordered the next phases around continuous root state, articulated foot contact, stance dynamics, and contact-driven timing before acceleration and running.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-007 establishes persistent fixed-step root, limb-phase, contact-history, and arm-response state without a completed-step reset. LO-008 articulated stance-foot mechanics are next; dynamic stance, acceleration, and running remain later phases.
 
 ### Reference
 
