@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-004 adds the first bounded procedural step with planted-foot invariance, swing clearance, and explicit support-stage transitions.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-005 chains the validated step into alternating fixed gait with explicit handoff continuity and accumulated-drift checks.
 
 ### Reference
 
