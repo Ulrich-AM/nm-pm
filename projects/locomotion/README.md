@@ -1,14 +1,18 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-006 / Phase 5 reference-informed whole-body walking  
+**Current checkpoint:** Post-LO-006 flow audit / dynamic rebase planned  
 **Status:** Active
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
-The current implementation can execute a steady forward walking family from a desired-speed command. Its v0.6.1 refinement uses supplied reference motion only as a measurement envelope, replacing the original wide rigid-arm approximation with independent pelvis/thorax coordination and a torso-relative two-link arm solve. It does **not** yet change speed while already moving.
+The current implementation can execute a steady forward walking family from a desired-speed command. Its v0.6.1 refinement uses supplied reference motion only as a measurement envelope, replacing the original wide rigid-arm approximation with independent pelvis/thorax coordination and a torso-relative two-link arm solve.
+
+A post-LO-006 visual and literature audit found that this controller can be anatomically valid and numerically continuous while still looking distinctly march-like. The next research sequence therefore no longer begins with acceleration. It first replaces the step-transaction-centered architecture with persistent root motion, articulated stance-foot contact, locomotion-specific stance dynamics, and contact-corrected limb timing.
 
 LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 repeats it with persistent handoffs. LO-006 maps desired steady walking speed into gait timing and restrained whole-body coordination.
+
+Those experiments are preserved as the kinematic foundation and as an important negative result: **a clean repeated step-chain is not, by itself, a natural flowing walk.** The audit is documented in `experiments/LO-006-FLOW-AUDIT.md`.
 
 ## Implemented foundation
 
@@ -96,6 +100,51 @@ The coordinate convention remains:
 ```
 
 Internal physical units are meters, seconds, kilograms where mass is later introduced, and radians for simulation math. The Phase 0 UI displays joint ranges in degrees for readability.
+
+## Revised research sequence
+
+The roadmap after LO-006 has been reordered.
+
+```text
+LO-007  continuous locomotion state
+LO-008  articulated stance foot
+LO-009  dynamic stance / root transport
+LO-010  contact handoff + impact
+LO-011  functional swing leg
+LO-012  pelvis / root flow
+LO-013  reactive whole body
+LO-014  start / stop / acceleration
+LO-015  dynamic balance + corrective foot placement
+LO-016  continuous walk / run transition
+LO-017+ terrain, stairs, footholds, obstacles, recovery,
+        turning/lateral motion, body variation, and whole-body contacts
+```
+
+The key architectural change is that a step should become an event inside persistent body motion instead of being the unit that creates body motion.
+
+The intended runtime relationship is approximately:
+
+```text
+movement intent
+    |
+continuous root/body state
+    |
+support + articulated contact
+    |
+stance transport <----> swing readiness
+    |                       |
+foot rollover           toe-off / swing
+    \                       /
+     contact prediction
+            |
+       touchdown
+            |
+ state correction / weight transfer
+            |
+        continue
+```
+
+There is no global gait reset at the end of the nominal step.
 
 ## Build on Windows
 
