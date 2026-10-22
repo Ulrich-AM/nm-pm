@@ -164,7 +164,7 @@ jobs:
               if ($_.Name -match 'LO0*(\d+)') { [int]$Matches[1] } else { 0 }
             } -Descending | Select-Object -First 1
             Copy-Item $primary.FullName (Join-Path $tagDir $primary.Name) -Force
-            $readmeLines += "| `$tag` | $($primary.Name) |"
+            $readmeLines += "| $tag | $($primary.Name) |"
             Remove-Item -Recurse -Force $downloadDir -ErrorAction SilentlyContinue
             Write-Host "Packaged historical $tag -> $($primary.Name)"
           }
