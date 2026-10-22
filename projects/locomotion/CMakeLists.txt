@@ -119,6 +119,17 @@ add_executable(locomotion_phase8_tests
 )
 target_include_directories(locomotion_phase8_tests PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3 phases/phase4 phases/phase5 phases/phase6 phases/phase7 phases/phase8)
 
+add_executable(locomotion_phase9
+    phases/phase9/main.cpp
+)
+target_include_directories(locomotion_phase9 PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3 phases/phase4 phases/phase5 phases/phase6 phases/phase7 phases/phase8 phases/phase9)
+target_link_libraries(locomotion_phase9 PRIVATE raylib)
+
+add_executable(locomotion_phase9_tests
+    phases/phase9/test_phase9.cpp
+)
+target_include_directories(locomotion_phase9_tests PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3 phases/phase4 phases/phase5 phases/phase6 phases/phase7 phases/phase8 phases/phase9)
+
 if (MSVC)
     target_compile_options(locomotion_phase0 PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase0_tests PRIVATE /W4 /permissive-)
@@ -138,6 +149,8 @@ if (MSVC)
     target_compile_options(locomotion_phase7_tests PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase8 PRIVATE /W4 /permissive-)
     target_compile_options(locomotion_phase8_tests PRIVATE /W4 /permissive-)
+    target_compile_options(locomotion_phase9 PRIVATE /W4 /permissive-)
+    target_compile_options(locomotion_phase9_tests PRIVATE /W4 /permissive-)
 else()
     target_compile_options(locomotion_phase0 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase0_tests PRIVATE -Wall -Wextra -Wpedantic)
@@ -157,6 +170,8 @@ else()
     target_compile_options(locomotion_phase7_tests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase8 PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(locomotion_phase8_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(locomotion_phase9 PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(locomotion_phase9_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 include(CTest)
@@ -170,4 +185,5 @@ if (BUILD_TESTING)
     add_test(NAME locomotion_phase6_tests COMMAND locomotion_phase6_tests)
     add_test(NAME locomotion_phase7_tests COMMAND locomotion_phase7_tests)
     add_test(NAME locomotion_phase8_tests COMMAND locomotion_phase8_tests)
+    add_test(NAME locomotion_phase9_tests COMMAND locomotion_phase9_tests)
 endif()
