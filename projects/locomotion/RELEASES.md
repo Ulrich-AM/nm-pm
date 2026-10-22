@@ -259,3 +259,19 @@ Adds:
 - `versions/` historical executables collected from prior GitHub Release assets.
 
 Natural walking is not claimed solved.
+
+## v0.10.2 - LO-010 Harness Validation + Orbit Camera
+
+Harness/debugging correction over the v0.10.1 fidelity baseline. Appendix A stance/swing ODEs are unchanged. Stronger knee geometry tests identified a pose-space reachability bug (unreachable hip→ankle left the written shank stretched); fixed with sagittal ankle projection before two-link IK and consistent stance-hip list handling.
+
+Adds:
+
+- pre-raylib and post-raylib self-test batches with failing test names;
+- TEST DETAILS / RE-RUN TESTS (runtime rerun labeled separately);
+- stronger multi-step geometric knee regression + live knee FORWARD/INVALID overlays;
+- free orthographic orbit camera (RMB / MMB / wheel) with snap + RESET VIEW;
+- build tag + git SHA in the Phase 9 harness;
+- release packaging hash verification that the tested Phase 9 binary is the one shipped;
+- `--self-test-exit` on the Phase 9 harness for PRE/POST agreement without interactive use.
+
+Natural walking is not claimed solved.

@@ -6,14 +6,24 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <vector>
 
 using locomotion::JointId;
 using locomotion::ReferenceBody;
 using locomotion::Vec3;
 using locomotion9::KlawLocomotionState;
+using locomotion9::SelfTestResult;
+
+#ifndef LOCOMOTION_BUILD_TAG
+#define LOCOMOTION_BUILD_TAG "dev"
+#endif
+#ifndef LOCOMOTION_GIT_SHA
+#define LOCOMOTION_GIT_SHA "local"
+#endif
 
 namespace {
 
@@ -34,6 +44,8 @@ const Color C_VIEW_BG{197, 196, 198, 255};
 const Color C_BODY{76, 76, 78, 255};
 const Color C_BODY_LIGHT{118, 118, 120, 255};
 const Color C_MARK{28, 28, 30, 255};
+const Color C_FAIL{140, 40, 40, 255};
+const Color C_OK{40, 110, 50, 255};
 
 Font gFont{};
 bool gOwnFont = false;
@@ -43,20 +55,51 @@ int gViewH = 0;
 
 enum class CompareMode : int { KlawOnly = 0, Lo009 = 1 };
 
+struct TestBatch {
+    std::vector<SelfTestResult> results;
+    int passed = 0;
+    int total = 0;
+    std::vector<std::string> failed;
+    const char* label = "";
+};
+
+TestBatch CaptureTests(const char* label) {
+    TestBatch b;
+    b.label = label;
+    b.results = locomotion9::runSelfTests();
+    b.total = (int)b.results.size();
+    for (const auto& t : b.results) {
+        if (t.pass) ++b.passed;
+        else b.failed.push_back(t.name);
+    }
+    return b;
+}
+
+struct OrbitCam {
+    float yawDeg = -55.0f;
+    float pitchDeg = 18.0f;
+    float orthoSize = 2.35f;
+    Vector3 pan{0, 0, 0};
+    int snapView = 2; // SIDE default
+};
+
 struct HarnessState {
     KlawLocomotionState klaw{};
     locomotion8::DynamicLocomotionState lo009{};
     CompareMode compare = CompareMode::KlawOnly;
     double accumulator = 0.0;
     bool playing = true;
-    int view = 2;
+    OrbitCam cam{};
     bool showDynamics = true;
     bool showFoot = true;
     bool showVirtualLeg = true;
     bool showPelvisDet = true;
     bool showState = true;
-    int testsPassed = 0;
-    int testsTotal = 0;
+    bool showTestDetails = false;
+    TestBatch preRaylib{};
+    TestBatch postRaylib{};
+    TestBatch runtimeRerun{};
+    bool hasRuntimeRerun = false;
 };
 
 Vector3 rv(Vec3 v) { return {(float)v.x, (float)v.z, (float)v.y}; }
@@ -143,18 +186,71 @@ void ResetHarness(HarnessState& h, const ReferenceBody& reference) {
     h.playing = true;
 }
 
-Camera3D MakeCamera(int view, Vec3 targetWorld) {
+void SnapOrbit(OrbitCam& cam, int view) {
+    cam.snapView = view;
+    cam.pan = {0, 0, 0};
+    cam.orthoSize = 2.35f;
+    // yaw/pitch in degrees for orthographic orbit around pelvis.
+    if (view == 0) { cam.yawDeg = -35.0f; cam.pitchDeg = 22.0f; }      // 3/4
+    if (view == 1) { cam.yawDeg = -90.0f; cam.pitchDeg = 8.0f; }       // FRONT
+    if (view == 2) { cam.yawDeg = 0.0f; cam.pitchDeg = 8.0f; }         // SIDE
+    if (view == 3) { cam.yawDeg = 180.0f; cam.pitchDeg = 12.0f; }      // REAR
+}
+
+void ResetOrbit(OrbitCam& cam) {
+    SnapOrbit(cam, 2);
+    cam.orthoSize = 2.35f;
+    cam.pan = {0, 0, 0};
+}
+
+Camera3D MakeOrbitCamera(const OrbitCam& orb, Vec3 targetWorld) {
     Camera3D c{};
-    const Vector3 target = rv({targetWorld.x, targetWorld.y, targetWorld.z - 0.16});
-    if (view == 0) c.position = rv({targetWorld.x + 2.7, targetWorld.y + 2.8, targetWorld.z + 0.95});
-    if (view == 1) c.position = rv({targetWorld.x, targetWorld.y + 3.7, targetWorld.z + 0.55});
-    if (view == 2) c.position = rv({targetWorld.x + 3.7, targetWorld.y, targetWorld.z + 0.55});
-    if (view == 3) c.position = rv({targetWorld.x - 2.7, targetWorld.y - 2.8, targetWorld.z + 0.95});
+    Vector3 target = rv({targetWorld.x, targetWorld.y, targetWorld.z - 0.16});
+    target.x += orb.pan.x;
+    target.y += orb.pan.y;
+    target.z += orb.pan.z;
+
+    const float yaw = orb.yawDeg * DEG2RAD;
+    const float pitch = orb.pitchDeg * DEG2RAD;
+    const float dist = 4.2f;
+    // Orbit in raylib space (Y up). World Y-forward maps to raylib Z.
+    Vector3 offset{
+        dist * std::cos(pitch) * std::sin(yaw),
+        dist * std::sin(pitch),
+        dist * std::cos(pitch) * std::cos(yaw)
+    };
+    c.position = {target.x + offset.x, target.y + offset.y, target.z + offset.z};
     c.target = target;
     c.up = {0, 1, 0};
-    c.fovy = 2.35f;
+    c.fovy = orb.orthoSize;
     c.projection = CAMERA_ORTHOGRAPHIC;
     return c;
+}
+
+void UpdateOrbit(OrbitCam& cam, Rectangle viewport) {
+    const Vector2 m = GetMousePosition();
+    if (!CheckCollisionPointRec(m, viewport)) return;
+
+    const Vector2 d = GetMouseDelta();
+    const bool shift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && !shift) {
+        cam.yawDeg += d.x * 0.35f;
+        cam.pitchDeg -= d.y * 0.30f;
+        cam.pitchDeg = std::clamp(cam.pitchDeg, -80.0f, 80.0f);
+    }
+    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)
+        || (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && shift)) {
+        // Pan in camera-local approximate screen axes.
+        const float scale = cam.orthoSize * 0.0025f;
+        cam.pan.x -= d.x * scale;
+        cam.pan.y += d.y * scale;
+    }
+    const float wheel = GetMouseWheelMove();
+    if (std::abs(wheel) > 1e-6f) {
+        cam.orthoSize *= (wheel > 0.0f) ? 0.90f : 1.11f;
+        cam.orthoSize = std::clamp(cam.orthoSize, 0.8f, 8.0f);
+    }
 }
 
 void Bone(const ReferenceBody& b, JointId a, JointId c, float radius = 0.026f, Color color = C_BODY) {
@@ -193,7 +289,6 @@ void DrawKlawOverlays(const HarnessState& h) {
     const auto& p = h.klaw.pose;
     const auto& paper = p.paper;
     if (h.showVirtualLeg) {
-        // Virtual telescopic stance (dynamic endpoints) vs anatomical overlay.
         DrawLine3D(rv(paper.virtualHip), rv(paper.virtualContact), Color{30, 30, 32, 255});
         DrawSphere(rv(paper.virtualContact), 0.018f, C_MARK);
         DrawLine3D(rv(paper.virtualHip), rv(paper.anatomicalKnee), Color{70, 70, 72, 220});
@@ -203,7 +298,6 @@ void DrawKlawOverlays(const HarnessState& h) {
         DrawLine3D(rv(paper.anatomicalKnee), rv(stanceAnkle), Color{70, 70, 72, 220});
     }
     if (h.showFoot) {
-        // Foot pivots from geometric rocker (heel / meta / toe).
         DrawSphere(rv(paper.heelPivot), 0.014f, Color{20, 20, 22, 255});
         DrawSphere(rv(paper.metaPivot), 0.014f, Color{50, 50, 52, 255});
         DrawSphere(rv(paper.toePivot), 0.014f, Color{80, 80, 82, 255});
@@ -223,6 +317,18 @@ void DrawKlawOverlays(const HarnessState& h) {
             Color{60, 60, 60, 255}
         );
     }
+    if (h.showDynamics) {
+        // Highlight invalid knees in the 3D view.
+        auto markKnee = [&](JointId id, bool valid) {
+            DrawSphere(
+                rv(p.body.joint[locomotion::jointIndex(id)]),
+                valid ? 0.018f : 0.032f,
+                valid ? Color{60, 60, 62, 220} : Color{180, 40, 40, 255}
+            );
+        };
+        markKnee(JointId::LeftKnee, h.klaw.diag.leftKneeValid);
+        markKnee(JointId::RightKnee, h.klaw.diag.rightKneeValid);
+    }
 }
 
 void DrawSidebar(HarnessState& h, const ReferenceBody& reference, Rectangle r) {
@@ -230,8 +336,8 @@ void DrawSidebar(HarnessState& h, const ReferenceBody& reference, Rectangle r) {
     float y = r.y;
     GroupHeader({r.x, y, r.width, 23}, "LO-010 / KLAW89 FIDELITY");
     y += 28;
-    Text("fidelity reconstruction pass", r.x + 9, y, 10, C_DIM);
-    y += 20;
+    Text(std::string(LOCOMOTION_BUILD_TAG) + "  " + LOCOMOTION_GIT_SHA, r.x + 9, y, 10, C_DIM);
+    y += 18;
 
     GroupHeader({r.x + 8, y, r.width - 16, 22}, "COMPARE");
     y += 28;
@@ -304,11 +410,38 @@ void DrawSidebar(HarnessState& h, const ReferenceBody& reference, Rectangle r) {
 
     GroupHeader({r.x + 8, y, r.width - 16, 22}, "VIEW");
     y += 28;
-    if (Button({r.x + 9, y, bw, 22}, "SIDE", h.view == 2)) h.view = 2;
-    if (Button({r.x + 14 + bw, y, bw, 22}, "3/4", h.view == 0)) h.view = 0;
+    if (Button({r.x + 9, y, bw, 22}, "SIDE", h.cam.snapView == 2)) SnapOrbit(h.cam, 2);
+    if (Button({r.x + 14 + bw, y, bw, 22}, "3/4", h.cam.snapView == 0)) SnapOrbit(h.cam, 0);
     y += 26;
-    if (Button({r.x + 9, y, bw, 22}, "FRONT", h.view == 1)) h.view = 1;
-    if (Button({r.x + 14 + bw, y, bw, 22}, "REAR", h.view == 3)) h.view = 3;
+    if (Button({r.x + 9, y, bw, 22}, "FRONT", h.cam.snapView == 1)) SnapOrbit(h.cam, 1);
+    if (Button({r.x + 14 + bw, y, bw, 22}, "REAR", h.cam.snapView == 3)) SnapOrbit(h.cam, 3);
+    y += 26;
+    if (Button({r.x + 9, y, r.width - 18, 22}, "RESET VIEW")) ResetOrbit(h.cam);
+    y += 34;
+
+    GroupHeader({r.x + 8, y, r.width - 16, 22}, "SELF TESTS");
+    y += 28;
+    Text(
+        "PRE  " + std::to_string(h.preRaylib.passed) + " / " + std::to_string(h.preRaylib.total),
+        r.x + 10, y, 10,
+        h.preRaylib.failed.empty() ? C_OK : C_FAIL
+    );
+    y += 16;
+    Text(
+        "POST " + std::to_string(h.postRaylib.passed) + " / " + std::to_string(h.postRaylib.total),
+        r.x + 10, y, 10,
+        h.postRaylib.failed.empty() ? C_OK : C_FAIL
+    );
+    y += 20;
+    if (Button({r.x + 9, y, r.width - 18, 22}, "TEST DETAILS", h.showTestDetails)) {
+        h.showTestDetails = !h.showTestDetails;
+    }
+    y += 26;
+    if (Button({r.x + 9, y, r.width - 18, 22}, "RE-RUN TESTS")) {
+        h.runtimeRerun = CaptureTests("runtime rerun");
+        h.hasRuntimeRerun = true;
+        h.showTestDetails = true;
+    }
     y += 34;
 
     GroupHeader({r.x + 8, y, r.width - 16, 22}, "OVERLAYS");
@@ -320,6 +453,42 @@ void DrawSidebar(HarnessState& h, const ReferenceBody& reference, Rectangle r) {
     Checkbox({r.x + 12, y, r.width - 24, 18}, "state/phase", h.showState);
 }
 
+void DrawTestDetailsPanel(HarnessState& h, Rectangle area) {
+    if (!h.showTestDetails) return;
+    Rectangle panel{
+        area.x + area.width - 360.0f,
+        area.y + 42.0f,
+        340.0f,
+        std::min(420.0f, area.height - 60.0f)
+    };
+    Panel(panel, Color{250, 250, 250, 245}, C_LINE2);
+    float y = panel.y + 8;
+    Text("SELF TEST DETAILS", panel.x + 10, y, 12, C_TEXT);
+    y += 22;
+    auto drawBatch = [&](const TestBatch& b) {
+        Text(
+            std::string(b.label) + "  " + std::to_string(b.passed) + " / "
+                + std::to_string(b.total),
+            panel.x + 10, y, 10, b.failed.empty() ? C_OK : C_FAIL
+        );
+        y += 16;
+        if (b.failed.empty()) {
+            Text("  (no failures)", panel.x + 10, y, 9, C_DIM);
+            y += 14;
+        } else {
+            for (const auto& name : b.failed) {
+                Text(std::string("[FAIL] ") + name, panel.x + 10, y, 9, C_FAIL);
+                y += 13;
+                if (y > panel.y + panel.height - 28) return;
+            }
+        }
+        y += 6;
+    };
+    drawBatch(h.preRaylib);
+    drawBatch(h.postRaylib);
+    if (h.hasRuntimeRerun) drawBatch(h.runtimeRerun);
+}
+
 void DrawDebug(const HarnessState& h, Rectangle r) {
     Panel(r, C_PANEL2, C_LINE2);
     GroupHeader({r.x, r.y, r.width, 23}, "LO-010 / KLAW RECONSTRUCTION DIAGNOSTICS");
@@ -328,31 +497,41 @@ void DrawDebug(const HarnessState& h, Rectangle r) {
         d.stanceSide == locomotion2::LegSide::Left ? "L" : "R";
     const char* swing =
         d.swingSide == locomotion2::LegSide::Left ? "L" : "R";
-    struct Row { const char* k; std::string v; };
+    const std::string kneeL = d.leftKneeValid
+        ? ("FORWARD " + Fmt(d.leftKneeFlexRad * 180.0 / 3.141592653589793, 0) + "deg")
+        : ("INVALID " + Fmt(d.leftKneeFlexRad * 180.0 / 3.141592653589793, 0) + "deg");
+    const std::string kneeR = d.rightKneeValid
+        ? ("FORWARD " + Fmt(d.rightKneeFlexRad * 180.0 / 3.141592653589793, 0) + "deg")
+        : ("INVALID " + Fmt(d.rightKneeFlexRad * 180.0 / 3.141592653589793, 0) + "deg");
+
+    std::string selfSummary;
+    if (h.preRaylib.failed.empty() && h.postRaylib.failed.empty()) {
+        selfSummary = "SELF TESTS: " + std::to_string(h.preRaylib.passed) + " / "
+            + std::to_string(h.preRaylib.total) + " PASS";
+    } else {
+        selfSummary = "PRE " + std::to_string(h.preRaylib.passed) + "/"
+            + std::to_string(h.preRaylib.total) + "  POST "
+            + std::to_string(h.postRaylib.passed) + "/"
+            + std::to_string(h.postRaylib.total);
+    }
+
+    struct Row { const char* k; std::string v; Color c; };
     const Row rows[] = {
-        {"support", locomotion9::supportStateName(d.support)},
-        {"stance/swing", std::string(stance) + "/" + swing},
-        {"foot", locomotion9::footPeriodName(d.stanceFoot)},
-        {"subphase", d.paper.subphaseLabel ? d.paper.subphaseLabel : "?"},
-        {"step#", std::to_string(d.stepCount)},
-        {"phase", Fmt(d.stepPhase01, 2)},
+        {"support", locomotion9::supportStateName(d.support), C_TEXT},
+        {"stance/swing", std::string(stance) + "/" + swing, C_TEXT},
+        {"foot", locomotion9::footPeriodName(d.stanceFoot), C_TEXT},
+        {"subphase", d.paper.subphaseLabel ? d.paper.subphaseLabel : "?", C_TEXT},
+        {"step#", std::to_string(d.stepCount), C_TEXT},
+        {"phase", Fmt(d.stepPhase01, 2), C_TEXT},
         {"v/sl/sf", Fmt(d.velocity, 2) + "/" + Fmt(d.stepLength, 2) + "/"
-            + Fmt(d.stepFrequency * 60.0, 0)},
-        {"w/Fw", Fmt(d.stanceVirtualLength, 3) + "/" + Fmt(d.stanceForce, 0)},
-        {"θ1..3", Fmt(d.theta1, 2) + "/" + Fmt(d.theta2, 2) + "/" + Fmt(d.theta3, 2)},
-        {"θ4..6", Fmt(d.theta4, 2) + "/" + Fmt(d.theta5, 2) + "/" + Fmt(d.theta6, 2)},
-        {"virt/anat", Fmt(d.paper.virtualW, 3) + "/"
-            + Fmt(d.paper.anatomicalKneeFlex, 2)},
-        {"BVP", std::to_string(d.boundaryIterations) + (d.boundaryConverged ? " ok" : " …")},
-        {"swingErr", Fmt(d.swingTerminalAngleError, 3)},
-        {"pelvis r/l/x", Fmt(d.pelvicRotationDeg, 1) + "/" + Fmt(d.pelvicListDeg, 1)
-            + "/" + Fmt(d.lateralDisplacement, 3)},
+            + Fmt(d.stepFrequency * 60.0, 0), C_TEXT},
+        {"LEFT KNEE", kneeL, d.leftKneeValid ? C_OK : C_FAIL},
+        {"RIGHT KNEE", kneeR, d.rightKneeValid ? C_OK : C_FAIL},
+        {"BVP", std::to_string(d.boundaryIterations) + (d.boundaryConverged ? " ok" : " …"), C_TEXT},
         {"cont/coll", Fmt(d.continuityPoseDelta, 3) + "/"
-            + Fmt(d.collisionDiscontinuity, 3)},
-        {"HS/TO", std::string(d.heelStrikeEvent ? "HS " : "")
-            + (d.toeOffEvent ? "TO" : "")},
-        {"C/D", Fmt(d.clearanceCOverD, 2)},
-        {"tests", std::to_string(h.testsPassed) + "/" + std::to_string(h.testsTotal)},
+            + Fmt(d.collisionDiscontinuity, 3), C_TEXT},
+        {"self-tests", selfSummary,
+            (h.preRaylib.failed.empty() && h.postRaylib.failed.empty()) ? C_OK : C_FAIL},
     };
     const int nRows = (int)(sizeof(rows) / sizeof(rows[0]));
     for (int i = 0; i < nRows; ++i) {
@@ -360,7 +539,22 @@ void DrawDebug(const HarnessState& h, Rectangle r) {
         const float x = r.x + 10 + col * 330.0f;
         const float yy = r.y + 28 + row * 18;
         Text(rows[i].k, x, yy, 9, C_DIM);
-        Text(rows[i].v, x + 88, yy, 9, C_TEXT);
+        Text(rows[i].v, x + 88, yy, 9, rows[i].c);
+    }
+
+    // Compact failed-name strip (not the full pass list).
+    if (!h.preRaylib.failed.empty() || !h.postRaylib.failed.empty()) {
+        std::string fails = "FAILED: ";
+        auto appendFails = [&](const TestBatch& b) {
+            for (const auto& n : b.failed) {
+                if (fails.size() > 120) return;
+                fails += n;
+                fails += "  ";
+            }
+        };
+        appendFails(h.preRaylib);
+        appendFails(h.postRaylib);
+        Text(fails, r.x + 10, r.y + r.height - 40, 9, C_FAIL);
     }
     Text(
         "FIDELITY PASS — Bruderlin & Calvert 1989 recon (not exact original KLAW)",
@@ -378,6 +572,8 @@ void DrawMainView(HarnessState& h, Rectangle r) {
         header.x + header.width - 140, header.y + 5, 10, C_MUTED);
 
     Rectangle bodyRect{r.x + 10, r.y + 40, r.width - 20, r.height - 50};
+    UpdateOrbit(h.cam, bodyRect);
+
     const int rw = std::max(420, (int)bodyRect.width);
     const int rh = std::max(320, (int)bodyRect.height);
     if (!gView.id || rw != gViewW || rh != gViewH) {
@@ -390,7 +586,7 @@ void DrawMainView(HarnessState& h, Rectangle r) {
     if (h.compare == CompareMode::Lo009) {
         camTarget.y = 0.5 * (camTarget.y + h.lo009.rootPosition.y);
     }
-    const Camera3D camera = MakeCamera(h.view, camTarget);
+    const Camera3D camera = MakeOrbitCamera(h.cam, camTarget);
     BeginTextureMode(gView);
     ClearBackground(C_VIEW_BG);
     BeginMode3D(camera);
@@ -402,7 +598,6 @@ void DrawMainView(HarnessState& h, Rectangle r) {
     DrawBody(h.klaw.pose.body);
     DrawKlawOverlays(h);
     if (h.compare == CompareMode::Lo009) {
-        // Offset LO-009 laterally for visual comparison (same scale/camera).
         ReferenceBody shifted = h.lo009.artic.base.pose.body;
         for (auto& j : shifted.joint) j.x -= 0.85;
         DrawBody(shifted);
@@ -415,11 +610,19 @@ void DrawMainView(HarnessState& h, Rectangle r) {
         bodyRect, {0, 0}, 0, WHITE
     );
     DrawRectangleLinesEx(bodyRect, 1, Color{72, 70, 72, 255});
+    Text("RMB orbit | MMB pan | Wheel zoom", bodyRect.x + 8, bodyRect.y + 6, 10, C_MUTED);
+    DrawTestDetailsPanel(h, r);
 }
 
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    const bool selfTestExit =
+        argc > 1 && std::string(argv[1]) == "--self-test-exit";
+
+    // --- PRE-RAYLIB self tests (no window / no graphics side effects) ---
+    const TestBatch preTests = CaptureTests("PRE-RAYLIB");
+
     SetConfigFlags(
         FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI
     );
@@ -442,11 +645,34 @@ int main() {
     if (!gOwnFont) gFont = GetFontDefault();
     else SetTextureFilter(gFont.texture, TEXTURE_FILTER_BILINEAR);
 
+    // --- POST-RAYLIB self tests (after window/font init; once, not per frame) ---
+    const TestBatch postTests = CaptureTests("POST-RAYLIB");
+
+    if (selfTestExit) {
+        std::printf(
+            "DEDICATED-EQUIV PRE-RAYLIB  %d / %d\n"
+            "POST-RAYLIB                 %d / %d\n",
+            preTests.passed, preTests.total, postTests.passed, postTests.total
+        );
+        for (const auto& r : preTests.results) {
+            if (!r.pass) std::printf("[PRE FAIL] %s\n", r.name.c_str());
+        }
+        for (const auto& r : postTests.results) {
+            if (!r.pass) std::printf("[POST FAIL] %s\n", r.name.c_str());
+        }
+        if (gOwnFont) UnloadFont(gFont);
+        CloseWindow();
+        return (preTests.passed == preTests.total
+                && postTests.passed == postTests.total)
+            ? 0
+            : 1;
+    }
+
     const ReferenceBody reference = locomotion::makeReferenceBody();
-    const auto tests = locomotion9::runSelfTests();
     HarnessState harness{};
-    harness.testsTotal = (int)tests.size();
-    for (const auto& t : tests) if (t.pass) ++harness.testsPassed;
+    harness.preRaylib = preTests;
+    harness.postRaylib = postTests;
+    ResetOrbit(harness.cam);
     harness.klaw = locomotion9::makeInitialState(reference, 1.20);
     harness.lo009 = locomotion8::makeInitialState(
         reference, 0.60, locomotion8::StanceModel::CompliantTelescopingC

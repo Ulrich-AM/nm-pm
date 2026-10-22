@@ -1,6 +1,6 @@
 # KLAW Reconstruction Traceability (LO-010 / Phase 9)
 
-**Status:** fidelity reconstruction pass (v0.10.1)  
+**Status:** harness-validation correction (v0.10.2) over fidelity baseline (v0.10.1)  
 **Primary source:** Bruderlin, A. & Calvert, T. W. (1989). Goal-Directed, Dynamic Animation of Human Walking. SIGGRAPH 1989 / Computer Graphics 23(3), 233–242.  
 **PDF:** https://www.cs.princeton.edu/courses/archive/spr01/cs598b/papers/bruderlin89.pdf  
 **DOI:** https://doi.org/10.1145/74333.74357  
@@ -16,6 +16,21 @@ https://graphicsinterface.org/wp-content/uploads/gi1993-3.pdf
 **Coordinate adaptation:** The 1989 figures use a sagittal plane with hip at `(xh, yh)`. NM-PM uses `+Y` forward and `+Z` up. All dynamic sagittal quantities are mapped accordingly.
 
 ---
+
+## HARNESS VALIDATION CORRECTION (v0.10.2)
+
+After `v0.10.1`, a Windows user machine reported harness self-tests failing while CI / dedicated `locomotion_phase9_tests.exe` passed, without naming failures. Fixed views also blocked free inspection of knees.
+
+`v0.10.2` keeps 1989 dynamics equations intact and improves:
+
+- pre-`InitWindow` vs post-graphics self-test comparison with named failures;
+- geometric knee regression (both legs, multi-step) instead of a weak OR-check;
+- free orthographic orbit camera for visual QA;
+- release binary hash traceability.
+
+Pose-space bug caught by the new knee geometry tests: unreachable hip→ankle chords after foot-pivot / swing sampling stretched the written shank because IK clamped distance only. Corrected with sagittal reach projection before two-link solve; removed inconsistent pelvic-list Z on the stance hip used for Fig 6. Appendix A stance/swing ODEs unchanged.
+
+Exact equality remains for architectural deterministic invariants. No float tolerances were loosened solely to green-light a local machine.
 
 ## FIDELITY RECONSTRUCTION PASS (v0.10.1)
 

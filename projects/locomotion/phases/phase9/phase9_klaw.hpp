@@ -939,102 +939,37 @@ struct VirtualLegResult {
     bool anteriorKnee = true;
 };
 
-inline VirtualLegResult solveVirtualLegFig6(
-    const KlawAnthropometry& A,
-    Vec3 hip,
-    double contactY,
-    FootPeriod period,
-    double uLocal,
-    const LocomotionAttributes& attr
+// Project ankle onto the anatomically reachable sagittal band around hip.
+// Reason: foot-pivot / swing-sample ankles can exceed l3+l4 relative to the
+ // posed hip; clamping the IK *distance* while leaving the written ankle
+ // unchanged stretched the shank (v0.10.2 knee regression). This keeps the
+ // hip→ankle direction and enforces exact thigh/shank after two-link solve.
+ // Not an Appendix A dynamics change — pose-space reachability only.
+inline Vec3 constrainAnkleReachSagittal(
+    Vec3 hip, Vec3 ankle, double thigh, double shank
 ) {
-    VirtualLegResult r{};
-    r.hip = hip;
-    r.foot = buildFootFromPivot(A, contactY, period, uLocal, attr);
-    r.ankle = r.foot.ankle;
-    r.ankle.x = hip.x;
-    r.foot.heel.x = hip.x;
-    r.foot.meta.x = hip.x;
-    r.foot.toe.x = hip.x;
-    r.virtualW = locomotion::length(Vec3{0.0, hip.y - contactY, hip.z - 0.0});
-
-    // Two-link from hip to ankle with anterior knee preference (no invert).
-    Vec3 d = r.ankle - hip;
+    Vec3 d = ankle - hip;
     d.x = 0.0;
-    const double thigh = A.l3;
-    const double shank = A.l4;
-    double dist = locomotion::length(d);
-    dist = clampf(dist, 1e-4, thigh + shank - 1e-4);
-    const double cosK = clampf(
-        (thigh * thigh + shank * shank - dist * dist) / (2.0 * thigh * shank),
-        -1.0, 1.0
-    );
-    // Interior knee flexion angle; θ4 = π - acos(...) style opening.
-    r.anatomicalKnee = kPi - std::acos(cosK);
-    if (r.anatomicalKnee < 0.0) r.anatomicalKnee = 0.0;
-
-    const double cosH = clampf(
-        (thigh * thigh + dist * dist - shank * shank) / (2.0 * thigh * dist),
-        -1.0, 1.0
-    );
-    const double ang = std::atan2(d.y, -d.z); // direction hip→ankle from vertical
-    // Anterior branch: knee ahead of hip–ankle chord in walk direction (+Y).
-    const double hipFlexA = ang - std::acos(cosH);
-    const double hipFlexB = ang + std::acos(cosH);
-    Vec3 kneeA = hip + Vec3{0.0, thigh * std::sin(hipFlexA), -thigh * std::cos(hipFlexA)};
-    Vec3 kneeB = hip + Vec3{0.0, thigh * std::sin(hipFlexB), -thigh * std::cos(hipFlexB)};
-    // Prefer the knee branch whose sagittal cross (ha × hk)_x is positive:
-    // knee lies on the anterior side of the hip→ankle chord for +Y walk.
-    auto crossX = [](Vec3 hipP, Vec3 kneeP, Vec3 ankP) {
-        const double hay = ankP.y - hipP.y;
-        const double haz = ankP.z - hipP.z;
-        const double hky = kneeP.y - hipP.y;
-        const double hkz = kneeP.z - hipP.z;
-        return hay * hkz - haz * hky;
-    };
-    const double cA = crossX(hip, kneeA, r.ankle);
-    const double cB = crossX(hip, kneeB, r.ankle);
-    if (cA >= cB) {
-        r.anatomicalHip = hipFlexA;
-        r.knee = kneeA;
-        r.anteriorKnee = cA >= -1e-6;
-    } else {
-        r.anatomicalHip = hipFlexB;
-        r.knee = kneeB;
-        r.anteriorKnee = cB >= -1e-6;
+    const double dist = locomotion::length(d);
+    const double maxR = thigh + shank - 1e-4;
+    const double minR = std::abs(thigh - shank) + 1e-4;
+    if (dist < 1e-9) {
+        return hip + Vec3{0.0, 0.0, -(thigh + shank) * 0.5};
     }
-    // If both branches are somehow posterior, force the less-negative one and
-    // nudge the knee forward of the chord midpoint.
-    if (!r.anteriorKnee) {
-        if (cA >= cB) {
-            r.anatomicalHip = hipFlexA;
-            r.knee = kneeA;
-        } else {
-            r.anatomicalHip = hipFlexB;
-            r.knee = kneeB;
-        }
-        const Vec3 mid{
-            hip.x,
-            0.5 * (hip.y + r.ankle.y) + 0.04,
-            0.5 * (hip.z + r.ankle.z)
-        };
-        // Re-aim thigh toward a slightly forward mid target (ASSUMED recovery).
-        Vec3 toMid = mid - hip;
-        toMid.x = 0.0;
-        const double L = std::max(1e-6, locomotion::length(toMid));
-        r.knee = hip + Vec3{0.0, thigh * toMid.y / L, thigh * toMid.z / L};
-        r.anatomicalHip = std::atan2(r.knee.y - hip.y, -(r.knee.z - hip.z));
-        r.anteriorKnee = crossX(hip, r.knee, r.ankle) >= -1e-6;
+    if (dist >= minR && dist <= maxR) {
+        ankle.x = hip.x;
+        return ankle;
     }
-    // stanceKneeBendDeg intentionally unused (NON-FUNCTIONAL attribute).
-    (void)attr.stanceKneeBendDeg;
-    return r;
+    const double target = clampf(dist, minR, maxR);
+    const double s = target / dist;
+    return Vec3{hip.x, hip.y + d.y * s, hip.z + d.z * s};
 }
 
-// Legacy helper retained for tests that compare segment lengths.
 inline void solveTwoLinkSagittal(
-    Vec3 hip, Vec3 ankle, double thigh, double shank,
-    Vec3& knee, double& hipFlex, double& kneeFlex
+    Vec3 hip, Vec3& ankle, double thigh, double shank,
+    Vec3& knee, double& hipFlex, double& kneeFlex, bool& anteriorKnee
 ) {
+    ankle = constrainAnkleReachSagittal(hip, ankle, thigh, shank);
     Vec3 d = ankle - hip;
     d.x = 0.0;
     const double dist = clampf(locomotion::length(d), 1e-4, thigh + shank - 1e-4);
@@ -1059,13 +994,52 @@ inline void solveTwoLinkSagittal(
         const double hkz = kneeP.z - hipP.z;
         return hay * hkz - haz * hky;
     };
-    if (crossX(hip, kA, ankle) >= crossX(hip, kB, ankle)) {
+    const double cA = crossX(hip, kA, ankle);
+    const double cB = crossX(hip, kB, ankle);
+    // Choose anterior branch only — never the "nudge" recovery that broke
+    // shank length while still claiming a valid knee.
+    if (cA >= cB) {
         hipFlex = hipA;
         knee = kA;
+        anteriorKnee = cA >= -1e-6;
     } else {
         hipFlex = hipB;
         knee = kB;
+        anteriorKnee = cB >= -1e-6;
     }
+}
+
+inline VirtualLegResult solveVirtualLegFig6(
+    const KlawAnthropometry& A,
+    Vec3 hip,
+    double contactY,
+    FootPeriod period,
+    double uLocal,
+    const LocomotionAttributes& attr
+) {
+    VirtualLegResult r{};
+    r.hip = hip;
+    r.foot = buildFootFromPivot(A, contactY, period, uLocal, attr);
+    r.ankle = r.foot.ankle;
+    r.ankle.x = hip.x;
+    r.foot.heel.x = hip.x;
+    r.foot.meta.x = hip.x;
+    r.foot.toe.x = hip.x;
+    r.virtualW = locomotion::length(Vec3{0.0, hip.y - contactY, hip.z - 0.0});
+
+    const double thigh = A.l3;
+    const double shank = A.l4;
+    bool anterior = true;
+    solveTwoLinkSagittal(
+        hip, r.ankle, thigh, shank, r.knee, r.anatomicalHip, r.anatomicalKnee,
+        anterior
+    );
+    r.anteriorKnee = anterior;
+    // Keep foot ankle marker consistent with the reachable IK ankle.
+    r.foot.ankle = r.ankle;
+    // stanceKneeBendDeg intentionally unused (NON-FUNCTIONAL attribute).
+    (void)attr.stanceKneeBendDeg;
+    return r;
 }
 
 // ---------------------------------------------------------------------------
@@ -2091,12 +2065,11 @@ inline KlawPose assemblePose(
     const double swingX = (pose.swingSide == LegSide::Left ? -1.0 : 1.0) * hipHalf
         + det.lateralDisplacement * 0.15;
 
-    // Absolute world hip from dynamics (already includes contact).
-    Vec3 stanceHip{
-        stanceX,
-        st.hipY,
-        st.hipZ + 0.5 * A.l1 * std::sin(rad(det.pelvicListDeg))
-    };
+    // Stance hip from dynamics only. Pelvic list is applied to the swing hip
+    // path via applyDeterminantsToHip (same sign). Do NOT add an opposite-sign
+    // list offset here — that made |hip−ankle| exceed l3+l4 and broke shank
+    // length after clamped IK (v0.10.2 knee regression).
+    Vec3 stanceHip{stanceX, st.hipY, st.hipZ};
     Vec3 swingHip{swingX, sw.hipY, sw.hipZ};
 
     const double contactY = st.hipY - st.w * std::sin(st.theta1);
@@ -2111,7 +2084,11 @@ inline KlawPose assemblePose(
     };
     Vec3 swingKnee{};
     double hfs = 0, kfs = 0;
-    solveTwoLinkSagittal(swingHip, swingAnkle, A.l3, A.l4, swingKnee, hfs, kfs);
+    bool swingAnterior = true;
+    solveTwoLinkSagittal(
+        swingHip, swingAnkle, A.l3, A.l4, swingKnee, hfs, kfs, swingAnterior
+    );
+    (void)swingAnterior;
 
     auto& j = pose.body.joint;
     const Vec3 pelvis{
@@ -2300,6 +2277,13 @@ struct KlawDiagnostics {
     int swing2Retries = 0;
     double clearanceCOverD = 0.0;
     PaperCompare paper{};
+    // Geometric knee branch diagnostics (sagittal Y/Z, both legs).
+    bool leftKneeAnterior = true;
+    bool rightKneeAnterior = true;
+    bool leftKneeValid = true;
+    bool rightKneeValid = true;
+    double leftKneeFlexRad = 0.0;
+    double rightKneeFlexRad = 0.0;
 };
 
 struct KlawLocomotionState {
@@ -2576,6 +2560,48 @@ inline void advanceToPose(KlawLocomotionState& s) {
             s.diag.maxGroundPenetration =
                 std::max(s.diag.maxGroundPenetration, -z);
         }
+    }
+    // Live knee geometry from posed joints (not the boolean anteriorKnee alone).
+    {
+        auto assess = [](Vec3 hip, Vec3 knee, Vec3 ankle, bool& anterior,
+                         bool& valid, double& flex) {
+            const double hay = ankle.y - hip.y;
+            const double haz = ankle.z - hip.z;
+            const double hky = knee.y - hip.y;
+            const double hkz = knee.z - hip.z;
+            const double cross = hay * hkz - haz * hky;
+            anterior = cross >= -1e-6;
+            const Vec3 th = hip - knee;
+            const Vec3 sh = ankle - knee;
+            const double nt = locomotion::length(th);
+            const double ns = locomotion::length(sh);
+            if (nt < 1e-8 || ns < 1e-8) {
+                flex = 0.0;
+                valid = false;
+                return;
+            }
+            const double c = clampf(
+                (th.x * sh.x + th.y * sh.y + th.z * sh.z) / (nt * ns), -1.0, 1.0
+            );
+            // Interior angle at knee; flexion 0 = straight.
+            flex = kPi - std::acos(c);
+            // Anatomical flexion band for walking (radians): ~0–2.6 (~0–150°).
+            valid = anterior && flex >= -0.05 && flex <= 2.65;
+        };
+        const auto& J = s.pose.body.joint;
+        assess(
+            J[locomotion::jointIndex(JointId::LeftHip)],
+            J[locomotion::jointIndex(JointId::LeftKnee)],
+            J[locomotion::jointIndex(JointId::LeftAnkle)],
+            s.diag.leftKneeAnterior, s.diag.leftKneeValid, s.diag.leftKneeFlexRad
+        );
+        assess(
+            J[locomotion::jointIndex(JointId::RightHip)],
+            J[locomotion::jointIndex(JointId::RightKnee)],
+            J[locomotion::jointIndex(JointId::RightAnkle)],
+            s.diag.rightKneeAnterior, s.diag.rightKneeValid,
+            s.diag.rightKneeFlexRad
+        );
     }
 }
 
@@ -2876,9 +2902,11 @@ inline std::vector<SelfTestResult> runSelfTests() {
             thighErr < 1e-5 && shankErr < 1e-5);
         add("virtual_leg_matches_dynamic_endpoints",
             std::abs(v.virtualW - st.w) < 0.12 || st.w < 1e-6);
-        add("no_backward_knee_branch",
-            v.knee.y + 1e-6 >= std::min(v.hip.y, v.ankle.y) - 0.15
-            || v.anteriorKnee);
+        // Weak single-sample check kept as smoke; stronger sweep below.
+        add("no_backward_knee_branch_sample",
+            v.anteriorKnee
+            && v.anatomicalKnee >= -0.05
+            && v.anatomicalKnee <= 2.65);
         // Foot pivots: heel-strike rotates about heel; toe-off about toe;
         // flat has θ5=0; active pivot markers move with period.
         auto heelP = buildFootFromPivot(
@@ -2941,10 +2969,112 @@ inline std::vector<SelfTestResult> runSelfTests() {
             VirtualLegResult vB = solveVirtualLegFig6(
                 A, hipPos, cY, FootPeriod::FootFlat, 0.3, attrB
             );
+            // Exact: attribute is documented NON-FUNCTIONAL, so outputs must be
+            // bit-identical for different stanceKneeBendDeg (architecture invariant).
             add("stance_knee_bend_attr_non_functional",
                 std::abs(vA.anatomicalKnee - vB.anatomicalKnee) < 1e-15
                 && locomotion::length(vA.knee - vB.knee) < 1e-15);
         }
+    }
+    {
+        // Geometric multi-step knee regression (both legs). Do NOT rely on a
+        // lone anteriorKnee OR-with-y-check that can green-light inverted poses.
+        auto s = makeInitialState(reference, 1.20);
+        bool lengthsOk = true;
+        bool flexOk = true;
+        bool anteriorOk = true;
+        bool noTeleport = true;
+        bool noBranchFlipBurst = true;
+        Vec3 prevLKnee{};
+        Vec3 prevRKnee{};
+        Vec3 prevLHip{};
+        Vec3 prevRHip{};
+        bool havePrev = false;
+        int anteriorFlipStreak = 0;
+        bool prevLAnt = true;
+        bool prevRAnt = true;
+        for (int i = 0; i < 480; ++i) {
+            tickSimulation(s);
+            const auto& J = s.pose.body.joint;
+            const Vec3 lH = J[locomotion::jointIndex(JointId::LeftHip)];
+            const Vec3 lK = J[locomotion::jointIndex(JointId::LeftKnee)];
+            const Vec3 lA = J[locomotion::jointIndex(JointId::LeftAnkle)];
+            const Vec3 rH = J[locomotion::jointIndex(JointId::RightHip)];
+            const Vec3 rK = J[locomotion::jointIndex(JointId::RightKnee)];
+            const Vec3 rA = J[locomotion::jointIndex(JointId::RightAnkle)];
+            // Authoritative segment lengths from the simulated anthropometry.
+            const double thighL = s.anthro.l3;
+            const double shankL = s.anthro.l4;
+            const double lTh = locomotion::length(lK - lH);
+            const double lSh = locomotion::length(lA - lK);
+            const double rTh = locomotion::length(rK - rH);
+            const double rSh = locomotion::length(rA - rK);
+            // Exact lengths: pose IK must preserve l3/l4 bit-close (1e-4 m).
+            // Reason: after reachable-ankle projection, construction is
+            // trigonometric with fixed segment lengths — not ODE noise.
+            if (std::abs(lTh - thighL) > 1e-4 || std::abs(lSh - shankL) > 1e-4
+                || std::abs(rTh - thighL) > 1e-4 || std::abs(rSh - shankL) > 1e-4) {
+                lengthsOk = false;
+            }
+            if (!s.diag.leftKneeValid || !s.diag.rightKneeValid) flexOk = false;
+            if (!s.diag.leftKneeAnterior || !s.diag.rightKneeAnterior) {
+                anteriorOk = false;
+            }
+            if (havePrev) {
+                // Knee teleport = thigh-vector discontinuity in leg-local space.
+                // Skip only the first pose after a step handoff: both legs switch
+                // reconstruction mode (stance virtual-leg ↔ swing two-link) and
+                // heel-strike applies the paper collision remap (tracked in
+                // collisionDiscontinuity). Within-step snaps still fail.
+                const bool stepHandoffPose =
+                    s.stepIndex >= 1 && s.diag.stepPhase01 <= 1e-9;
+                if (!stepHandoffPose) {
+                    const Vec3 dThighL = (lK - lH) - (prevLKnee - prevLHip);
+                    const Vec3 dThighR = (rK - rH) - (prevRKnee - prevRHip);
+                    // 0.15 m/tick ≈ sudden IK/branch snap at 60 Hz.
+                    if (locomotion::length(dThighL) > 0.15
+                        || locomotion::length(dThighR) > 0.15) {
+                        noTeleport = false;
+                    }
+                }
+                const bool flipL = (s.diag.leftKneeAnterior != prevLAnt);
+                const bool flipR = (s.diag.rightKneeAnterior != prevRAnt);
+                if (flipL || flipR) {
+                    ++anteriorFlipStreak;
+                    if (anteriorFlipStreak >= 3) noBranchFlipBurst = false;
+                } else {
+                    anteriorFlipStreak = 0;
+                }
+            }
+            prevLKnee = lK;
+            prevRKnee = rK;
+            prevLHip = lH;
+            prevRHip = rH;
+            prevLAnt = s.diag.leftKneeAnterior;
+            prevRAnt = s.diag.rightKneeAnterior;
+            havePrev = true;
+        }
+        add("knee_geometry_segment_lengths_exact", lengthsOk);
+        add("knee_geometry_flexion_anatomical_band", flexOk);
+        add("knee_geometry_anterior_branch_both_legs", anteriorOk);
+        add("knee_geometry_no_sudden_teleport", noTeleport);
+        add("knee_geometry_no_branch_flip_burst", noBranchFlipBurst);
+        // Mirrored initial sides should both remain anterior under the same walk.
+        auto sL = makeInitialState(reference, 1.20);
+        auto sR = makeInitialState(reference, 1.20);
+        // Force opposite starting stance by advancing one half-step if needed.
+        simulateFixedTicks(sR, (int)std::ceil(0.55 * sR.currentStep.timing.tStep / kFixedDt));
+        bool symOk = true;
+        for (int i = 0; i < 120; ++i) {
+            tickSimulation(sL);
+            tickSimulation(sR);
+            if (!sL.diag.leftKneeAnterior || !sL.diag.rightKneeAnterior
+                || !sR.diag.leftKneeAnterior || !sR.diag.rightKneeAnterior) {
+                symOk = false;
+                break;
+            }
+        }
+        add("knee_geometry_mirrored_sides_anterior", symOk);
     }
     {
         auto s = makeInitialState(reference, 1.20);
@@ -2987,6 +3117,8 @@ inline std::vector<SelfTestResult> runSelfTests() {
         );
         simulateFixedTicks(s2, ticksInStep);
         const double conveyorDelta = s2.params.velocity * ticksInStep * kFixedDt;
+        // Exact: rootY is assigned contactWorldY (no integrator), so identity
+        // must hold bit-for-bit within a step (architecture invariant).
         add("no_conveyor_rootY_tracks_contact",
             s2.stepIndex == 0
             && std::abs(s2.rootY - rootY0) < 1e-15
@@ -3042,6 +3174,7 @@ inline std::vector<SelfTestResult> runSelfTests() {
         auto b = a;
         simulateFixedTicks(a, 240);
         simulateFixedTicks(b, 240);
+        // Exact: fixed-dt deterministic tick must replay bit-identical state.
         add("deterministic_replay_exact", statesEqualExact(a, b));
     }
     {

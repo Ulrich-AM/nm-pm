@@ -125,6 +125,25 @@ add_executable(locomotion_phase9
 target_include_directories(locomotion_phase9 PRIVATE phases/phase0 phases/phase1 phases/phase2 phases/phase3 phases/phase4 phases/phase5 phases/phase6 phases/phase7 phases/phase8 phases/phase9)
 target_link_libraries(locomotion_phase9 PRIVATE raylib)
 
+# Compact build identifier for harness (release tag + short SHA when available).
+set(_locomotion_build_tag "dev")
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RELEASE_REQUEST")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/RELEASE_REQUEST" _locomotion_build_tag)
+    string(STRIP "${_locomotion_build_tag}" _locomotion_build_tag)
+endif()
+set(_locomotion_git_sha "local")
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../.."
+    OUTPUT_VARIABLE _locomotion_git_sha
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+target_compile_definitions(locomotion_phase9 PRIVATE
+    "LOCOMOTION_BUILD_TAG=\"${_locomotion_build_tag}\""
+    "LOCOMOTION_GIT_SHA=\"${_locomotion_git_sha}\""
+)
+
 add_executable(locomotion_phase9_tests
     phases/phase9/test_phase9.cpp
 )

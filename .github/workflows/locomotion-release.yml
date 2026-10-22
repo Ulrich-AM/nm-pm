@@ -46,6 +46,22 @@ jobs:
       - name: Run native tests
         run: ctest --test-dir build -C Release --output-on-failure
 
+      - name: Verify Phase 9 binary identity (no rebuild after tests)
+        shell: pwsh
+        run: |
+          $p9 = "build/Release/locomotion_phase9.exe"
+          $p9t = "build/Release/locomotion_phase9_tests.exe"
+          if (-not (Test-Path $p9)) { throw "Missing Phase 9 exe after tests: $p9" }
+          if (-not (Test-Path $p9t)) { throw "Missing Phase 9 tests exe after tests: $p9t" }
+          $h9 = (Get-FileHash $p9 -Algorithm SHA256).Hash
+          $ht = (Get-FileHash $p9t -Algorithm SHA256).Hash
+          $s9 = (Get-Item $p9).Length
+          $st = (Get-Item $p9t).Length
+          Write-Host "PHASE9_EXE sha256=$h9 size=$s9"
+          Write-Host "PHASE9_TESTS_EXE sha256=$ht size=$st"
+          "PHASE9_SHA256=$h9" >> $env:GITHUB_ENV
+          "PHASE9_SIZE=$s9" >> $env:GITHUB_ENV
+
       - name: Package locomotion release
         shell: pwsh
         env:
@@ -62,8 +78,14 @@ jobs:
           Copy-Item build/Release/locomotion_phase6.exe dist/Locomotion-LO007-ContinuousState.exe
           Copy-Item build/Release/locomotion_phase7.exe dist/Locomotion-LO008-ArticulatedFoot.exe
           Copy-Item build/Release/locomotion_phase8.exe dist/Locomotion-LO009-DynamicStance.exe
+          # Copy the exact Phase 9 binary that was tested (do not rebuild).
           if (Test-Path build/Release/locomotion_phase9.exe) {
             Copy-Item build/Release/locomotion_phase9.exe dist/Locomotion-LO010-KLAW-Reconstruction.exe
+            $copiedHash = (Get-FileHash dist/Locomotion-LO010-KLAW-Reconstruction.exe -Algorithm SHA256).Hash
+            if ($env:PHASE9_SHA256 -and $copiedHash -ne $env:PHASE9_SHA256) {
+              throw "Packaged Phase 9 hash $copiedHash != tested hash $($env:PHASE9_SHA256)"
+            }
+            Write-Host "Packaged LO010 hash=$copiedHash (matches tested binary)"
           }
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
@@ -183,7 +205,7 @@ jobs:
             $notes = @"
           LO-010 KLAW fidelity reconstruction research checkpoint.
 
-          This release packages the LO-010 / Phase 9 paper-literal reconstruction of Bruderlin & Calvert (1989) KLAW (Keyframe-Less Animation of Walking), including the v0.10.1 fidelity pass over the too-approximate v0.10.0 baseline. NM-PM does not claim authorship of KLAW. Natural walking is not claimed solved.
+          This release packages the LO-010 / Phase 9 paper-literal reconstruction of Bruderlin & Calvert (1989) KLAW (Keyframe-Less Animation of Walking). v0.10.2 focuses on harness validation reliability (pre/post-raylib self-tests with failing names), free orbit camera, stronger knee geometry regression, and release binary traceability over the v0.10.1 fidelity baseline. NM-PM does not claim authorship of KLAW. Natural walking is not claimed solved.
 
           The ZIP preserves Phase 0-9 executables, living documentation, derived reference-analysis files, and versions/<prior-tag>/ historical primary executables from prior official locomotion releases. The Phase 9 binary is packaged as Locomotion-LO010-KLAW-Reconstruction.exe.
           "@
