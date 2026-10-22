@@ -12,7 +12,7 @@ Detailed discussion lives in `DOCUMENTATION.html`. Durable IDs remain stable eve
 | LO-006 | Phase 5 | Implemented | Continuous desired-speed walking with derived step length, cadence, support timing, pelvis/hip coordination, trunk counter-rotation, and stateful contralateral arm swing |
 | LO-006 Flow Audit | Post-Phase 5 | Documented | Visual/research audit showing that a valid repeated kinematic step-chain can remain march-like; records the shift toward continuous body transport, articulated contact, and stateful phase dynamics |
 | LO-007 | Phase 6 | Implemented | Persistent fixed-step locomotion state with integrated root transport, independent unwrapped limb phases, bounded contact-transition timing correction, planted anchors, contact history, and no step-boundary reset |
-| LO-008 | Phase 7 | Planned | Articulated stance foot: heel strike, flat support, heel rise, forefoot support, and toe-off |
+| LO-008 | Phase 7 | Implemented candidate | Articulated heel/flat/forefoot/toe support that changes the ankle constraint, active support geometry, and root/pelvis comparison on top of LO-007 persistent state |
 | LO-009 | Phase 8 | Planned | Dynamic stance/root transport using the smallest useful locomotion-specific model |
 | LO-010 | Phase 9 | Planned | Contact handoff, weight acceptance, touchdown impact, and state correction |
 | LO-011 | Phase 10 | Planned | Functional swing-leg phases: initiation, clearance, transport, terminal extension, and contact preparation |
