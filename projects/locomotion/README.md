@@ -1,9 +1,9 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-007 continuous locomotion state  
-**Milestone:** `locomotion-v0.7.0`  
-**Status:** Active; LO-008 articulated stance foot is next
+**Current checkpoint:** LO-008 articulated stance foot  
+**Milestone:** `locomotion-v0.8.0` visual-QA checkpoint  
+**Status:** Active; LO-008 implemented, LO-009 follows after visual acceptance
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
@@ -12,6 +12,8 @@ LO-006 v0.6.1 remains the final checkpoint of the original step-transaction-cent
 A post-LO-006 visual and literature audit found that the controller could be anatomically valid and numerically continuous while still looking distinctly march-like. LO-007 therefore performs the first architectural rebase instead of adding more gait decoration.
 
 LO-007 introduces persistent fixed-step locomotion state: root position/velocity/angular state, independent unwrapped left/right limb timing, grounded/airborne contacts, planted world-space anchors, contact history, bounded timing correction, and persistent arm response. The simulation no longer terminates or resets at a nominal completed step.
+
+LO-008 builds directly on that state with sagittal heel/flat/forefoot/toe rocker mechanics. Active support geometry changes the ankle constraint before the LO-003 solve and feeds the LO-002 support polygon, so the foot articulation is mechanical rather than cosmetic. The Phase 7 harness compares the LO-007 flat-foot baseline against the articulated candidate and exposes root/pelvis mismatch for visual QA.
 
 LO-001 establishes anatomy and coordinates. LO-002 adds measurement-only mass, COM, support, and XCoM analysis. LO-003 solves static standing targets. LO-004 validates one procedural step. LO-005 repeats it with explicit handoffs. LO-006 maps desired steady walking speed into gait timing and restrained whole-body coordination. LO-007 preserves useful parts of that foundation while removing the finite step transaction as the runtime controller.
 
@@ -114,6 +116,21 @@ LO-007 additionally defines:
 
 The Phase 6 root and displayed pelvis are not yet identical. Root Y integrates continuously, while the flat-foot pose solver still keeps pelvis Y near the current foot midpoint to respect the unchanged ankle guardrail. LO-008 and LO-009 exist specifically to remove this remaining flat-foot transport constraint.
 
+LO-008 additionally defines:
+
+- AIRBORNE / HEEL / FLAT / FOREFOOT / TOE stance-foot modes;
+- sagittal rigid-foot pitch around an active ground pivot;
+- ankle targets derived from articulated foot geometry before the leg solve;
+- articulated heel, toe-base, and toe-tip markers;
+- active support patches that migrate and narrow through stance;
+- LO-002 support analysis driven by the active foot regions;
+- conservative root-follow testing while preserving the LO-001 ankle guardrail;
+- flat-foot versus articulated-foot comparison in one harness;
+- rocker continuity, marker-ground validity, support-slip, anatomy, and replay diagnostics;
+- twenty-nine Phase 7 self-tests in addition to all preserved earlier suites.
+
+The Phase 7 release is a visual-QA checkpoint. Full dynamic stance/root transport remains LO-009.
+
 The coordinate convention remains:
 
 ```text
@@ -126,7 +143,7 @@ Internal physical units are meters, seconds, kilograms where mass is later intro
 
 ## Revised research sequence
 
-The roadmap after LO-006 has been reordered. LO-007 is now implemented; LO-008 is the next experiment.
+The roadmap after LO-006 has been reordered. LO-007 and LO-008 are now implemented; LO-009 dynamic stance/root transport is next after Phase 7 visual QA.
 
 ```text
 LO-007  continuous locomotion state
@@ -177,7 +194,7 @@ Run:
 build_windows.bat
 ```
 
-The script configures CMake, builds the Release configuration, and runs CTest. Use `run_phase6.bat` to launch the current LO-007 harness.
+The script configures CMake, builds the Release configuration, and runs CTest. Use `run_phase7.bat` to launch the current LO-008 harness.
 
 Manual equivalent:
 
@@ -204,6 +221,8 @@ locomotion_phase5.exe
 locomotion_phase5_tests.exe
 locomotion_phase6.exe
 locomotion_phase6_tests.exe
+locomotion_phase7.exe
+locomotion_phase7_tests.exe
 ```
 
 ## Y Bot policy
@@ -232,7 +251,7 @@ For the immediate implementation handoff, read:
 NEXT.md
 ```
 
-before starting LO-008.
+before starting LO-009 after LO-008 visual QA.
 
 ## Research boundary
 
