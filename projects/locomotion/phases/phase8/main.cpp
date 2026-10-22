@@ -378,19 +378,33 @@ void DrawDebug(const HarnessState& h, int passed, int total, Rectangle r) {
     Panel(r, C_PANEL2, C_LINE2);
     GroupHeader({r.x, r.y, r.width, 23}, "LO-009 / DYNAMIC STANCE DIAGNOSTICS");
     const auto& s = h.sim;
+    const double pivSp = std::max(
+        locomotion::length(s.leftLeg.pivotVelocity),
+        locomotion::length(s.rightLeg.pivotVelocity)
+    );
+    const double radErr = std::max(
+        s.leftLeg.active
+            ? std::abs(s.leftLeg.length - s.params.virtualLegRestLength) : 0.0,
+        s.rightLeg.active
+            ? std::abs(s.rightLeg.length - s.params.virtualLegRestLength) : 0.0
+    );
     const std::array<std::pair<std::string, std::string>, 12> kv{{
         {"model", locomotion8::stanceModelName(s.model)},
         {"L/R mode", std::string(locomotion7::footModeName(s.artic.leftFoot.mode))
             + "/" + locomotion7::footModeName(s.artic.rightFoot.mode)},
-        {"vy", Fmt(s.rootVelocity.y, 3)},
-        {"vz", Fmt(s.rootVelocity.z, 3)},
+        {"vy/effA", Fmt(s.rootVelocity.y, 3) + "/" + Fmt(locomotion::length(s.rootAcceleration), 2)},
+        {"pivVel", Fmt(pivSp, 3)},
         {"root Z", Fmt(s.rootPosition.z, 3)},
-        {"load F/R", Fmt(s.loads.frontWeight, 2) + "/" + Fmt(s.loads.rearWeight, 2)},
-        {"Llen", Fmt(s.leftLeg.length, 3)},
-        {"Rlen", Fmt(s.rightLeg.length, 3)},
-        {"proj", std::to_string(s.dyn.projectionCount)},
+        {"radErr", Fmt(radErr, 3)},
+        {"L/R len", Fmt(s.leftLeg.length, 3) + "/" + Fmt(s.rightLeg.length, 3)},
+        {"mismatch", Fmt(s.dyn.rootToSolvedPelvisMismatch, 5)},
+        {"proj/fb", std::to_string(s.dyn.projectionCount) + "/"
+            + std::to_string(s.dyn.anatomyFallbackCount
+                + s.dyn.footPitchFallbackCount
+                + s.dyn.midpointFallbackCount)},
+        {"clamps", std::to_string(s.dyn.forwardVelocityClampHits) + "/"
+            + std::to_string(s.dyn.verticalVelocityClampHits)},
         {"slip", Fmt(s.artic.rocker.maxActiveContactSlip, 4)},
-        {"support", locomotion1::supportClassName(s.artic.base.supportClass)},
         {"tests", std::to_string(passed) + " / " + std::to_string(total)}
     }};
     for (int i = 0; i < 12; ++i) {
@@ -398,7 +412,7 @@ void DrawDebug(const HarnessState& h, int passed, int total, Rectangle r) {
         const float x = r.x + 10 + col * 210.0f;
         const float yy = r.y + 28 + row * 17;
         Text(kv[(std::size_t)i].first, x, yy, 9, C_DIM);
-        Text(kv[(std::size_t)i].second, x + 70, yy, 9, C_TEXT);
+        Text(kv[(std::size_t)i].second, x + 78, yy, 9, C_TEXT);
     }
 
     // Compact traces

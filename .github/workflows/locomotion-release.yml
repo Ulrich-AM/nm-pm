@@ -114,11 +114,9 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           $notes = @"
-          NM-PM locomotion checkpoint for Anatomically Constrained Procedural Human Locomotion.
+          LO-009 Support-Driven Root Flow / Dynamic Stance research checkpoint (v0.9.0).
 
-          This release packages the dynamic stance / support-driven root-flow experiment (LO-009 / Phase 8) together with the preserved LO-001 through LO-008 harnesses.
-
-          LO-009 compares kinematic LO-008 baseline against rigid virtual-leg and compliant telescoping stance models that integrate root acceleration from support mechanics. Natural walking is not claimed solved; impact handoff remains deferred to LO-010.
+          This release packages the LO-009 / Phase 8 A/B/C stance comparison (kinematic LO-008 baseline, rigid virtual-leg, compliant telescoping) with corrected moving-pivot relative velocity, a near-fixed-length rigid virtual-leg constraint, authoritative dynamic root / pelvis synchronization, and expanded diagnostics. Natural walking is not claimed solved. LO-010 touchdown/impact and LO-011 swing remain future work.
 
           The ZIP preserves Phase 0-8 executables, living documentation, and derived reference-analysis files. The Phase 8 binary is packaged as Locomotion-LO009-DynamicStance.exe.
           "@
