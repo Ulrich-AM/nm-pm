@@ -1,12 +1,12 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-007 continuous locomotion state  
+**Architecture checkpoint:** LO-008 articulated stance foot  
 **Date:** 2026-10-22  
-**Status:** Active study; Phase 6 validates persistent fixed-step locomotion state and LO-008 articulated stance-foot mechanics are next
+**Status:** Active study; Phase 7 adds articulated support geometry on top of LO-007 persistent state; LO-009 dynamic stance/root transport follows after visual QA
 
 ## Current boundary
 
-LO-007 is the first experiment that removes the finite step transaction from the runtime controller.
+LO-007 is the first experiment that removes the finite step transaction from the runtime controller. LO-008 is the first experiment that makes heel/forefoot/toe support change the actual foot/ankle constraint rather than only the rendered appearance.
 
 Phase 0 freezes anatomy and coordinates. Phase 1 adds measurement state. Phase 2 solves static pelvis and foot targets. Phase 3 validates one support-to-support step. Phase 4 chains those transactions with persistent stance state. Phase 5 derives step spacing, cadence, support timing, and restrained whole-body coordination from desired speed. Phase 6 introduces persistent fixed-step root, limb-phase, contact, and arm-response state that survives support changes.
 
@@ -459,6 +459,77 @@ The candidate preserves:
 
 The gait may still appear march-like. That is expected because foot rocker, dynamic stance, impact handoff, functional swing, pelvis flow, and reactive whole-body dynamics remain future experiments.
 
+## Phase 7 articulated stance foot
+
+LO-008 extends the LO-007 continuous state with an articulated sagittal foot rocker.
+
+The runtime relationship is now approximately:
+
+```text
+LO-007 persistent state
+        |
+        v
+left/right stance phase readiness
+        |
+        v
+HEEL -> FLAT -> FOREFOOT -> TOE
+        |
+        v
+active ground pivot / support patch
+        |
+        v
+derive articulated ankle target
+        |
+        v
+LO-003 constrained leg solve
+        |
+        v
+write articulated foot markers
+        |
+        v
+LO-002 support / COM analysis
+```
+
+The rocker is not a post-solve cosmetic transform. Grounded ankle position is derived from the current pivot and rotated LO-001 foot geometry before the leg solve.
+
+### Active support geometry
+
+The LO-002 support polygon now receives the active region of each grounded foot:
+
+- rear-foot region during heel support;
+- full patch during flat support;
+- forward/narrowing patch during forefoot support;
+- small toe-region patch before release.
+
+Airborne feet contribute no support patch.
+
+### Root/pelvis boundary
+
+LO-008 tests a conservative mode-dependent root-follow blend. The visible pelvis may move closer to the persistent LO-007 root while articulated support changes the ankle constraint.
+
+This is still not the full stance-dynamics solution. If stronger root following becomes anatomically invalid, the controller first reduces root-follow and then reduces foot pitch rather than widening LO-001 joint limits.
+
+LO-009 remains responsible for comparing actual dynamic stance/root-transport models.
+
+### Current contact boundary
+
+Rocker timing and touchdown are still organized by the persistent limb phase rather than physical impact detection.
+
+LO-010 remains responsible for impact, weight acceptance, and contact-state correction driven by touchdown physics.
+
+### Validation result
+
+Phase 7 adds twenty-nine self-tests and preserves all earlier suites. Main-branch Windows CI builds Phase 0 through Phase 7 and passes 8 / 8 CTest suites.
+
+The v0.8.0 checkpoint is intentionally released for visual QA of:
+
+- heel-to-toe progression;
+- support migration;
+- foot-ground continuity;
+- ankle behavior;
+- flat versus articulated comparison;
+- root versus displayed-pelvis motion.
+
 ## Post-LO-006 flow audit
 
 LO-006 v0.6.1 passes its numerical validation but still reads visually as a march-like repeated gait.
@@ -693,10 +764,18 @@ The result remains intentionally incomplete. The visible pelvis still uses a fla
 
 ### LO-008 - Articulated Stance Foot
 
-The next implementation should answer:
+Implemented in Phase 7.
 
-> Can heel-to-toe stance contact reduce the flat-foot compensation observed in LO-007 while preserving persistent state, planted support, and anatomical guardrails?
+Result status:
 
-LO-008 must make heel/flat/forefoot/toe support affect the actual solve constraint rather than rotating the rendered foot after solving.
+> Heel/flat/forefoot/toe support now changes the ankle/contact constraint and LO-002 support geometry while preserving the LO-007 persistent-state architecture.
 
-LO-009 remains responsible for the full dynamic stance/root transport model.
+Visual QA remains required before this phase is considered fully accepted.
+
+### LO-009 - Dynamic Stance / Root Transport
+
+The next major implementation, after LO-008 visual acceptance, should answer:
+
+> What is the smallest locomotion-specific stance model that can transport the visible body continuously over articulated support?
+
+Candidate model families include inverted-pendulum-like, telescoping-leg, and compliant/spring-like stance. LO-009 should compare the minimum useful alternatives rather than immediately building a full rigid-body human.
