@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-007 establishes persistent fixed-step root, limb-phase, contact-history, and arm-response state without a completed-step reset. LO-008 articulated stance-foot mechanics are next; dynamic stance, acceleration, and running remain later phases.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-008 now adds articulated heel/flat/forefoot/toe support on top of the LO-007 persistent-state runtime. v0.8.0 is a visual-QA checkpoint before LO-009 dynamic stance/root transport.
 
 ### Reference
 
