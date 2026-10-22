@@ -1,8 +1,8 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-010 KLAW published-method reconstruction  
+**Architecture checkpoint:** LO-010 KLAW fidelity reconstruction (`locomotion-v0.10.1`)  
 **Date:** 2026-10-22  
-**Status:** Active study; LO-001–LO-009 preserved as historical lineage; Phase 9 reconstructs Bruderlin & Calvert (1989) KLAW as an external baseline (not claimed as original NM-PM authorship of KLAW)
+**Status:** Active study; LO-001–LO-009 preserved as historical lineage; Phase 9 fidelity pass reconstructs Bruderlin & Calvert (1989) KLAW as an external baseline (not claimed as original NM-PM authorship of KLAW). The first `v0.10.0` approximation is preserved historically but superseded.
 
 ## Current boundary
 

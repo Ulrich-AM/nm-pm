@@ -232,8 +232,30 @@ Touchdown is still phase-predicted, swing remains temporary scaffolding, and dyn
 
 Packages Phase 8 A/B/C stance comparison (kinematic LO-008, rigid virtual-leg, compliant telescoping) with corrected rocker pivot velocity, rigid length constraint, authoritative root/pelvis synchronization, and expanded diagnostics. Natural walking is not claimed solved.
 
-## v0.10.0 - LO-010 KLAW Reconstruction (pending)
+## v0.10.0 - LO-010 KLAW Reconstruction (first pass)
 
-Intended package for Phase 9 published-method reconstruction of Bruderlin & Calvert (1989) KLAW as `Locomotion-LO010-KLAW-Reconstruction.exe`. Release is deferred until the project lead inspects the reconstruction. The workflow is prepared; `RELEASE_REQUEST` is not advanced yet.
+Packages the first Phase 9 published-method reconstruction of Bruderlin & Calvert (1989) KLAW as `Locomotion-LO010-KLAW-Reconstruction.exe`.
+
+This checkpoint is preserved historically. Visual QA later showed it was **not sufficiently faithful** (per-step canned ICs, conveyor root transport, simplified Appendix A, approximate Swing 1, generic stance IK, nearest-sample playback). Tests passing was not treated as fidelity.
 
 NM-PM does not claim authorship of KLAW.
+
+## v0.10.1 - LO-010 KLAW Fidelity Reconstruction Pass
+
+Corrective Phase 9 release. Replaces incorrect KLAW internals with a paper-literal pipeline while preserving Phase 9 location, harness, attribution, and LO-001–LO-009.
+
+Adds:
+
+- persistent dynamic boundary state with heel-strike / toe-off inheritance;
+- Appendix A.1 / A.2 dynamics;
+- implicit trapezoidal integrator (documented LSODE substitute);
+- quartic Swing 1 path P with `C ≈ 0.30·D`;
+- Swing 2 clearance re-simulation; Swing 3 terminal BVP;
+- Figure 6 virtual-leg + geometric foot pivots;
+- determinants after stance before swing;
+- interpolated trajectory playback;
+- step-boundary continuity diagnostics;
+- paper-compare harness overlays;
+- `versions/` historical executables collected from prior GitHub Release assets.
+
+Natural walking is not claimed solved.

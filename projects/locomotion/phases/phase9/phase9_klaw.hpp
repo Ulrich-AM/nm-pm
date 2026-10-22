@@ -982,20 +982,48 @@ inline VirtualLegResult solveVirtualLegFig6(
     const double hipFlexB = ang + std::acos(cosH);
     Vec3 kneeA = hip + Vec3{0.0, thigh * std::sin(hipFlexA), -thigh * std::cos(hipFlexA)};
     Vec3 kneeB = hip + Vec3{0.0, thigh * std::sin(hipFlexB), -thigh * std::cos(hipFlexB)};
-    // Prefer the knee with greater +Y (anterior).
-    if (kneeA.y >= kneeB.y) {
+    // Prefer the knee branch whose sagittal cross (ha × hk)_x is positive:
+    // knee lies on the anterior side of the hip→ankle chord for +Y walk.
+    auto crossX = [](Vec3 hipP, Vec3 kneeP, Vec3 ankP) {
+        const double hay = ankP.y - hipP.y;
+        const double haz = ankP.z - hipP.z;
+        const double hky = kneeP.y - hipP.y;
+        const double hkz = kneeP.z - hipP.z;
+        return hay * hkz - haz * hky;
+    };
+    const double cA = crossX(hip, kneeA, r.ankle);
+    const double cB = crossX(hip, kneeB, r.ankle);
+    if (cA >= cB) {
         r.anatomicalHip = hipFlexA;
         r.knee = kneeA;
-        r.anteriorKnee = true;
+        r.anteriorKnee = cA >= -1e-6;
     } else {
         r.anatomicalHip = hipFlexB;
         r.knee = kneeB;
-        r.anteriorKnee = true; // still forced anterior by choice
-        // If B was more posterior, keep A anyway:
-        if (kneeB.y < kneeA.y) {
+        r.anteriorKnee = cB >= -1e-6;
+    }
+    // If both branches are somehow posterior, force the less-negative one and
+    // nudge the knee forward of the chord midpoint.
+    if (!r.anteriorKnee) {
+        if (cA >= cB) {
             r.anatomicalHip = hipFlexA;
             r.knee = kneeA;
+        } else {
+            r.anatomicalHip = hipFlexB;
+            r.knee = kneeB;
         }
+        const Vec3 mid{
+            hip.x,
+            0.5 * (hip.y + r.ankle.y) + 0.04,
+            0.5 * (hip.z + r.ankle.z)
+        };
+        // Re-aim thigh toward a slightly forward mid target (ASSUMED recovery).
+        Vec3 toMid = mid - hip;
+        toMid.x = 0.0;
+        const double L = std::max(1e-6, locomotion::length(toMid));
+        r.knee = hip + Vec3{0.0, thigh * toMid.y / L, thigh * toMid.z / L};
+        r.anatomicalHip = std::atan2(r.knee.y - hip.y, -(r.knee.z - hip.z));
+        r.anteriorKnee = crossX(hip, r.knee, r.ankle) >= -1e-6;
     }
     // stanceKneeBendDeg intentionally unused (NON-FUNCTIONAL attribute).
     (void)attr.stanceKneeBendDeg;
@@ -1024,7 +1052,14 @@ inline void solveTwoLinkSagittal(
     const double hipB = ang + std::acos(cosH);
     Vec3 kA = hip + Vec3{0.0, thigh * std::sin(hipA), -thigh * std::cos(hipA)};
     Vec3 kB = hip + Vec3{0.0, thigh * std::sin(hipB), -thigh * std::cos(hipB)};
-    if (kA.y >= kB.y) {
+    auto crossX = [](Vec3 hipP, Vec3 kneeP, Vec3 ankP) {
+        const double hay = ankP.y - hipP.y;
+        const double haz = ankP.z - hipP.z;
+        const double hky = kneeP.y - hipP.y;
+        const double hkz = kneeP.z - hipP.z;
+        return hay * hkz - haz * hky;
+    };
+    if (crossX(hip, kA, ankle) >= crossX(hip, kB, ankle)) {
         hipFlex = hipA;
         knee = kA;
     } else {
@@ -1290,23 +1325,40 @@ inline HeelStrikeReport transferHeelStrikeToStance(
     boundary.theta5 = term.heelStrikeFootPitch;
     boundary.theta6 = 0.0;
 
-    // New stance angle: approach from behind vertical (negative θ1).
-    boundary.theta1 = -std::abs(swingTerminal.theta3);
-    if (boundary.theta1 > -0.05) boundary.theta1 = -term.stanceTheta1 * 0.85;
-
-    // Length from hip estimate: use terminal swing hip vs new contact.
+    // New stance angle from geometry of continuous hip vs new contact
+    // (preserves world hip; avoids canned θ1 reset).
     const double hipY = swingTerminal.hipY;
-    const double hipZ = swingTerminal.hipZ;
+    const double hipZ = std::max(0.05, swingTerminal.hipZ);
+    boundary.theta1 = std::atan2(hipY - newContactY, hipZ);
+    // Early stance is behind vertical (θ1 < 0). If geometry landed ahead,
+    // fold into the published rear-of-vertical IC instead of flipping.
+    if (boundary.theta1 > 0.05) {
+        boundary.theta1 = -std::abs(boundary.theta1);
+    }
+    if (std::abs(boundary.theta1) < 0.02) {
+        boundary.theta1 = -term.stanceTheta1 * 0.85;
+    }
+    boundary.theta1 = clampf(boundary.theta1, rad(-45.0), rad(5.0));
+
+    // Length from continuous hip to new heel contact.
     boundary.w = std::sqrt(
         std::max(1e-6, (hipY - newContactY) * (hipY - newContactY) + hipZ * hipZ)
     );
-    boundary.w = clampf(boundary.w, 0.85 * A.l1, 1.12 * A.l1);
+    boundary.w = clampf(boundary.w, 0.90 * A.l1, 1.08 * A.l1);
 
-    // Rates from post-collision hip velocity (ASSUMED).
-    boundary.theta1Dot = hs.postVelocity.y / std::max(1e-3, boundary.w);
-    boundary.wDot = hs.postVelocity.z * std::cos(boundary.theta1)
-        + hs.postVelocity.y * std::sin(boundary.theta1);
-    boundary.theta2Dot *= 0.5;
+    // Rates from post-collision hip velocity (ASSUMED / thesis C.3 incomplete).
+    const double c1 = std::cos(boundary.theta1);
+    const double s1 = std::sin(boundary.theta1);
+    // ḣ = ẇ s1 + w θ1̇ c1 ; ż = ẇ c1 − w θ1̇ s1  → solve for ẇ, θ1̇.
+    const double hy = hs.postVelocity.y;
+    const double hz = hs.postVelocity.z;
+    boundary.wDot = hy * s1 + hz * c1;
+    boundary.theta1Dot =
+        (hy * c1 - hz * s1) / std::max(1e-3, boundary.w);
+    // Hard clamps — thesis C.3 unknown; prevent integrator blow-ups.
+    boundary.wDot = clampf(boundary.wDot, -1.5, 1.5);
+    boundary.theta1Dot = clampf(boundary.theta1Dot, -4.0, 4.0);
+    boundary.theta2Dot = clampf(boundary.theta2Dot * 0.5, -2.0, 2.0);
     // Trunk continuous.
     // Swing DOFs will be overwritten at toe-off of the other leg.
 
@@ -1316,6 +1368,17 @@ inline HeelStrikeReport transferHeelStrikeToStance(
 
     boundary.rootVelocity = hs.postVelocity;
     boundary.hipVelocity = hs.postVelocity;
+    // Sanity: if pre-state was already pathological, soft-reset rates.
+    if (!std::isfinite(preW) || std::abs(preTh1Dot) > 8.0
+        || std::abs(hs.collisionDiscontinuityTheta1Dot) > 6.0) {
+        boundary.theta1 = -term.stanceTheta1 * 0.85;
+        boundary.w = A.l1 * 0.98;
+        boundary.wDot = 0.0;
+        boundary.theta1Dot = hy / std::max(1e-3, boundary.w);
+        boundary.theta1Dot = clampf(boundary.theta1Dot, -3.0, 3.0);
+        hs.collisionDiscontinuityW = boundary.w - preW;
+        hs.collisionDiscontinuityTheta1Dot = boundary.theta1Dot - preTh1Dot;
+    }
     return hs;
 }
 
@@ -2539,8 +2602,21 @@ inline void tickSimulation(KlawLocomotionState& s) {
             (s.currentStep.stanceSide == LegSide::Left)
                 ? LegSide::Right
                 : LegSide::Left;
-        const double nextContactY =
+        // New contact = swing heel/ankle world Y at terminal (paper: heel
+        // strike places the new stance pivot). Reject outliers vs planned
+        // step-length advance (failed swing BVP can place ankle wildly).
+        const double plannedContactY =
             s.currentStep.contactWorldY + s.params.stepLength;
+        double nextContactY = plannedContactY;
+        if (std::isfinite(swBefore.ankleY)) {
+            const double err = std::abs(swBefore.ankleY - plannedContactY);
+            if (err < 0.35 * std::max(0.2, s.params.stepLength)) {
+                nextContactY = swBefore.ankleY;
+            } else {
+                // Blend toward measured ankle but stay near planned (ASSUMED).
+                nextContactY = 0.65 * plannedContactY + 0.35 * swBefore.ankleY;
+            }
+        }
 
         // Before HS transfer, map current stance terminal → swing IC for the
         // leg that will leave ground (becomes swing when roles flip).
@@ -2557,10 +2633,16 @@ inline void tickSimulation(KlawLocomotionState& s) {
             const double nextSwingTh3d = stBefore.theta1Dot * 0.3;
             const double nextSwingTh4d = 0.4;
 
+            // Preserve trunk continuous across HS (not reset).
+            const double keepTh2 = s.boundary.theta2;
+            const double keepTh2Dot = s.boundary.theta2Dot;
+
             HeelStrikeReport hs = transferHeelStrikeToStance(
                 s.anthro, swBefore, s.currentStep.terminals,
                 s.boundary, nextContactY
             );
+            s.boundary.theta2 = keepTh2;
+            s.boundary.theta2Dot = keepTh2Dot;
 
             // After HS, load swing IC for the new swing leg (previous stance).
             s.boundary.theta3 = nextSwingTh3;

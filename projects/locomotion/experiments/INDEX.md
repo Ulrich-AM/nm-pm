@@ -14,7 +14,7 @@ Detailed discussion lives in `DOCUMENTATION.html`. Durable IDs remain stable eve
 | LO-007 | Phase 6 | Implemented | Persistent fixed-step locomotion state with integrated root transport, independent unwrapped limb phases, bounded contact-transition timing correction, planted anchors, contact history, and no step-boundary reset |
 | LO-008 | Phase 7 | Implemented | Articulated heel/flat/forefoot/toe support that changes the ankle constraint, active support geometry, and root/pelvis comparison on top of LO-007 persistent state |
 | LO-009 | Phase 8 | Implemented | Dynamic stance/root transport comparing kinematic LO-008 baseline, rigid virtual-leg, and compliant telescoping models (`locomotion-v0.9.0`) |
-| LO-010 | Phase 9 | Implemented reconstruction | Published-method reconstruction of Bruderlin & Calvert (1989) KLAW as an external procedural baseline; not claimed as original NM-PM authorship of KLAW |
+| LO-010 | Phase 9 | Fidelity reconstruction (`v0.10.1`) | Published-method reconstruction of Bruderlin & Calvert (1989) KLAW; first `v0.10.0` pass preserved as too approximate; not claimed as original NM-PM authorship of KLAW |
 | LO-011 | Phase 10 | Planned | KLAW reconstruction validation and parameter/personality study |
 | LO-012 | Phase 11 | Planned | Continuous-state KLAW: remove step reset while preserving KLAW mechanics |
 | LO-013 | Phase 12 | Planned | Contact-driven / event-driven KLAW with modernized heel strike and support transfer |

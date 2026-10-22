@@ -48,6 +48,9 @@ jobs:
 
       - name: Package locomotion release
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item build/Release/locomotion_phase0.exe dist/Locomotion-LO001-Anatomy.exe
@@ -111,6 +114,63 @@ jobs:
           </head><body><p>Opening <a href="projects/locomotion/DOCUMENTATION.html">Locomotion documentation</a>...</p></body></html>
           "@ | Set-Content -Encoding UTF8 dist/DOCUMENTATION.html
 
+          # Historical release executables (from actual GitHub Release assets).
+          # Do NOT recursively copy a prior release's versions/ directory.
+          New-Item -ItemType Directory -Force dist/versions | Out-Null
+          $readmeLines = @("# Historical locomotion executables", "", "Copied from official GitHub Release ZIP assets (primary LO*.exe only).", "", "| Tag | Historical executable |", "| --- | --- |")
+          $releases = gh release list --limit 100 --json tagName,isDraft,isPrerelease |
+            ConvertFrom-Json |
+            Where-Object { $_.tagName -match '^locomotion-v\d+\.\d+\.\d+$' -and -not $_.isDraft -and -not $_.isPrerelease } |
+            Sort-Object {
+              if ($_.tagName -match 'locomotion-v(\d+)\.(\d+)\.(\d+)') {
+                [int]$Matches[1] * 1000000 + [int]$Matches[2] * 1000 + [int]$Matches[3]
+              } else { 0 }
+            }
+          $tmpRoot = Join-Path $env:RUNNER_TEMP "locomotion-historical"
+          New-Item -ItemType Directory -Force $tmpRoot | Out-Null
+          foreach ($rel in $releases) {
+            $tag = $rel.tagName
+            if ($tag -eq $env:RELEASE_TAG) { continue }
+            $tagDir = Join-Path dist/versions $tag
+            New-Item -ItemType Directory -Force $tagDir | Out-Null
+            $downloadDir = Join-Path $tmpRoot $tag
+            New-Item -ItemType Directory -Force $downloadDir | Out-Null
+            try {
+              gh release download $tag -p "locomotion-windows-x64.zip" -D $downloadDir --clobber
+            } catch {
+              Write-Host "Skipping $tag (no locomotion-windows-x64.zip): $_"
+              continue
+            }
+            $zipPath = Join-Path $downloadDir "locomotion-windows-x64.zip"
+            if (-not (Test-Path $zipPath)) {
+              Write-Host "Skipping $tag (zip missing after download)"
+              continue
+            }
+            $extractDir = Join-Path $downloadDir "extract"
+            New-Item -ItemType Directory -Force $extractDir | Out-Null
+            Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
+            # Highest-numbered Locomotion-LO*.exe at the ZIP root only (ignore nested versions/).
+            $exes = Get-ChildItem -Path $extractDir -Filter "Locomotion-LO*.exe" -File -ErrorAction SilentlyContinue
+            if (-not $exes) {
+              $exes = Get-ChildItem -Path $extractDir -Filter "Locomotion-LO*.exe" -File -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -notmatch '[\\/]versions[\\/]' }
+            }
+            if (-not $exes) {
+              Write-Host "Skipping $tag (no Locomotion-LO*.exe found)"
+              Remove-Item -Recurse -Force $downloadDir -ErrorAction SilentlyContinue
+              continue
+            }
+            $primary = $exes | Sort-Object {
+              if ($_.Name -match 'LO0*(\d+)') { [int]$Matches[1] } else { 0 }
+            } -Descending | Select-Object -First 1
+            Copy-Item $primary.FullName (Join-Path $tagDir $primary.Name) -Force
+            $readmeLines += "| `$tag` | $($primary.Name) |"
+            Remove-Item -Recurse -Force $downloadDir -ErrorAction SilentlyContinue
+            Write-Host "Packaged historical $tag -> $($primary.Name)"
+          }
+          $readmeLines -join "`n" | Set-Content -Encoding UTF8 dist/versions/README.md
+          Remove-Item -Recurse -Force $tmpRoot -ErrorAction SilentlyContinue
+
           Compress-Archive -Path dist/* -DestinationPath locomotion-windows-x64.zip -Force
 
       - name: Create GitHub Release
@@ -121,11 +181,11 @@ jobs:
         run: |
           if ($env:RELEASE_TAG -match 'locomotion-v0\.10\.') {
             $notes = @"
-          LO-010 Published-Method Reconstruction of KLAW research checkpoint.
+          LO-010 KLAW fidelity reconstruction research checkpoint.
 
-          This release packages the LO-010 / Phase 9 engineering reconstruction of Bruderlin & Calvert (1989) KLAW (Keyframe-Less Animation of Walking) together with preserved LO-001 through LO-009 harnesses. NM-PM does not claim authorship of KLAW. Natural walking is not claimed solved; continuous-state and contact-driven KLAW modifications remain future work.
+          This release packages the LO-010 / Phase 9 paper-literal reconstruction of Bruderlin & Calvert (1989) KLAW (Keyframe-Less Animation of Walking), including the v0.10.1 fidelity pass over the too-approximate v0.10.0 baseline. NM-PM does not claim authorship of KLAW. Natural walking is not claimed solved.
 
-          The ZIP preserves Phase 0-9 executables, living documentation, and derived reference-analysis files. The Phase 9 binary is packaged as Locomotion-LO010-KLAW-Reconstruction.exe.
+          The ZIP preserves Phase 0-9 executables, living documentation, derived reference-analysis files, and versions/<prior-tag>/ historical primary executables from prior official locomotion releases. The Phase 9 binary is packaged as Locomotion-LO010-KLAW-Reconstruction.exe.
           "@
           } else {
             $notes = @"

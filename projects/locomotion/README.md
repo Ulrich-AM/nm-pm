@@ -1,9 +1,9 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-010 KLAW published-method reconstruction  
-**Last release:** `locomotion-v0.9.0` (LO-009)  
-**Status:** Active; Phase 9 KLAW baseline on `main`, `locomotion-v0.10.0` deferred to lead inspection
+**Current checkpoint:** LO-010 KLAW fidelity reconstruction (`locomotion-v0.10.1`)  
+**Last release:** `locomotion-v0.10.0` (first KLAW pass; superseded by fidelity pass)  
+**Status:** Active; Phase 9 fidelity pass on `main`
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
