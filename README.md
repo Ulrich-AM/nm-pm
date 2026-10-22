@@ -8,7 +8,7 @@ Each study is intended to remain useful and understandable independently. Studie
 
 ### Active
 
-- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. LO-008 now adds articulated heel/flat/forefoot/toe support on top of the LO-007 persistent-state runtime. v0.8.0 is a visual-QA checkpoint before LO-009 dynamic stance/root transport.
+- [Locomotion](projects/locomotion/) - active study for anatomically constrained procedural human locomotion. After LO-009 (`locomotion-v0.9.0`), the study pivots at LO-010 to a published-method reconstruction of Bruderlin & Calvert (1989) KLAW as an external baseline. NM-PM does not claim authorship of KLAW.
 
 ### Reference
 

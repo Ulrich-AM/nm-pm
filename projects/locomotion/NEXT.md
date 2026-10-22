@@ -1,90 +1,46 @@
 # Locomotion - Next Implementation Boundary
 
-**Current implementation checkpoint:** LO-008 articulated stance foot  
-**Target release:** `locomotion-v0.8.0`  
-**Current research checkpoint:** Phase 7 implemented; visual QA pending  
-**Next experiment if accepted:** LO-009 - Dynamic Stance / Root Transport
+**Current implementation checkpoint:** LO-010 KLAW published-method reconstruction  
+**Last released milestone:** `locomotion-v0.9.0` (LO-009)  
+**Current research checkpoint:** Phase 9 KLAW reconstruction on `main` (release deferred to lead inspection)  
+**Do not begin yet:** LO-011 KLAW validation/personality study; continuous-state KLAW (LO-012)
 
 Read first:
 
 - `DOCUMENTATION.html`
 - `ARCHITECTURE.md`
-- `experiments/LO-007.md`
-- `experiments/LO-008.md`
+- `experiments/LO-010.md`
+- `reference/KLAW_RECONSTRUCTION.md`
+
+## Research pivot
+
+LO-001 through LO-009 remain valuable historical evidence of an independent bottom-up exploration that repeatedly rediscovered KLAW-like mechanisms while still producing march-like gait.
+
+LO-010 reconstructs the published **Bruderlin & Calvert (1989)** KLAW methodology as an explicit external baseline. NM-PM does not claim authorship of KLAW.
+
+## Suggested roadmap after LO-010
+
+```text
+LO-010  published KLAW reconstruction baseline          (this checkpoint)
+LO-011  KLAW reconstruction validation / personality
+LO-012  continuous-state KLAW (remove step reset)
+LO-013  contact-driven / event-driven KLAW
+LO-014  adaptive swing and foothold control
+LO-015  balance / disturbance / recovery
+LO-016  continuous walk-run transition
+LO-017+ terrain, stairs, turning, obstacles, body variation
+```
 
 ## Current gate
 
-Do not begin LO-009 until the Phase 7 release has been visually inspected.
+Do not create `locomotion-v0.10.0` until the project lead inspects the Phase 9 reconstruction.
 
-The LO-008 harness should be checked for:
-
-- visible heel -> flat -> forefoot / toe progression;
-- support-pivot continuity;
-- no obvious foot teleport or skating;
-- sensible foot orientation in side view;
-- support polygon migration;
-- flat versus articulated comparison;
-- root versus displayed-pelvis behavior;
-- ankle behavior at contact-mode changes.
-
-If visual QA exposes a blocking LO-008 problem, fix and preserve it as part of Phase 7 before moving on.
-
-## What LO-008 established numerically
-
-Phase 7 preserves the LO-007 fixed-step continuous state while adding articulated stance-foot support.
-
-The rocker:
-
-- uses LO-001 heel / forefoot / toe geometry;
-- changes ankle constraints before the LO-003 solve;
-- feeds active contact regions into LO-002 support analysis;
-- preserves root velocity and unwrapped limb phase through rocker transitions;
-- retains unchanged anatomical guardrails;
-- preserves deterministic replay;
-- compares LO-007 flat-foot transport against the articulated candidate.
-
-## LO-009 research question
-
-> What is the smallest locomotion-specific stance model that can make the visible body move continuously over support instead of relying mainly on kinematic pelvis placement?
-
-LO-009 should compare a small number of defensible stance/root models rather than immediately building a full rigid-body human.
-
-Candidate families may include:
-
-- inverted-pendulum-like stance;
-- telescoping-leg stance;
-- compliant / spring-like stance.
-
-The experiment should determine which minimum model best improves continuous body passage while preserving the Phase 7 articulated foot and LO-007 persistent state.
-
-## Preserve
-
-Do not remove or bypass:
-
-- LO-001 anatomy and joint envelopes;
-- LO-002 support / COM measurements;
-- LO-003 constrained IK;
-- LO-007 persistent fixed-step state;
-- LO-008 articulated foot and active support geometry.
-
-## Still deferred
-
-Do not begin yet:
-
-- impact impulses and physical handoff response, LO-010;
-- full functional swing, LO-011;
-- pelvis/root flow optimization, LO-012;
-- reactive whole body, LO-013;
-- start/stop/acceleration, LO-014;
-- dynamic corrective balance, LO-015;
-- running / flight transition, LO-016;
-- terrain, stairs, turning, and generalized contacts.
+Do not begin continuous-KLAW or LO-011 modifications in this checkpoint.
 
 ## Development policy
 
 - C++20, CMake, raylib 6.2.
-- Fixed-step deterministic simulation.
-- Preserve old harnesses.
-- Do not widen anatomical guardrails.
+- Preserve LO-001 through LO-009 harnesses.
+- Document reconstruction ambiguities in `KLAW_RECONSTRUCTION.md`.
+- Do not silently invent missing KLAW details.
 - Numerical and visual validation are both required.
-- Keep failed approaches in the research history.

@@ -1,11 +1,13 @@
 # Anatomically Constrained Procedural Human Locomotion
 
 **NM-PM study:** 03  
-**Current checkpoint:** LO-008 articulated stance foot  
-**Milestone:** `locomotion-v0.8.0` visual-QA checkpoint  
-**Status:** Active; LO-008 implemented, LO-009 follows after visual acceptance
+**Current checkpoint:** LO-010 KLAW published-method reconstruction  
+**Last release:** `locomotion-v0.9.0` (LO-009)  
+**Status:** Active; Phase 9 KLAW baseline on `main`, `locomotion-v0.10.0` deferred to lead inspection
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
+
+**Research pivot:** LO-001 through LO-009 were an independent bottom-up exploration. Visual evaluation remained march-like. Literature review showed substantial overlap with **KLAW** (Bruderlin & Calvert, 1989). LO-010 reconstructs that published methodology as an explicit external baseline. NM-PM does **not** claim authorship of KLAW. See `experiments/LO-010.md` and `reference/KLAW_RECONSTRUCTION.md`.
 
 LO-006 v0.6.1 remains the final checkpoint of the original step-transaction-centered controller. It executes a steady forward walking family from desired speed and uses supplied reference motion only as a measurement envelope.
 

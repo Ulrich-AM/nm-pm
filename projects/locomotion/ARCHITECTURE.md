@@ -1,8 +1,8 @@
 # Locomotion Architecture
 
-**Architecture checkpoint:** LO-008 articulated stance foot  
+**Architecture checkpoint:** LO-010 KLAW published-method reconstruction  
 **Date:** 2026-10-22  
-**Status:** Active study; Phase 7 adds articulated support geometry on top of LO-007 persistent state; LO-009 dynamic stance/root transport follows after visual QA
+**Status:** Active study; LO-001–LO-009 preserved as historical lineage; Phase 9 reconstructs Bruderlin & Calvert (1989) KLAW as an external baseline (not claimed as original NM-PM authorship of KLAW)
 
 ## Current boundary
 

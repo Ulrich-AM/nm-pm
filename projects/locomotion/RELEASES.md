@@ -227,3 +227,13 @@ LO-008 adds:
 The release remains a research checkpoint rather than a claim of solved natural walking.
 
 Touchdown is still phase-predicted, swing remains temporary scaffolding, and dynamic stance/root transport is deferred to LO-009. The release is intended for direct visual QA before the study proceeds.
+
+## v0.9.0 - LO-009 Dynamic Stance / Support-Driven Root Flow
+
+Packages Phase 8 A/B/C stance comparison (kinematic LO-008, rigid virtual-leg, compliant telescoping) with corrected rocker pivot velocity, rigid length constraint, authoritative root/pelvis synchronization, and expanded diagnostics. Natural walking is not claimed solved.
+
+## v0.10.0 - LO-010 KLAW Reconstruction (pending)
+
+Intended package for Phase 9 published-method reconstruction of Bruderlin & Calvert (1989) KLAW as `Locomotion-LO010-KLAW-Reconstruction.exe`. Release is deferred until the project lead inspects the reconstruction. The workflow is prepared; `RELEASE_REQUEST` is not advanced yet.
+
+NM-PM does not claim authorship of KLAW.

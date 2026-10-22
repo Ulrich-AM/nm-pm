@@ -12,15 +12,15 @@ Detailed discussion lives in `DOCUMENTATION.html`. Durable IDs remain stable eve
 | LO-006 | Phase 5 | Implemented | Continuous desired-speed walking with derived step length, cadence, support timing, pelvis/hip coordination, trunk counter-rotation, and stateful contralateral arm swing |
 | LO-006 Flow Audit | Post-Phase 5 | Documented | Visual/research audit showing that a valid repeated kinematic step-chain can remain march-like; records the shift toward continuous body transport, articulated contact, and stateful phase dynamics |
 | LO-007 | Phase 6 | Implemented | Persistent fixed-step locomotion state with integrated root transport, independent unwrapped limb phases, bounded contact-transition timing correction, planted anchors, contact history, and no step-boundary reset |
-| LO-008 | Phase 7 | Implemented candidate | Articulated heel/flat/forefoot/toe support that changes the ankle constraint, active support geometry, and root/pelvis comparison on top of LO-007 persistent state |
-| LO-009 | Phase 8 | Planned | Dynamic stance/root transport using the smallest useful locomotion-specific model |
-| LO-010 | Phase 9 | Planned | Contact handoff, weight acceptance, touchdown impact, and state correction |
-| LO-011 | Phase 10 | Planned | Functional swing-leg phases: initiation, clearance, transport, terminal extension, and contact preparation |
-| LO-012 | Phase 11 | Planned | Pelvis/root flow: path, nonuniform timing, velocity/acceleration/jerk, and reference comparison |
-| LO-013 | Phase 12 | Planned | Reactive thorax, arms, shoulders, and head driven by root/stance dynamics rather than one leg signal |
-| LO-014 | Phase 13 | Planned | Start, stop, acceleration, and deceleration while preserving continuous locomotion state |
-| LO-015 | Phase 14 | Planned | Dynamic balance and corrective foot placement using support geometry and velocity-aware state |
-| LO-016 | Phase 15 | Planned | Continuous walk/run transition including loss of double support and emergence of flight |
-| LO-017+ | Phase 16+ | Planned | Terrain, slopes, stairs, footholds, obstacles, recovery, turning/lateral motion, body variation, and generalized whole-body contacts |
+| LO-008 | Phase 7 | Implemented | Articulated heel/flat/forefoot/toe support that changes the ankle constraint, active support geometry, and root/pelvis comparison on top of LO-007 persistent state |
+| LO-009 | Phase 8 | Implemented | Dynamic stance/root transport comparing kinematic LO-008 baseline, rigid virtual-leg, and compliant telescoping models (`locomotion-v0.9.0`) |
+| LO-010 | Phase 9 | Implemented reconstruction | Published-method reconstruction of Bruderlin & Calvert (1989) KLAW as an external procedural baseline; not claimed as original NM-PM authorship of KLAW |
+| LO-011 | Phase 10 | Planned | KLAW reconstruction validation and parameter/personality study |
+| LO-012 | Phase 11 | Planned | Continuous-state KLAW: remove step reset while preserving KLAW mechanics |
+| LO-013 | Phase 12 | Planned | Contact-driven / event-driven KLAW with modernized heel strike and support transfer |
+| LO-014 | Phase 13 | Planned | Adaptive swing and foothold control |
+| LO-015 | Phase 14 | Planned | Balance, disturbance, and recovery |
+| LO-016 | Phase 15 | Planned | Continuous walk-run transition |
+| LO-017+ | Phase 16+ | Planned | Terrain, stairs, turning, obstacles, body variation, and generalized contacts |
 
-Failed and superseded experiments will remain in this registry rather than being deleted.
+Failed and superseded experiments remain in this registry rather than being deleted.
