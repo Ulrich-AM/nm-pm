@@ -203,3 +203,27 @@ Release and touchdown also remain phase-predicted rather than physical collision
 These limitations are preserved because they define the questions for LO-008 articulated stance-foot mechanics, LO-009 dynamic root transport, and LO-010 contact handoff/impact.
 
 LO-007 does not claim that natural walking is solved. It establishes that root state, limb timing, contact state, and arm response can survive support transitions without a global `COMPLETE -> RESET` controller.
+
+
+## v0.8.0 - LO-008 Articulated Stance Foot
+
+This milestone packages LO-007 persistent locomotion state together with the first articulated stance-foot mechanics.
+
+LO-008 adds:
+
+- AIRBORNE / HEEL / FLAT / FOREFOOT / TOE foot modes;
+- sagittal heel-to-toe rocker progression;
+- active ground pivots derived from LO-001 foot geometry;
+- ankle targets derived from the rocker before the LO-003 leg solve;
+- articulated heel, forefoot, and toe markers;
+- active support patches that migrate and narrow through stance;
+- LO-002 support analysis driven by the active contact regions;
+- conservative root-follow comparison against the LO-007 flat-foot baseline;
+- anatomy-preserving fallback that reduces root-follow or foot pitch instead of widening joint guardrails;
+- twenty-nine Phase 7 self-tests;
+- eight preserved CTest suites across LO-001 through LO-008;
+- a native Phase 7 harness with FLAT versus ARTICULATED comparison.
+
+The release remains a research checkpoint rather than a claim of solved natural walking.
+
+Touchdown is still phase-predicted, swing remains temporary scaffolding, and dynamic stance/root transport is deferred to LO-009. The release is intended for direct visual QA before the study proceeds.
