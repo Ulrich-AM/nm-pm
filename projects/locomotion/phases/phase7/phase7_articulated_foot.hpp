@@ -1128,7 +1128,7 @@ inline std::vector<SelfTestResult> runSelfTests() {
         add("toe_support_narrows", toePatch);
         add("active_pivot_remains_on_ground", pivotGrounded);
         add("support_polygon_matches_active_geometry",
-            s.base.analysis.polygon.size() >= 3 || true);
+            s.base.analysis.polygon.size() >= 3);
     }
 
     // Continuity
