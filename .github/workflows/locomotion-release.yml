@@ -58,6 +58,7 @@ jobs:
           Copy-Item build/Release/locomotion_phase5.exe dist/Locomotion-LO006-VelocityWalk.exe
           Copy-Item build/Release/locomotion_phase6.exe dist/Locomotion-LO007-ContinuousState.exe
           Copy-Item build/Release/locomotion_phase7.exe dist/Locomotion-LO008-ArticulatedFoot.exe
+          Copy-Item build/Release/locomotion_phase8.exe dist/Locomotion-LO009-DynamicStance.exe
           Copy-Item README.md dist/README.md
           Copy-Item ARCHITECTURE.md dist/ARCHITECTURE.md
           Copy-Item RELEASES.md dist/RELEASES.md
@@ -79,6 +80,9 @@ jobs:
           }
           if (Test-Path experiments/LO-008.md) {
             Copy-Item experiments/LO-008.md dist/experiments/LO-008.md
+          }
+          if (Test-Path experiments/LO-009.md) {
+            Copy-Item experiments/LO-009.md dist/experiments/LO-009.md
           }
           if (Test-Path NEXT.md) {
             Copy-Item NEXT.md dist/NEXT.md
@@ -112,11 +116,11 @@ jobs:
           $notes = @"
           NM-PM locomotion checkpoint for Anatomically Constrained Procedural Human Locomotion.
 
-          This release packages the articulated stance-foot experiment (LO-008 / Phase 7) together with the preserved LO-001 through LO-007 harnesses.
+          This release packages the dynamic stance / support-driven root-flow experiment (LO-009 / Phase 8) together with the preserved LO-001 through LO-008 harnesses.
 
-          LO-008 extends the LO-007 continuous locomotion state with sagittal heel/flat/forefoot/toe rocker mechanics that change the ankle contact constraint before the LO-003 leg solve. Active support patches drive LO-002 analysis. Natural walking is not claimed solved; dynamic stance transport remains deferred to LO-009.
+          LO-009 compares kinematic LO-008 baseline against rigid virtual-leg and compliant telescoping stance models that integrate root acceleration from support mechanics. Natural walking is not claimed solved; impact handoff remains deferred to LO-010.
 
-          The ZIP preserves Phase 0-7 executables, living documentation, and derived reference-analysis files. The Phase 7 binary is packaged as Locomotion-LO008-ArticulatedFoot.exe.
+          The ZIP preserves Phase 0-8 executables, living documentation, and derived reference-analysis files. The Phase 8 binary is packaged as Locomotion-LO009-DynamicStance.exe.
           "@
 
           if (gh release view "$env:RELEASE_TAG" *> $null) {
