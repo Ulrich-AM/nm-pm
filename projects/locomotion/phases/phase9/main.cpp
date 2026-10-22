@@ -191,22 +191,27 @@ void DrawBody(const ReferenceBody& b) {
 
 void DrawKlawOverlays(const HarnessState& h) {
     const auto& p = h.klaw.pose;
+    const auto& paper = p.paper;
     if (h.showVirtualLeg) {
-        const auto stanceHip = (p.stanceSide == locomotion2::LegSide::Left)
-            ? p.body.joint[locomotion::jointIndex(JointId::LeftHip)]
-            : p.body.joint[locomotion::jointIndex(JointId::RightHip)];
+        // Virtual telescopic stance (dynamic endpoints) vs anatomical overlay.
+        DrawLine3D(rv(paper.virtualHip), rv(paper.virtualContact), Color{30, 30, 32, 255});
+        DrawSphere(rv(paper.virtualContact), 0.018f, C_MARK);
+        DrawLine3D(rv(paper.virtualHip), rv(paper.anatomicalKnee), Color{70, 70, 72, 220});
         const auto stanceAnkle = (p.stanceSide == locomotion2::LegSide::Left)
             ? p.body.joint[locomotion::jointIndex(JointId::LeftAnkle)]
             : p.body.joint[locomotion::jointIndex(JointId::RightAnkle)];
-        DrawLine3D(rv(stanceHip), rv(stanceAnkle), Color{30, 30, 32, 255});
-        DrawSphere(rv(stanceAnkle), 0.02f, C_MARK);
+        DrawLine3D(rv(paper.anatomicalKnee), rv(stanceAnkle), Color{70, 70, 72, 220});
     }
     if (h.showFoot) {
+        // Foot pivots from geometric rocker (heel / meta / toe).
+        DrawSphere(rv(paper.heelPivot), 0.014f, Color{20, 20, 22, 255});
+        DrawSphere(rv(paper.metaPivot), 0.014f, Color{50, 50, 52, 255});
+        DrawSphere(rv(paper.toePivot), 0.014f, Color{80, 80, 82, 255});
         for (auto id : {
                  JointId::LeftHeel, JointId::LeftToeBase, JointId::LeftToeTip,
                  JointId::RightHeel, JointId::RightToeBase, JointId::RightToeTip
              }) {
-            DrawSphere(rv(p.body.joint[locomotion::jointIndex(id)]), 0.016f, C_MARK);
+            DrawSphere(rv(p.body.joint[locomotion::jointIndex(id)]), 0.012f, C_MARK);
         }
     }
     if (h.showPelvisDet) {
@@ -223,9 +228,9 @@ void DrawKlawOverlays(const HarnessState& h) {
 void DrawSidebar(HarnessState& h, const ReferenceBody& reference, Rectangle r) {
     Panel(r, C_PANEL, C_LINE2);
     float y = r.y;
-    GroupHeader({r.x, y, r.width, 23}, "LO-010 / KLAW89 RECON");
+    GroupHeader({r.x, y, r.width, 23}, "LO-010 / KLAW89 FIDELITY");
     y += 28;
-    Text("published-method reconstruction", r.x + 9, y, 10, C_DIM);
+    Text("fidelity reconstruction pass", r.x + 9, y, 10, C_DIM);
     y += 20;
 
     GroupHeader({r.x + 8, y, r.width - 16, 22}, "COMPARE");
@@ -328,28 +333,37 @@ void DrawDebug(const HarnessState& h, Rectangle r) {
         {"support", locomotion9::supportStateName(d.support)},
         {"stance/swing", std::string(stance) + "/" + swing},
         {"foot", locomotion9::footPeriodName(d.stanceFoot)},
+        {"subphase", d.paper.subphaseLabel ? d.paper.subphaseLabel : "?"},
         {"step#", std::to_string(d.stepCount)},
         {"phase", Fmt(d.stepPhase01, 2)},
         {"v/sl/sf", Fmt(d.velocity, 2) + "/" + Fmt(d.stepLength, 2) + "/"
             + Fmt(d.stepFrequency * 60.0, 0)},
         {"w/Fw", Fmt(d.stanceVirtualLength, 3) + "/" + Fmt(d.stanceForce, 0)},
+        {"θ1..3", Fmt(d.theta1, 2) + "/" + Fmt(d.theta2, 2) + "/" + Fmt(d.theta3, 2)},
+        {"θ4..6", Fmt(d.theta4, 2) + "/" + Fmt(d.theta5, 2) + "/" + Fmt(d.theta6, 2)},
+        {"virt/anat", Fmt(d.paper.virtualW, 3) + "/"
+            + Fmt(d.paper.anatomicalKneeFlex, 2)},
         {"BVP", std::to_string(d.boundaryIterations) + (d.boundaryConverged ? " ok" : " …")},
         {"swingErr", Fmt(d.swingTerminalAngleError, 3)},
         {"pelvis r/l/x", Fmt(d.pelvicRotationDeg, 1) + "/" + Fmt(d.pelvicListDeg, 1)
             + "/" + Fmt(d.lateralDisplacement, 3)},
+        {"cont/coll", Fmt(d.continuityPoseDelta, 3) + "/"
+            + Fmt(d.collisionDiscontinuity, 3)},
         {"HS/TO", std::string(d.heelStrikeEvent ? "HS " : "")
             + (d.toeOffEvent ? "TO" : "")},
+        {"C/D", Fmt(d.clearanceCOverD, 2)},
         {"tests", std::to_string(h.testsPassed) + "/" + std::to_string(h.testsTotal)},
     };
-    for (int i = 0; i < 12; ++i) {
+    const int nRows = (int)(sizeof(rows) / sizeof(rows[0]));
+    for (int i = 0; i < nRows; ++i) {
         const int col = i / 6, row = i % 6;
         const float x = r.x + 10 + col * 330.0f;
-        const float yy = r.y + 30 + row * 18;
+        const float yy = r.y + 28 + row * 18;
         Text(rows[i].k, x, yy, 9, C_DIM);
-        Text(rows[i].v, x + 90, yy, 9, C_TEXT);
+        Text(rows[i].v, x + 88, yy, 9, C_TEXT);
     }
     Text(
-        "Bruderlin & Calvert 1989 reconstruction — not claimed exact original KLAW",
+        "FIDELITY PASS — Bruderlin & Calvert 1989 recon (not exact original KLAW)",
         r.x + 10, r.y + r.height - 22, 10, C_DIM
     );
 }
