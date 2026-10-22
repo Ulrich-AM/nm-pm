@@ -1,9 +1,11 @@
 # Anatomically Constrained Procedural Human Locomotion
 
+> **ACTIVE DEVELOPMENT MOVED:** New locomotion work now belongs in https://github.com/Ulrich-AM/locomotion. This NM-PM study is retained as historical research evidence and release history. Do not continue implementation here unless explicitly requested.
+
 **NM-PM study:** 03  
 **Current checkpoint:** LO-010 KLAW fidelity reconstruction (`locomotion-v0.10.1`)  
 **Last release:** `locomotion-v0.10.0` (first KLAW pass; superseded by fidelity pass)  
-**Status:** Active; Phase 9 fidelity pass on `main`
+**Status:** Historical / archived implementation line; latest KLAW reference migrated to `Ulrich-AM/locomotion`
 
 This study investigates how human-like locomotion can be generated from anatomy, support, momentum, terrain, foothold choice, and movement intent rather than primarily replaying authored walk and run clips.
 
